@@ -5,7 +5,11 @@ import jerseyBackImg from "../assets/jersey-back.jpg";
 import logoImg from "../assets/lordz-logo.png";
 import { Crosshair, Shield, Zap, Target } from "lucide-react";
 
-export const PlayersSection = () => {
+interface PlayersSectionProps {
+  showHeader?: boolean;
+}
+
+export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case "IGL":
@@ -20,16 +24,21 @@ export const PlayersSection = () => {
   };
 
   return (
-    <section id="players" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden">
+    <section
+      id="players"
+      className={`relative ${showHeader ? "py-24" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden`}
+    >
       {/* Background Ambience */}
       <div className="absolute right-0 top-1/4 w-96 h-96 bg-[#FFBE32]/6 blur-[130px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto">
-        <SectionHeading
-          badge="PRO ROSTER"
-          title="MEET THE PLAYERS"
-          subtitle="The championship athletes representing Lordz Esports across premier national mobile stages."
-        />
+        {showHeader && (
+          <SectionHeading
+            badge="PRO ROSTER"
+            title="MEET THE PLAYERS"
+            subtitle="The championship athletes representing Lordz Esports across premier national mobile stages."
+          />
+        )}
 
         {/* Players Sports Card Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

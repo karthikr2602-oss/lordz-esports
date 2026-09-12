@@ -7,7 +7,10 @@ export interface MediaItem {
   date: string;
   game: string;
   youtubeId?: string;
+  thumbnail?: string;
   tag: string;
+  description?: string;
+  featured?: boolean;
 }
 
 export const mediaData: MediaItem[] = [
@@ -21,6 +24,8 @@ export const mediaData: MediaItem[] = [
     game: "FREE FIRE MAX",
     youtubeId: "dQw4w9WgXcQ",
     tag: "FEATURED",
+    featured: true,
+    description: "The grand cinematic reveal of Flame of Glory Season 2, featuring all 32 qualified squads.",
   },
   {
     id: "media-hl-1",
@@ -32,6 +37,8 @@ export const mediaData: MediaItem[] = [
     game: "FREE FIRE MAX",
     youtubeId: "dQw4w9WgXcQ",
     tag: "CLUTCH",
+    featured: true,
+    description: "Insane 1v4 spray transfer in the final zone by team captain Beast to seal the championship booyah.",
   },
   {
     id: "media-hl-2",
@@ -43,6 +50,21 @@ export const mediaData: MediaItem[] = [
     game: "FREE FIRE MAX",
     youtubeId: "dQw4w9WgXcQ",
     tag: "TOP PLAY",
+    featured: true,
+    description: "Flawless tactical smoke push and coordinated flank eliminating the tournament favorites.",
+  },
+  {
+    id: "media-hl-3",
+    type: "HIGHLIGHTS",
+    title: "SHADOW 7-KILL RUSH IN BERMUDA QUALIFIERS",
+    duration: "03:12",
+    views: "52K VIEWS",
+    date: "4 DAYS AGO",
+    game: "FREE FIRE MAX",
+    youtubeId: "dQw4w9WgXcQ",
+    tag: "AGGRESSION",
+    featured: true,
+    description: "Aggressive entry fragging clinic across Clock Tower and Factory.",
   },
   {
     id: "media-sh-1",
@@ -74,3 +96,15 @@ export const mediaData: MediaItem[] = [
     tag: "COMMUNITY",
   },
 ];
+
+/**
+ * Service helper to fetch featured video highlights for the Home page.
+ * Designed so it can be swapped for a backend/API call in the future without changing UI components.
+ */
+export const getFeaturedHighlights = (): MediaItem[] => {
+  const highlights = mediaData.filter(
+    (item) => item.type === "HIGHLIGHTS" || item.featured
+  );
+  // Return curated 3 videos for desktop presentation
+  return highlights.slice(0, 3);
+};

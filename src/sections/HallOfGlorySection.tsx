@@ -3,18 +3,27 @@ import { SectionHeading } from "../components/common/SectionHeading";
 import { hallOfGloryData } from "../data/stats";
 import { Trophy, Award, Calendar } from "lucide-react";
 
-export const HallOfGlorySection = () => {
+interface HallOfGlorySectionProps {
+  showHeader?: boolean;
+}
+
+export const HallOfGlorySection = ({ showHeader = true }: HallOfGlorySectionProps) => {
   return (
-    <section id="hall-of-glory" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden">
+    <section
+      id="hall-of-glory"
+      className={`relative ${showHeader ? "py-24" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden`}
+    >
       {/* Glow Ambience */}
       <div className="absolute top-1/2 left-0 w-80 h-80 bg-[#FFBE32]/6 blur-[130px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto">
-        <SectionHeading
-          badge="TROPHY ROOM"
-          title="HALL OF GLORY"
-          subtitle="Honoring the milestone victories, tournament championships, and historic MVPs in Lordz history."
-        />
+        {showHeader && (
+          <SectionHeading
+            badge="TROPHY ROOM"
+            title="HALL OF GLORY"
+            subtitle="Honoring the milestone victories, tournament championships, and historic MVPs in Lordz history."
+          />
+        )}
 
         {/* Timeline / Horizontal Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

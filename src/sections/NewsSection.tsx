@@ -5,17 +5,26 @@ import { Calendar, Clock, ArrowRight } from "lucide-react";
 
 interface NewsSectionProps {
   onSelectArticle?: (article: NewsArticle) => void;
+  showHeader?: boolean;
 }
 
-export const NewsSection = ({ onSelectArticle }: NewsSectionProps) => {
+export const NewsSection = ({
+  onSelectArticle,
+  showHeader = true,
+}: NewsSectionProps) => {
   return (
-    <section id="news" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#070709]">
+    <section
+      id="news"
+      className={`relative ${showHeader ? "py-24" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#070709]`}
+    >
       <div className="max-w-7xl mx-auto">
-        <SectionHeading
-          badge="DISPATCHES & REPORTS"
-          title="LATEST FROM LORDZ"
-          subtitle="Roster movements, tournament announcements, operational updates, and competitive debriefs."
-        />
+        {showHeader && (
+          <SectionHeading
+            badge="DISPATCHES & REPORTS"
+            title="LATEST FROM LORDZ"
+            subtitle="Roster movements, tournament announcements, operational updates, and competitive debriefs."
+          />
+        )}
 
         {/* Editorial News Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

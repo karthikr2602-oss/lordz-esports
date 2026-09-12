@@ -7,11 +7,15 @@ import logoImg from "../assets/lordz-logo.png";
 
 interface MatchCenterSectionProps {
   onWatchMatch: (match: Match) => void;
+  showHeader?: boolean;
 }
 
 type TabType = "ALL" | "LIVE" | "UPCOMING" | "RESULT";
 
-export const MatchCenterSection = ({ onWatchMatch }: MatchCenterSectionProps) => {
+export const MatchCenterSection = ({
+  onWatchMatch,
+  showHeader = true,
+}: MatchCenterSectionProps) => {
   const [activeTab, setActiveTab] = useState<TabType>("ALL");
 
   const filteredMatches = matchesData.filter((m) => {
@@ -20,13 +24,18 @@ export const MatchCenterSection = ({ onWatchMatch }: MatchCenterSectionProps) =>
   });
 
   return (
-    <section id="matches" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#050505]">
+    <section
+      id="matches"
+      className={`relative ${showHeader ? "py-24" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#050505]`}
+    >
       <div className="max-w-7xl mx-auto">
-        <SectionHeading
-          badge="FIXTURES & RESULTS"
-          title="MATCH CENTER"
-          subtitle="Real-time tournament broadcasts, upcoming scheduled scrims, and verified match results."
-        />
+        {showHeader && (
+          <SectionHeading
+            badge="FIXTURES & RESULTS"
+            title="MATCH CENTER"
+            subtitle="Real-time tournament broadcasts, upcoming scheduled scrims, and verified match results."
+          />
+        )}
 
         {/* Filter Tabs */}
         <div className="flex justify-center mb-10">

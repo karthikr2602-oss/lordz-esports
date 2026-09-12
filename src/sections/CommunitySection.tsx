@@ -17,7 +17,11 @@ const YoutubeIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export const CommunitySection = () => {
+interface CommunitySectionProps {
+  showHeader?: boolean;
+}
+
+export const CommunitySection = ({ showHeader = true }: CommunitySectionProps) => {
   const channels = [
     {
       name: "DISCORD",
@@ -58,40 +62,42 @@ export const CommunitySection = () => {
   ];
 
   return (
-    <section id="community" className="relative py-28 px-4 sm:px-6 lg:px-8 bg-[#070709] overflow-hidden">
+    <section id="community" className={`relative ${showHeader ? "py-28" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#070709] overflow-hidden`}>
       {/* Background Gold Wave Grid */}
       <div className="absolute inset-0 bg-esports-grid opacity-20 pointer-events-none" />
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-[#FFBE32]/8 blur-[160px] pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-xs font-heading font-bold uppercase tracking-[0.2em] text-[#FFBE32] mb-3"
-          >
-            INDIAN GAMING GUILD
-          </motion.div>
+        {showHeader && (
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-xs font-heading font-bold uppercase tracking-[0.2em] text-[#FFBE32] mb-3"
+            >
+              INDIAN GAMING GUILD
+            </motion.div>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="font-display text-4xl sm:text-6xl md:text-7xl uppercase tracking-wider text-white font-bold"
-          >
-            JOIN THE LORDZ <span className="text-gold-gradient">COMMUNITY</span>
-          </motion.h2>
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="font-display text-4xl sm:text-6xl md:text-7xl uppercase tracking-wider text-white font-bold"
+            >
+              JOIN THE LORDZ <span className="text-gold-gradient">COMMUNITY</span>
+            </motion.h2>
 
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-4 text-base sm:text-lg text-gray-300 font-body"
-          >
-            "Play together. Compete together. Grow together." Connect with vetted clan captains, participate in automated scrim lobbies, and build your competitive reputation.
-          </motion.p>
-        </div>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mt-4 text-base sm:text-lg text-gray-300 font-body"
+            >
+              "Play together. Compete together. Grow together." Connect with vetted clan captains, participate in automated scrim lobbies, and build your competitive reputation.
+            </motion.p>
+          </div>
+        )}
 
         {/* Channels Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

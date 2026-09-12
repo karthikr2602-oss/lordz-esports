@@ -2,7 +2,11 @@ import { motion } from "framer-motion";
 import { TemplePattern } from "../components/common/TemplePattern";
 import logoImg from "../assets/lordz-logo.png";
 
-export const AboutSection = () => {
+interface AboutSectionProps {
+  showHeader?: boolean;
+}
+
+export const AboutSection = ({ showHeader = true }: AboutSectionProps) => {
   const manifesto = [
     { text: "WE DON'T JUST PLAY.", gold: false },
     { text: "WE COMPETE.", gold: true },
@@ -10,7 +14,10 @@ export const AboutSection = () => {
   ];
 
   return (
-    <section id="about" className="relative py-28 px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden">
+    <section
+      id="about"
+      className={`relative ${showHeader ? "py-28" : "py-14 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden`}
+    >
       {/* Background Architectural Gopuram Pattern */}
       <TemplePattern className="opacity-[0.05] scale-150" />
 
@@ -18,30 +25,33 @@ export const AboutSection = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#FFBE32]/6 blur-[140px] pointer-events-none" />
 
       <div className="relative max-w-5xl mx-auto text-center z-10">
-        
-        {/* Crest */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="mx-auto mb-6 flex h-20 w-20 items-center justify-center"
-        >
-          <img
-            src={logoImg}
-            alt="Lordz LE"
-            className="h-full w-full object-contain drop-shadow-[0_0_20px_rgba(255,190,50,0.35)]"
-          />
-        </motion.div>
+        {showHeader && (
+          <>
+            {/* Crest */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="mx-auto mb-6 flex h-20 w-20 items-center justify-center"
+            >
+              <img
+                src={logoImg}
+                alt="Lordz LE"
+                className="h-full w-full object-contain drop-shadow-[0_0_20px_rgba(255,190,50,0.35)]"
+              />
+            </motion.div>
 
-        {/* Section Pre-title */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-xs font-heading font-bold uppercase tracking-[0.25em] text-[#FFBE32] mb-6"
-        >
-          ORGANIZATION MANIFESTO
-        </motion.div>
+            {/* Section Pre-title */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-xs font-heading font-bold uppercase tracking-[0.25em] text-[#FFBE32] mb-6"
+            >
+              ORGANIZATION MANIFESTO
+            </motion.div>
+          </>
+        )}
 
         <h2 className="sr-only">About Lordz Esports</h2>
 

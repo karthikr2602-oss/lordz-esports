@@ -7,23 +7,32 @@ import logoImg from "../assets/lordz-logo.png";
 
 interface FlameOfGlorySectionProps {
   onOpenJoin: () => void;
+  showHeader?: boolean;
 }
 
-export const FlameOfGlorySection = ({ onOpenJoin }: FlameOfGlorySectionProps) => {
+export const FlameOfGlorySection = ({
+  onOpenJoin,
+  showHeader = true,
+}: FlameOfGlorySectionProps) => {
   const [showAllRows, setShowAllRows] = useState(false);
   const displayedRows = showAllRows ? flameOfGloryStandings : flameOfGloryStandings.slice(0, 7);
 
   return (
-    <section id="flame-of-glory" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#070709] overflow-hidden">
+    <section
+      id="flame-of-glory"
+      className={`relative ${showHeader ? "py-24" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#070709] overflow-hidden`}
+    >
       {/* Subtle Championship Ambient Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-[#FFBE32]/8 blur-[160px] pointer-events-none" />
 
       <div className="relative max-w-5xl mx-auto z-10">
-        <SectionHeading
-          badge="SEASON CHAMPIONSHIP"
-          title="FLAME OF GLORY"
-          subtitle="OVERALL STANDINGS • OFFICIAL BROADCAST LEADERBOARD"
-        />
+        {showHeader && (
+          <SectionHeading
+            badge="SEASON CHAMPIONSHIP"
+            title="FLAME OF GLORY"
+            subtitle="OVERALL STANDINGS • OFFICIAL BROADCAST LEADERBOARD"
+          />
+        )}
 
         {/* Outer Championship Frame with Gold Trim */}
         <motion.div

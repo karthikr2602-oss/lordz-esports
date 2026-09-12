@@ -4,23 +4,34 @@ import { ShieldCheck, Handshake } from "lucide-react";
 
 interface PartnersSectionProps {
   onPartnerWithUs: () => void;
+  showHeader?: boolean;
 }
 
-export const PartnersSection = ({ onPartnerWithUs }: PartnersSectionProps) => {
+export const PartnersSection = ({
+  onPartnerWithUs,
+  showHeader = true,
+}: PartnersSectionProps) => {
   return (
-    <section id="partners" className="relative py-20 px-4 sm:px-6 lg:px-8 bg-[#050505] border-t border-white/5">
+    <section
+      id="partners"
+      className={`relative ${showHeader ? "py-20" : "py-10 sm:py-14"} px-4 sm:px-6 lg:px-8 bg-[#050505] border-t border-white/5`}
+    >
       <div className="max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-white/5 border border-white/10 text-xs font-heading font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">
-          ECOSYSTEM & COLLABORATIONS
-        </div>
+        {showHeader && (
+          <>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-white/5 border border-white/10 text-xs font-heading font-bold uppercase tracking-[0.2em] text-gray-400 mb-3">
+              ECOSYSTEM & COLLABORATIONS
+            </div>
 
-        <h2 className="font-display text-3xl sm:text-4xl uppercase tracking-wider text-white">
-          OUR <span className="text-[#FFBE32]">PARTNERS</span>
-        </h2>
+            <h2 className="font-display text-3xl sm:text-4xl uppercase tracking-wider text-white">
+              OUR <span className="text-[#FFBE32]">PARTNERS</span>
+            </h2>
 
-        <p className="mt-2 text-xs sm:text-sm text-gray-400 font-body max-w-lg mx-auto">
-          Proudly supported by visionary brands driving the next era of South Asian and Indian esports.
-        </p>
+            <p className="mt-2 text-xs sm:text-sm text-gray-400 font-body max-w-lg mx-auto">
+              Proudly supported by visionary brands driving the next era of South Asian and Indian esports.
+            </p>
+          </>
+        )}
 
         {/* Clean Logo Wall */}
         <div className="mt-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">

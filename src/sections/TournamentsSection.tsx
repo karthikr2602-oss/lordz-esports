@@ -6,12 +6,16 @@ import { Trophy, Calendar, Users, Shield, ArrowRight } from "lucide-react";
 
 interface TournamentsSectionProps {
   onSelectTournament: (tournament: Tournament) => void;
+  showHeader?: boolean;
 }
 
 type GameFilter = "ALL" | "FREE FIRE" | "FREE FIRE MAX" | "BGMI" | "VALORANT" | "OTHER";
 type StatusFilter = "ALL" | "LIVE" | "UPCOMING" | "COMPLETED";
 
-export const TournamentsSection = ({ onSelectTournament }: TournamentsSectionProps) => {
+export const TournamentsSection = ({
+  onSelectTournament,
+  showHeader = true,
+}: TournamentsSectionProps) => {
   const [selectedGame, setSelectedGame] = useState<GameFilter>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<StatusFilter>("ALL");
 
@@ -40,16 +44,21 @@ export const TournamentsSection = ({ onSelectTournament }: TournamentsSectionPro
   }, [selectedGame, selectedStatus]);
 
   return (
-    <section id="tournaments" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#050505]">
+    <section
+      id="tournaments"
+      className={`relative ${showHeader ? "py-24" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#050505]`}
+    >
       {/* Subtle Background Glow */}
       <div className="absolute top-1/3 left-0 w-96 h-96 bg-[#FFBE32]/5 blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto">
-        <SectionHeading
-          badge="COMPETITIVE BRACKETS"
-          title="ENTER THE ARENA"
-          subtitle="Your next match starts here. Register your roster, compete for verified cash pools, and earn national circuit ranking."
-        />
+        {showHeader && (
+          <SectionHeading
+            badge="COMPETITIVE BRACKETS"
+            title="ENTER THE ARENA"
+            subtitle="Your next match starts here. Register your roster, compete for verified cash pools, and earn national circuit ranking."
+          />
+        )}
 
         {/* Filters Bar */}
         <div className="mb-10 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-white/10 pb-6">

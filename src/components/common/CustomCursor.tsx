@@ -5,13 +5,13 @@ export const CustomCursor = () => {
   const [position, setPosition] = useState({ x: -100, y: -100 });
   const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [isTouch, setIsTouch] = useState(true);
+  const [isTouch] = useState(
+    () => typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0)
+  );
 
   useEffect(() => {
     // Disable on touch / mobile devices
-    const touchCheck = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    setIsTouch(touchCheck);
-    if (touchCheck) return;
+    if (isTouch) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       setPosition({ x: e.clientX, y: e.clientY });
@@ -37,7 +37,7 @@ export const CustomCursor = () => {
       document.removeEventListener("mouseleave", handleMouseLeave);
       document.removeEventListener("mouseenter", handleMouseEnter);
     };
-  }, [isVisible]);
+  }, [isVisible, isTouch]);
 
   if (isTouch || !isVisible) return null;
 

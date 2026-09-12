@@ -7,11 +7,15 @@ import jerseyPromoImg from "../assets/jersey-promo.jpg";
 
 interface MediaSectionProps {
   onPlayMedia: (item: MediaItem) => void;
+  showHeader?: boolean;
 }
 
 type MediaTab = "ALL" | "VIDEOS" | "HIGHLIGHTS" | "PHOTOS" | "SHORTS";
 
-export const MediaSection = ({ onPlayMedia }: MediaSectionProps) => {
+export const MediaSection = ({
+  onPlayMedia,
+  showHeader = true,
+}: MediaSectionProps) => {
   const [selectedTab, setSelectedTab] = useState<MediaTab>("ALL");
 
   const tabs: MediaTab[] = ["ALL", "VIDEOS", "HIGHLIGHTS", "PHOTOS", "SHORTS"];
@@ -24,13 +28,18 @@ export const MediaSection = ({ onPlayMedia }: MediaSectionProps) => {
   const featuredVideo = mediaData.find((item) => item.tag === "FEATURED") || mediaData[0];
 
   return (
-    <section id="media" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#050505]">
+    <section
+      id="media"
+      className={`relative ${showHeader ? "py-24" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#050505]`}
+    >
       <div className="max-w-7xl mx-auto">
-        <SectionHeading
-          badge="CINEMATICS & CLUTCHES"
-          title="LORDZ MEDIA"
-          subtitle="Match replays, clutch compilations, athlete shorts, and broadcast documentaries."
-        />
+        {showHeader && (
+          <SectionHeading
+            badge="CINEMATICS & CLUTCHES"
+            title="LORDZ MEDIA"
+            subtitle="Match replays, clutch compilations, athlete shorts, and broadcast documentaries."
+          />
+        )}
 
         {/* Featured Video Highlight Card */}
         <div className="mb-12">

@@ -1,17 +1,11 @@
+import { Link } from "react-router-dom";
 import logoImg from "../assets/lordz-logo.png";
 import { ArrowUp, Mail, MapPin } from "lucide-react";
+import { useModals } from "../context/useModals";
 
-interface FooterSectionProps {
-  onOpenJoin: () => void;
-  onOpenLogin: () => void;
-  onOpenShop: () => void;
-}
+export const FooterSection = () => {
+  const { openJoinTournament, openLogin, openJersey } = useModals();
 
-export const FooterSection = ({
-  onOpenJoin,
-  onOpenLogin,
-  onOpenShop,
-}: FooterSectionProps) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -26,7 +20,7 @@ export const FooterSection = ({
           
           {/* Brand Column (lg:col-span-4) */}
           <div className="lg:col-span-4">
-            <a href="#home" className="inline-flex items-center gap-3">
+            <Link to="/" className="inline-flex items-center gap-3">
               <img
                 src={logoImg}
                 alt="Lordz Esports"
@@ -40,7 +34,7 @@ export const FooterSection = ({
                   Indian Competitive Gaming
                 </span>
               </div>
-            </a>
+            </Link>
 
             <p className="mt-4 text-sm text-[#9CA3AF] font-body leading-relaxed max-w-sm">
               "Compete. Improve. Build your legacy." Lordz Esports is a premier Indian esports organization and gaming platform empowering tournament rosters, daily scrims, and national championship athletes.
@@ -57,75 +51,83 @@ export const FooterSection = ({
             </div>
           </div>
 
-          {/* Quick Links (lg:col-span-2) */}
+          {/* Quick Links: Arena (lg:col-span-2) */}
           <div className="lg:col-span-2">
             <h4 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-[#FFBE32] mb-4">
               ARENA
             </h4>
             <ul className="space-y-2.5 text-xs font-heading tracking-wider uppercase text-gray-400">
               <li>
-                <a href="#tournaments" className="hover:text-white transition-colors">
+                <Link to="/tournaments" className="hover:text-[#FFBE32] transition-colors">
                   Tournaments
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#tournaments" className="hover:text-white transition-colors">
-                  Tier-1 Scrims
-                </a>
-              </li>
-              <li>
-                <a href="#flame-of-glory" className="hover:text-white transition-colors">
+                <Link to="/flame-of-glory" className="hover:text-[#FFBE32] transition-colors">
                   Flame of Glory
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#matches" className="hover:text-white transition-colors">
+                <Link to="/matches" className="hover:text-[#FFBE32] transition-colors">
                   Match Center
-                </a>
+                </Link>
               </li>
               <li>
-                <button onClick={onOpenJoin} className="hover:text-[#FFBE32] transition-colors cursor-pointer text-left">
+                <Link to="/teams" className="hover:text-[#FFBE32] transition-colors">
+                  The Battlefield
+                </Link>
+              </li>
+              <li>
+                <button
+                  onClick={() => openJoinTournament()}
+                  className="hover:text-[#FFBE32] transition-colors cursor-pointer text-left uppercase"
+                >
                   Slot Registration
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Organization (lg:col-span-2) */}
+          {/* Quick Links: Organization (lg:col-span-2) */}
           <div className="lg:col-span-2">
             <h4 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-[#FFBE32] mb-4">
               ORGANIZATION
             </h4>
             <ul className="space-y-2.5 text-xs font-heading tracking-wider uppercase text-gray-400">
               <li>
-                <a href="#about" className="hover:text-white transition-colors">
+                <Link to="/about" className="hover:text-[#FFBE32] transition-colors">
                   About Lordz
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#teams" className="hover:text-white transition-colors">
-                  The Battlefield
-                </a>
-              </li>
-              <li>
-                <a href="#players" className="hover:text-white transition-colors">
+                <Link to="/players" className="hover:text-[#FFBE32] transition-colors">
                   Pro Roster
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#hall-of-glory" className="hover:text-white transition-colors">
+                <Link to="/hall-of-glory" className="hover:text-[#FFBE32] transition-colors">
                   Hall of Glory
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#partners" className="hover:text-white transition-colors">
+                <Link to="/news" className="hover:text-[#FFBE32] transition-colors">
+                  News & Dispatches
+                </Link>
+              </li>
+              <li>
+                <Link to="/community" className="hover:text-[#FFBE32] transition-colors">
+                  Community Hubs
+                </Link>
+              </li>
+              <li>
+                <Link to="/partners" className="hover:text-[#FFBE32] transition-colors">
                   Partnerships
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
 
-          {/* Apparel & Community (lg:col-span-4) */}
+          {/* Combat Store & Portal (lg:col-span-4) */}
           <div className="lg:col-span-4">
             <h4 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-[#FFBE32] mb-4">
               COMBAT STORE & PORTAL
@@ -141,7 +143,7 @@ export const FooterSection = ({
                 Black & Gold Dravidian Temple Art edition. Customized player IGN print.
               </p>
               <button
-                onClick={onOpenShop}
+                onClick={openJersey}
                 className="w-full py-2 rounded bg-[#FFBE32] text-black font-heading text-xs font-bold uppercase tracking-wider hover:bg-[#FFCD59] transition-all cursor-pointer"
               >
                 PRE-ORDER JERSEY
@@ -150,7 +152,7 @@ export const FooterSection = ({
 
             <div className="mt-4 flex items-center gap-3">
               <button
-                onClick={onOpenLogin}
+                onClick={openLogin}
                 className="text-xs font-heading font-bold uppercase tracking-wider text-gray-300 hover:text-[#FFBE32] transition-colors cursor-pointer"
               >
                 ATHLETE PORTAL LOGIN &rarr;
@@ -168,19 +170,19 @@ export const FooterSection = ({
           </div>
 
           <div className="flex items-center gap-6">
-            <a href="#privacy" onClick={(e) => e.preventDefault()} className="hover:text-gray-300 transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#terms" onClick={(e) => e.preventDefault()} className="hover:text-gray-300 transition-colors">
-              Terms of Competition
-            </a>
-            <a href="#rules" onClick={(e) => e.preventDefault()} className="hover:text-gray-300 transition-colors">
-              Rulebook
-            </a>
+            <Link to="/about" className="hover:text-gray-300 transition-colors">
+              Manifesto
+            </Link>
+            <Link to="/media" className="hover:text-gray-300 transition-colors">
+              Media Hub
+            </Link>
+            <Link to="/partners" className="hover:text-gray-300 transition-colors">
+              Sponsorships
+            </Link>
             
             <button
               onClick={scrollToTop}
-              className="flex items-center gap-1 text-[#FFBE32] hover:text-[#FFCD59] font-heading font-bold uppercase tracking-wider cursor-pointer ml-4"
+              className="flex items-center gap-1 text-[#FFBE32] hover:text-[#FFCD59] transition-colors cursor-pointer ml-2"
             >
               <span>TOP</span>
               <ArrowUp className="h-3.5 w-3.5" />

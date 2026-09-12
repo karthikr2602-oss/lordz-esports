@@ -8,22 +8,31 @@ import { Sparkles, Shield, Compass, Check } from "lucide-react";
 
 interface JerseyShowcaseSectionProps {
   onShopJersey: () => void;
+  showHeader?: boolean;
 }
 
-export const JerseyShowcaseSection = ({ onShopJersey }: JerseyShowcaseSectionProps) => {
+export const JerseyShowcaseSection = ({
+  onShopJersey,
+  showHeader = true,
+}: JerseyShowcaseSectionProps) => {
   const [activeView, setActiveView] = useState<"front" | "back">("front");
 
   return (
-    <section id="jersey" className="relative py-28 px-4 sm:px-6 lg:px-8 bg-[#070709] overflow-hidden">
+    <section
+      id="jersey"
+      className={`relative ${showHeader ? "py-28" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#070709] overflow-hidden`}
+    >
       {/* Background ambient lighting */}
       <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-[#FFBE32]/10 blur-[150px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto">
-        <SectionHeading
-          badge="OFFICIAL MERCHANDISE"
-          title="WEAR THE LORDZ"
-          subtitle="Engineered for high-pressure competition. Crafted with Dravidian temple heritage and battle flame aesthetics."
-        />
+        {showHeader && (
+          <SectionHeading
+            badge="OFFICIAL MERCHANDISE"
+            title="WEAR THE LORDZ"
+            subtitle="Engineered for high-pressure competition. Crafted with Dravidian temple heritage and battle flame aesthetics."
+          />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           

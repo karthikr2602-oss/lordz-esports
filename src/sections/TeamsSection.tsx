@@ -6,17 +6,26 @@ import logoImg from "../assets/lordz-logo.png";
 
 interface TeamsSectionProps {
   onExploreTeams?: () => void;
+  showHeader?: boolean;
 }
 
-export const TeamsSection = ({ onExploreTeams }: TeamsSectionProps) => {
+export const TeamsSection = ({
+  onExploreTeams,
+  showHeader = true,
+}: TeamsSectionProps) => {
   return (
-    <section id="teams" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#070709]">
+    <section
+      id="teams"
+      className={`relative ${showHeader ? "py-24" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#070709]`}
+    >
       <div className="max-w-7xl mx-auto">
-        <SectionHeading
-          badge="DIVISIONS & ORGANIZATIONS"
-          title="THE BATTLEFIELD"
-          subtitle="Top registered esports lineups clashing across national tournaments and sanctioned circuit leagues."
-        />
+        {showHeader && (
+          <SectionHeading
+            badge="DIVISIONS & ORGANIZATIONS"
+            title="THE BATTLEFIELD"
+            subtitle="Top registered esports lineups clashing across national tournaments and sanctioned circuit leagues."
+          />
+        )}
 
         {/* Teams Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
