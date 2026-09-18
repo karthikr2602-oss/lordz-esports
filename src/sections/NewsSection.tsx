@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { newsData, type NewsArticle } from "../data/news";
+import { newsApi } from "../api/news";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 
 interface NewsSectionProps {
@@ -12,6 +14,17 @@ export const NewsSection = ({
   onSelectArticle,
   showHeader = true,
 }: NewsSectionProps) => {
+  const [articles, setArticles] = useState<NewsArticle[]>(newsData);
+
+  useEffect(() => {
+    newsApi
+      .getAll()
+      .then((data) => {
+        if (data && data.length > 0) setArticles(data);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section
       id="news"
@@ -28,7 +41,7 @@ export const NewsSection = ({
 
         {/* Editorial News Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {newsData.map((article, index) => (
+          {articles.map((article, index) => (
             <motion.article
               key={article.id}
               initial={{ opacity: 0, y: 20 }}

@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { SectionHeading } from "../components/common/SectionHeading";
-import { playersData } from "../data/players";
+import { playersData, type Player } from "../data/players";
+import { playersApi } from "../api/players";
 import jerseyBackImg from "../assets/jersey-back.jpg";
 import logoImg from "../assets/lordz-logo.png";
 import { Crosshair, Shield, Zap, Target } from "lucide-react";
@@ -10,6 +12,17 @@ interface PlayersSectionProps {
 }
 
 export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
+  const [players, setPlayers] = useState<Player[]>(playersData);
+
+  useEffect(() => {
+    playersApi
+      .getAll()
+      .then((data) => {
+        if (data && data.length > 0) setPlayers(data);
+      })
+      .catch(() => {});
+  }, []);
+
   const getRoleIcon = (role: string) => {
     switch (role) {
       case "IGL":
@@ -42,7 +55,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
 
         {/* Players Sports Card Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {playersData.map((player, index) => {
+          {players.map((player, index) => {
             const isBeast = player.ign === "BEAST";
 
             return (

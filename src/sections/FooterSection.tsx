@@ -63,18 +63,13 @@ export const FooterSection = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/flame-of-glory" className="hover:text-[#FFBE32] transition-colors">
-                  Flame of Glory
+                <Link to="/jersey" className="hover:text-[#FFBE32] transition-colors">
+                  Official Jersey
                 </Link>
               </li>
               <li>
-                <Link to="/matches" className="hover:text-[#FFBE32] transition-colors">
-                  Match Center
-                </Link>
-              </li>
-              <li>
-                <Link to="/teams" className="hover:text-[#FFBE32] transition-colors">
-                  The Battlefield
+                <Link to="/media" className="hover:text-[#FFBE32] transition-colors">
+                  Media Highlights
                 </Link>
               </li>
               <li>
@@ -105,8 +100,8 @@ export const FooterSection = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/hall-of-glory" className="hover:text-[#FFBE32] transition-colors">
-                  Hall of Glory
+                <Link to="/products" className="hover:text-[#FFBE32] transition-colors">
+                  Products &amp; Armory
                 </Link>
               </li>
               <li>
@@ -150,10 +145,10 @@ export const FooterSection = () => {
               </button>
             </div>
 
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-4 flex flex-col gap-2">
               <button
                 onClick={openLogin}
-                className="text-xs font-heading font-bold uppercase tracking-wider text-gray-300 hover:text-[#FFBE32] transition-colors cursor-pointer"
+                className="text-xs font-heading font-bold uppercase tracking-wider text-gray-300 hover:text-[#FFBE32] transition-colors cursor-pointer text-left"
               >
                 ATHLETE PORTAL LOGIN &rarr;
               </button>

@@ -147,3 +147,45 @@ body {
 .animate-pulse-glow {
   animation: pulseGlow 4s ease-in-out infinite;
 }
+
+/* Infinite Marquee Animation for Partner Logos */
+@keyframes marqueeLeft {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marqueeRight {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee-left {
+  display: flex;
+  width: max-content;
+  animation: marqueeLeft 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-right {
+  display: flex;
+  width: max-content;
+  animation: marqueeRight 30s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-left:hover,
+.animate-marquee-right:hover {
+  animation-play-state: paused;
+}
+
+/* Glassmorphism Esports Card */
+.esports-glass-card {
+  background: rgba(13, 13, 16, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.esports-glass-card:hover {
+  border-color: rgba(255, 190, 50, 0.5);
+  box-shadow: 0 12px 35px -10px rgba(255, 190, 50, 0.3);
+}

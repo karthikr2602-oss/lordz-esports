@@ -1,0 +1,334 @@
+import { Router } from "express";
+import { authenticate, requireRole } from "../middleware/auth.js";
+
+// Controllers
+import * as authCtrl from "../controllers/authController.js";
+import * as tournamentCtrl from "../controllers/tournamentController.js";
+import * as matchCtrl from "../controllers/matchController.js";
+import * as standingCtrl from "../controllers/standingController.js";
+import * as playerCtrl from "../controllers/playerController.js";
+import * as legendCtrl from "../controllers/legendController.js";
+import * as merchCtrl from "../controllers/merchandiseController.js";
+import * as orderCtrl from "../controllers/orderController.js";
+import * as newsCtrl from "../controllers/newsController.js";
+import * as partnerCtrl from "../controllers/partnerController.js";
+import * as mediaCtrl from "../controllers/mediaController.js";
+import * as settingCtrl from "../controllers/settingController.js";
+import * as analyticsCtrl from "../controllers/analyticsController.js";
+import * as userCtrl from "../controllers/userController.js";
+import * as uploadCtrl from "../controllers/uploadController.js";
+import * as planCtrl from "../controllers/partnerPlanController.js";
+
+const router = Router();
+
+// ================= AUTH ROUTES =================
+router.post("/auth/login", authCtrl.login);
+router.post("/auth/register", authCtrl.register);
+router.post("/auth/logout", authCtrl.logout);
+router.get("/auth/me", authenticate, authCtrl.getMe);
+
+// ================= TOURNAMENT ROUTES =================
+router.get("/tournaments", tournamentCtrl.getTournaments);
+router.get(
+  "/tournaments/registrations",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.getAllRegistrations
+);
+router.put(
+  "/tournaments/registrations/:id/status",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.updateRegistrationStatus
+);
+router.get("/tournaments/:id", tournamentCtrl.getTournamentById);
+router.post(
+  "/tournaments",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.createTournament
+);
+router.put(
+  "/tournaments/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.updateTournament
+);
+router.delete(
+  "/tournaments/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.deleteTournament
+);
+router.post("/tournaments/:id/register", tournamentCtrl.registerSquad);
+
+// ================= MATCH CENTER ROUTES =================
+router.get("/matches", matchCtrl.getMatches);
+router.post(
+  "/matches",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  matchCtrl.createMatch
+);
+router.put(
+  "/matches/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  matchCtrl.updateMatch
+);
+router.delete(
+  "/matches/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  matchCtrl.deleteMatch
+);
+
+// ================= STANDINGS ROUTES =================
+router.get("/standings", standingCtrl.getStandings);
+router.put(
+  "/standings/batch",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  standingCtrl.updateStandingsBatch
+);
+
+// ================= PLAYERS ROUTES =================
+router.get("/players", playerCtrl.getPlayers);
+router.get(
+  "/players/admin/all",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN", "CONTENT_EDITOR"),
+  playerCtrl.getAllPlayersAdmin
+);
+router.post(
+  "/players",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  playerCtrl.createPlayer
+);
+router.put(
+  "/players/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  playerCtrl.updatePlayer
+);
+router.delete(
+  "/players/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  playerCtrl.deletePlayer
+);
+
+// ================= LEGENDS / OLD PLAYERS ROUTES =================
+router.get("/legends", legendCtrl.getLegends);
+router.post(
+  "/legends",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  legendCtrl.createLegend
+);
+router.put(
+  "/legends/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  legendCtrl.updateLegend
+);
+router.delete(
+  "/legends/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  legendCtrl.deleteLegend
+);
+
+// ================= MERCHANDISE ROUTES =================
+router.get("/merchandise", merchCtrl.getProducts);
+router.post(
+  "/merchandise",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  merchCtrl.createProduct
+);
+router.put(
+  "/merchandise/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  merchCtrl.updateProduct
+);
+router.delete(
+  "/merchandise/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  merchCtrl.deleteProduct
+);
+
+// ================= ORDERS ROUTES =================
+router.post("/orders", orderCtrl.createOrder);
+router.get(
+  "/orders",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  orderCtrl.getOrders
+);
+router.put(
+  "/orders/:id/status",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  orderCtrl.updateOrderStatus
+);
+
+// ================= NEWS ROUTES =================
+router.get("/news", newsCtrl.getArticles);
+router.get(
+  "/news/admin/all",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  newsCtrl.getAllArticlesAdmin
+);
+router.post(
+  "/news",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  newsCtrl.createArticle
+);
+router.put(
+  "/news/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  newsCtrl.updateArticle
+);
+router.delete(
+  "/news/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  newsCtrl.deleteArticle
+);
+
+// ================= PARTNERS ROUTES =================
+router.get("/partners", partnerCtrl.getPartners);
+router.get(
+  "/partners/admin/all",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  partnerCtrl.getAllPartnersAdmin
+);
+router.post(
+  "/partners",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  partnerCtrl.createPartner
+);
+router.put(
+  "/partners/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  partnerCtrl.updatePartner
+);
+router.delete(
+  "/partners/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  partnerCtrl.deletePartner
+);
+
+// ================= PARTNER PLANS & INQUIRIES ROUTES =================
+router.get("/partner-plans", planCtrl.getPartnerPlans);
+router.get(
+  "/partner-plans/admin/all",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  planCtrl.getAllPartnerPlansAdmin
+);
+router.put(
+  "/partner-plans/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  planCtrl.updatePartnerPlan
+);
+router.post("/partner-inquiries", planCtrl.createPartnerInquiry);
+router.get(
+  "/partner-inquiries",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  planCtrl.getPartnerInquiries
+);
+router.put(
+  "/partner-inquiries/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  planCtrl.updatePartnerInquiry
+);
+router.delete(
+  "/partner-inquiries/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  planCtrl.deletePartnerInquiry
+);
+
+// ================= MEDIA ROUTES =================
+router.get("/media", mediaCtrl.getMedia);
+router.post(
+  "/media",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  mediaCtrl.createMedia
+);
+router.put(
+  "/media/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  mediaCtrl.updateMedia
+);
+router.delete(
+  "/media/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  mediaCtrl.deleteMedia
+);
+
+// ================= SETTINGS ROUTES =================
+router.get("/settings", settingCtrl.getSettings);
+router.put(
+  "/settings",
+  authenticate,
+  requireRole("SUPER_ADMIN"),
+  settingCtrl.updateSettings
+);
+
+// ================= ANALYTICS ROUTES =================
+router.get(
+  "/analytics/dashboard",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN", "CONTENT_EDITOR"),
+  analyticsCtrl.getDashboardMetrics
+);
+
+// ================= ADMIN USER MANAGEMENT =================
+router.get(
+  "/admin/users",
+  authenticate,
+  requireRole("SUPER_ADMIN"),
+  userCtrl.getAdminUsers
+);
+router.post(
+  "/admin/users",
+  authenticate,
+  requireRole("SUPER_ADMIN"),
+  userCtrl.createAdminUser
+);
+router.put(
+  "/admin/users/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN"),
+  userCtrl.updateAdminUser
+);
+router.delete(
+  "/admin/users/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN"),
+  userCtrl.deleteAdminUser
+);
+
+// ================= UPLOAD ROUTE =================
+router.post("/upload", authenticate, uploadCtrl.handleUpload);
+
+export default router;

@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 import {
   X,
   Trophy,
-  Flame,
-  Swords,
   Users,
   Shirt,
   Newspaper,
@@ -30,17 +28,14 @@ interface MobileMenuProps {
 const navLinks = [
   { name: "HOME", path: "/", icon: Home },
   { name: "TOURNAMENTS", path: "/tournaments", icon: Trophy },
-  { name: "FLAME OF GLORY", path: "/flame-of-glory", icon: Flame },
-  { name: "MATCH CENTER", path: "/matches", icon: Swords },
-  { name: "TEAMS", path: "/teams", icon: Users },
   { name: "PLAYERS", path: "/players", icon: Users },
-  { name: "JERSEY / SHOP", path: "/jersey", icon: Shirt },
+  { name: "PRODUCTS", path: "/products", icon: Shirt },
+  { name: "BRAND PARTNERS", path: "/partners", icon: Handshake },
+  { name: "PARTNER WITH US", path: "/partner-with-us", icon: Award },
   { name: "ABOUT LORDZ", path: "/about", icon: Info },
-  { name: "HALL OF GLORY", path: "/hall-of-glory", icon: Award },
   { name: "NEWS", path: "/news", icon: Newspaper },
   { name: "MEDIA", path: "/media", icon: Video },
   { name: "COMMUNITY", path: "/community", icon: MessageSquare },
-  { name: "PARTNERS", path: "/partners", icon: Handshake },
 ];
 
 export const MobileMenu = ({
@@ -138,7 +133,7 @@ export const MobileMenu = ({
               className="w-full"
               size="md"
             >
-              LOGIN TO PORTAL
+              PLAYER LOGIN
             </OutlineButton>
           </motion.div>
         </motion.div>

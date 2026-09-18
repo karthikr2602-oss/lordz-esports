@@ -1,0 +1,299 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  role         String     @default("PLAYER") // ADMIN, PLAYER
+  ign          String?
+  fullName     String?
+  avatarUrl    String?
+  phone        String?
+  discord      String?
+  status       String     @default("ACTIVE") // ACTIVE, SUSPENDED
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+}
+
+model Tournament {
+  id              String                   @id @default(uuid())
+  title           String
+  game            String                   @default("FREE FIRE MAX")
+  gameCategory    String                   @default("FREE FIRE MAX") // FREE FIRE, FREE FIRE MAX, BGMI, VALORANT, OTHER
+  status          String                   @default("UPCOMING") // LIVE, UPCOMING, COMPLETED
+  prizePool       String                   @default("₹50,000")
+  entryFee        String                   @default("FREE ENTRY")
+  slots           String                   @default("32 TEAMS")
+  date            String
+  format          String                   @default("BATTLE ROYALE • 6 MATCHES")
+  featured        Boolean                  @default(false)
+  tagline         String                   @default("Official Lordz Esports Tournament")
+  streamUrl       String?
+  bannerImage     String?
+  rules           String?
+  registeredTeams Int                      @default(0)
+  totalTeams      Int                      @default(32)
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  registrations   TournamentRegistration[]
+  matches         Match[]
+  standings       Standing[]
+}
+
+model TournamentRegistration {
+  id           String     @id @default(uuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamName     String
+  captainIgn   String
+  whatsapp     String
+  discordTag   String?
+  playerNames  String?    // Comma separated or JSON string
+  status       String     @default("PENDING") // PENDING, APPROVED, REJECTED
+  slotNumber   Int?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Match {
+  id               String      @id @default(uuid())
+  tournamentId     String?
+  tournament       Tournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  tournamentName   String?
+  status           String      @default("UPCOMING") // LIVE, UPCOMING, RESULT
+  stage            String      @default("GRAND FINALS")
+  game             String      @default("FREE FIRE MAX")
+  map              String      @default("BERMUDA")
+  teamAName        String      @default("LORDZ ESPORTS")
+  teamATag         String      @default("LORDZ")
+  teamAScore       Int?        @default(0)
+  teamAPoints      Int?        @default(0)
+  teamBName        String
+  teamBTag         String
+  teamBScore       Int?        @default(0)
+  teamBPoints      Int?        @default(0)
+  winner           String?
+  startTime        String?
+  countdownSeconds Int?
+  streamUrl        String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+}
+
+model Standing {
+  id            String      @id @default(uuid())
+  tournamentId  String?
+  tournament    Tournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  rank          String
+  team          String
+  tag           String
+  chickenDinner String      @default("00")
+  matches       String      @default("02")
+  position      String      @default("00")
+  finishes      String      @default("00")
+  total         String      @default("00")
+  isTopThree    Boolean     @default(false)
+  sortOrder     Int         @default(0)
+  updatedAt     DateTime    @updatedAt
+}
+
+model Player {
+  id            String   @id @default(uuid())
+  ign           String   @unique
+  realName      String
+  jerseyNumber  String
+  role          String   @default("RUSHER") // IGL, RUSHER, SNIPER, SUPPORT, FRAGGER
+  game          String   @default("FREE FIRE MAX")
+  team          String   @default("LORDZ ESPORTS")
+  kdRatio       String   @default("4.00")
+  headshotRate  String   @default("65%")
+  matchesPlayed Int      @default(100)
+  featuredQuote String   @default("Built for the ones who keep pushing.")
+  avatarUrl     String?
+  avatarBg      String?
+  isCaptain     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Legend {
+  id                  String   @id @default(uuid())
+  ign                 String   @unique
+  realName            String
+  role                String
+  activeYears         String   // e.g. "2023 - 2025"
+  retiredJerseyNumber String?
+  achievements        String   // JSON string or bullet points
+  hallOfFameBio       String
+  avatarUrl           String?
+  highlightVideoUrl   String?
+  sortOrder           Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String   @unique
+  subtitle      String?
+  description   String?
+  price         Int      @default(1299)
+  originalPrice Int?     @default(1999)
+  stock         Int      @default(100)
+  category      String   @default("JERSEY") // JERSEY, HOODIE, ACCESSORY
+  sizes         String   @default("[\"S\",\"M\",\"L\",\"XL\",\"2XL\"]")
+  frontImage    String?
+  backImage     String?
+  isAvailable   Boolean  @default(true)
+  isFeatured    Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  orders        Order[]
+}
+
+model Order {
+  id             String   @id @default(uuid())
+  orderNumber    String   @unique
+  productId      String?
+  product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName    String   @default("LORDZ PRO COMBAT JERSEY 2026")
+  customerName   String
+  customerEmail  String
+  customerPhone  String
+  address        String
+  city           String
+  state          String
+  pincode        String
+  size           String   @default("L")
+  customIgn      String?
+  customNumber   String?
+  totalAmount    Int      @default(1299)
+  paymentMethod  String   @default("ONLINE") // RAZORPAY, COD, ONLINE
+  paymentStatus  String   @default("PENDING") // PENDING, PAID, FAILED
+  orderStatus    String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  trackingNumber String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model NewsArticle {
+  id         String   @id @default(uuid())
+  title      String
+  slug       String   @unique
+  excerpt    String
+  content    String?
+  category   String   @default("TOURNAMENT") // TOURNAMENT, TEAM, PLAYER, COMMUNITY, ESPORTS
+  date       String
+  readTime   String   @default("3 MIN READ")
+  author     String   @default("Lordz Editorial")
+  badgeColor String?
+  coverImage String?
+  published  Boolean  @default(true)
+  featured   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Partner {
+  id         String   @id @default(uuid())
+  name       String
+  category   String   @default("Gaming")
+  tier       String   @default("OFFICIAL PARTNER") // MAIN SPONSOR, OFFICIAL PARTNER, BROADCAST PARTNER
+  logoImage  String?
+  cardImage  String?
+  websiteUrl String?
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model MediaItem {
+  id          String   @id @default(uuid())
+  type        String   @default("VIDEOS") // VIDEOS, HIGHLIGHTS, PHOTOS, SHORTS
+  title       String
+  duration    String?
+  views       String   @default("10K VIEWS")
+  date        String
+  game        String   @default("FREE FIRE MAX")
+  youtubeId   String?  @default("dQw4w9WgXcQ")
+  thumbnail   String?
+  tag         String   @default("FEATURED")
+  description String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WebsiteSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  category  String   @default("GENERAL") // GENERAL, HERO, TICKER, STATS, SOCIAL, SEO
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String?
+  user       User?    @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  adminEmail String
+  action     String   // e.g. "CREATE_TOURNAMENT", "APPROVE_REGISTRATION", "UPDATE_ORDER"
+  resource   String   // e.g. "Tournament", "Order"
+  details    String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+}
+
+model PartnerPlan {
+  id           String   @id @default(uuid())
+  slug         String   @unique // bronze, silver, gold, diamond, lifetime
+  name         String   // Bronze Partner, Silver Partner, etc.
+  badge        String   // BRONZE, SILVER, GOLD ★ MOST POPULAR, DIAMOND, LIFETIME
+  badgeColor   String   @default("amber") // bronze, silver, gold, diamond, lifetime
+  price        String   // ₹499, ₹999, ₹1,999, ₹3,999, ₹9,999
+  billing      String   @default("/ Month") // / Month, One-Time
+  tag          String?  // Suitable For: Growing Teams & Creators, etc.
+  subheading   String?  // EVERYTHING IN BRONZE, etc.
+  features     String   // JSON string array of features
+  ctaText      String   // SUBSCRIBE BRONZE, GET LIFETIME ACCESS
+  isPopular    Boolean  @default(false)
+  isLifetime   Boolean  @default(false)
+  limitedSlots Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model PartnerInquiry {
+  id            String   @id @default(uuid())
+  planId        String?
+  planName      String   // Gold Partner
+  planPrice     String   // ₹1,999 / Month
+  orgName       String   // Brand or Guild Name
+  contactName   String
+  email         String
+  phone         String
+  discordTag    String?
+  websiteUrl    String?
+  message       String?
+  status        String   @default("PENDING") // PENDING, CONTACTED, APPROVED, REJECTED
+  paymentStatus String   @default("PENDING") // PENDING, PAID
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+

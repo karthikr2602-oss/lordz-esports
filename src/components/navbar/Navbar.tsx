@@ -1,54 +1,32 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logoImg from "../../assets/lordz-logo.png";
 import { GoldButton } from "../common/GoldButton";
 import { OutlineButton } from "../common/OutlineButton";
-import { Menu, ChevronDown } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useScrollPosition } from "../../hooks/useScrollPosition";
 import { MobileMenu } from "./MobileMenu";
 import { useModals } from "../../context/useModals";
 
-// Primary Desktop Nav Items
-const primaryNavItems = [
+// Straight Desktop Nav Items (No 'MORE' dropdown, 'JERSEY' replaced with 'PRODUCTS', 'HALL OF GLORY' removed)
+const straightNavItems = [
   { label: "HOME", path: "/" },
   { label: "TOURNAMENTS", path: "/tournaments" },
-  { label: "FLAME OF GLORY", path: "/flame-of-glory" },
-  { label: "MATCHES", path: "/matches" },
-  { label: "TEAMS", path: "/teams" },
   { label: "PLAYERS", path: "/players" },
-  { label: "JERSEY", path: "/jersey" },
-  { label: "MEDIA", path: "/media" },
-];
-
-// Secondary dropdown items
-const moreNavItems = [
-  { label: "NEWS", path: "/news" },
-  { label: "HALL OF GLORY", path: "/hall-of-glory" },
-  { label: "ABOUT LORDZ", path: "/about" },
-  { label: "COMMUNITY", path: "/community" },
+  { label: "PRODUCTS", path: "/products" },
   { label: "PARTNERS", path: "/partners" },
+  { label: "PARTNER WITH US", path: "/partner-with-us" },
+  { label: "MEDIA", path: "/media" },
+  { label: "NEWS", path: "/news" },
+  { label: "ABOUT", path: "/about" },
+  { label: "COMMUNITY", path: "/community" },
 ];
 
 export const Navbar = () => {
   const { isScrolled } = useScrollPosition(30);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
   const { openJoinTournament, openLogin } = useModals();
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setMoreDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const isMoreActive = moreNavItems.some((item) => item.path === pathname);
 
   return (
     <>
@@ -56,41 +34,41 @@ export const Navbar = () => {
         className={`fixed top-0 left-0 right-0 z-[7000] transition-all duration-300 ${
           isScrolled
             ? "bg-[#070708]/95 backdrop-blur-md border-b border-[#FFBE32]/25 py-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
-            : "bg-[#050505]/75 backdrop-blur-sm border-b border-white/5 py-4"
+            : "bg-[#050505]/80 backdrop-blur-sm border-b border-white/5 py-3.5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-8 flex items-center justify-between gap-4">
           {/* Logo & Brand */}
           <Link
             to="/"
-            className="flex items-center gap-3 group cursor-pointer focus:outline-none"
+            className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer focus:outline-none shrink-0"
           >
             <div className="relative">
               <img
                 src={logoImg}
                 alt="Lordz Esports"
-                className="h-9 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(255,190,50,0.35)]"
+                className="h-8 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(255,190,50,0.35)]"
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-display text-xl sm:text-2xl leading-none uppercase tracking-widest text-white">
+              <span className="font-display text-lg sm:text-xl xl:text-2xl leading-none uppercase tracking-widest text-white">
                 LORDZ <span className="text-[#FFBE32]">ESPORTS</span>
               </span>
-              <span className="font-heading text-[9px] sm:text-[10px] tracking-[0.25em] text-[#9CA3AF] uppercase">
+              <span className="font-heading text-[8px] sm:text-[9px] tracking-[0.25em] text-[#9CA3AF] uppercase">
                 India's Elite Clan
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden xl:flex items-center space-x-5 text-xs font-heading font-bold uppercase tracking-wider text-gray-300">
-            {primaryNavItems.map((item) => {
+          {/* Desktop Navigation Links — Straight Row Layout (No dropdown) */}
+          <nav className="hidden lg:flex items-center gap-2.5 xl:gap-4 2xl:gap-5 text-[11px] xl:text-xs font-heading font-bold uppercase tracking-wider text-gray-300">
+            {straightNavItems.map((item) => {
               const isActive = pathname === item.path;
               return (
                 <Link
                   key={item.label}
                   to={item.path}
-                  className={`relative py-1 transition-colors hover:text-[#FFBE32] ${
+                  className={`relative py-1 transition-colors hover:text-[#FFBE32] whitespace-nowrap ${
                     isActive ? "text-[#FFBE32] font-extrabold" : "text-gray-300"
                   } after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#FFBE32] ${
                     isActive ? "after:scale-x-100" : "after:scale-x-0"
@@ -100,80 +78,48 @@ export const Navbar = () => {
                 </Link>
               );
             })}
-
-            {/* MORE Dropdown for Organization, News, About, Community, Partners */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setMoreDropdownOpen((prev) => !prev)}
-                className={`relative py-1 inline-flex items-center gap-1 transition-colors hover:text-[#FFBE32] cursor-pointer ${
-                  isMoreActive ? "text-[#FFBE32] font-extrabold" : "text-gray-300"
-                } after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#FFBE32] ${
-                  isMoreActive ? "after:scale-x-100" : "after:scale-x-0"
-                } hover:after:scale-x-100 after:transition-transform after:origin-center`}
-              >
-                <span>MORE</span>
-                <ChevronDown
-                  className={`h-3 w-3 transition-transform duration-200 ${
-                    moreDropdownOpen ? "rotate-180 text-[#FFBE32]" : ""
-                  }`}
-                />
-              </button>
-
-              {moreDropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-[#0C0C0F] border border-[#FFBE32]/35 p-1.5 shadow-[0_15px_35px_rgba(0,0,0,0.9),0_0_20px_rgba(255,190,50,0.15)] z-[7100] backdrop-blur-xl">
-                  {moreNavItems.map((item) => {
-                    const isItemActive = pathname === item.path;
-                    return (
-                      <Link
-                        key={item.label}
-                        to={item.path}
-                        onClick={() => setMoreDropdownOpen(false)}
-                        className={`block px-3 py-2 rounded-lg text-xs font-heading font-bold uppercase tracking-wider transition-colors ${
-                          isItemActive
-                            ? "text-[#FFBE32] bg-[#FFBE32]/10"
-                            : "text-gray-300 hover:text-white hover:bg-white/5"
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
           </nav>
 
           {/* Right Action CTAs */}
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2.5 shrink-0">
             <OutlineButton
               onClick={openLogin}
-              size="sm"
-              className="hidden md:inline-flex"
+              className="py-2 px-3 sm:px-4 text-[11px] font-heading font-bold"
             >
               LOGIN
             </OutlineButton>
-            <GoldButton onClick={() => openJoinTournament()} size="sm" showArrow={false}>
+            <GoldButton
+              onClick={() => openJoinTournament()}
+              className="py-2 px-3 sm:px-4 text-[11px] font-heading font-bold"
+              showArrow={false}
+            >
               JOIN TOURNAMENT
             </GoldButton>
           </div>
 
-          {/* Mobile Hamburger */}
+          {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="xl:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-            aria-label="Open mobile menu"
+            aria-label="Open navigation menu"
+            className="lg:hidden p-2 text-white hover:text-[#FFBE32] transition-colors focus:outline-none cursor-pointer"
           >
-            <Menu className="h-6 w-6 text-[#FFBE32]" />
+            <Menu className="h-6 w-6" />
           </button>
         </div>
       </header>
 
-      {/* Mobile Drawer Navigation */}
+      {/* Full-Screen Mobile Drawer */}
       <MobileMenu
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        onOpenJoin={() => openJoinTournament()}
-        onOpenLogin={openLogin}
+        onOpenJoin={() => {
+          setMobileMenuOpen(false);
+          openJoinTournament();
+        }}
+        onOpenLogin={() => {
+          setMobileMenuOpen(false);
+          openLogin();
+        }}
         currentPath={pathname}
       />
     </>

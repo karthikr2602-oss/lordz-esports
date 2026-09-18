@@ -1,18 +1,33 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Flame } from "lucide-react";
+import { settingsApi } from "../api/settings";
 
 interface LiveStatusBarProps {
   onViewMatch: () => void;
 }
 
 export const LiveStatusBar = ({ onViewMatch }: LiveStatusBarProps) => {
+  const [tickerText, setTickerText] = useState("FLAME OF GLORY • GRAND FINALS");
+
+  useEffect(() => {
+    settingsApi
+      .getSettings()
+      .then((settings) => {
+        if (settings.liveTicker) {
+          setTickerText(settings.liveTicker);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div id="live-status" className="relative z-20 w-full bg-[#0B0B0D] border-y border-[#FFBE32]/25 py-3 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-6">
         
         {/* Left: Animated Status Indicator */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full bg-red-950/70 border border-red-500/40 px-3 py-1">
+          <div className="flex items-center gap-2 rounded-full bg-red-950/70 border border-red-500/40 px-3 py-1 shrink-0">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
@@ -22,12 +37,12 @@ export const LiveStatusBar = ({ onViewMatch }: LiveStatusBarProps) => {
             </span>
           </div>
 
-          <div className="h-4 w-px bg-white/15 hidden sm:block" />
+          <div className="h-4 w-px bg-white/15 hidden sm:block shrink-0" />
 
-          <div className="flex items-center gap-2">
-            <Flame className="h-4 w-4 text-[#FFBE32] animate-pulse" />
-            <span className="font-display text-lg tracking-wider uppercase text-white font-bold">
-              FLAME OF GLORY • GRAND FINALS
+          <div className="flex items-center gap-2 min-w-0">
+            <Flame className="h-4 w-4 text-[#FFBE32] animate-pulse shrink-0" />
+            <span className="font-display text-base sm:text-lg tracking-wider uppercase text-white font-bold truncate">
+              {tickerText}
             </span>
           </div>
         </div>

@@ -1,15 +1,16 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeroSection } from "../sections/HeroSection";
-import { LiveStatusBar } from "../sections/LiveStatusBar";
 import { JerseyShowcaseSection } from "../sections/JerseyShowcaseSection";
+import { PartnersSection } from "../sections/PartnersSection";
+import { AboutSection } from "../sections/AboutSection";
 import { VideoHighlightsSection } from "../sections/VideoHighlightsSection";
 import { useModals } from "../context/useModals";
 import type { MediaItem } from "../data/media";
 
 export const HomePage = () => {
   const navigate = useNavigate();
-  const { openJoinTournament, openJersey, openVideo } = useModals();
+  const { openJoinTournament, openJersey, openVideo, openPartner } = useModals();
 
   useEffect(() => {
     document.title = "LORDZ ESPORTS — Compete. Conquer. Build Legacy.";
@@ -32,21 +33,16 @@ export const HomePage = () => {
         onJoinLordz={() => openJoinTournament()}
       />
 
-      {/* 2. Compact Live Status Bar */}
-      <LiveStatusBar
-        onViewMatch={() =>
-          openVideo({
-            title: "FLAME OF GLORY • GRAND FINALS MATCH 3",
-            category: "LIVE MATCH",
-            game: "FREE FIRE MAX",
-          })
-        }
-      />
-
-      {/* 3. Forge Your Legacy / Pro Jersey Showcase Preview */}
+      {/* 2. Forge Your Legacy / Pro Jersey Showcase Preview (Wear the Lordz) */}
       <JerseyShowcaseSection onShopJersey={openJersey} />
 
-      {/* 4. Curated Video Highlights (3-Card Layout with View All -> /media) */}
+      {/* 3. Official Partners Showcase with Image & Animation */}
+      <PartnersSection onPartnerWithUs={openPartner} showHeader={true} />
+
+      {/* 4. About Us with Champion Team Image & Manifesto Text */}
+      <AboutSection showHeader={true} />
+
+      {/* 5. Curated Video Highlights */}
       <VideoHighlightsSection onPlayVideo={handlePlayHighlight} />
     </div>
   );

@@ -1,0 +1,110 @@
+export interface MediaItem {
+  id: string;
+  type: "VIDEOS" | "HIGHLIGHTS" | "PHOTOS" | "SHORTS";
+  title: string;
+  duration?: string;
+  views: string;
+  date: string;
+  game: string;
+  youtubeId?: string;
+  thumbnail?: string;
+  tag: string;
+  description?: string;
+  featured?: boolean;
+}
+
+export const mediaData: MediaItem[] = [
+  {
+    id: "media-vid-1",
+    type: "VIDEOS",
+    title: "FLAME OF GLORY S2 • OFFICIAL TRAILER & TEAM REVEAL",
+    duration: "02:45",
+    views: "48K VIEWS",
+    date: "2 DAYS AGO",
+    game: "FREE FIRE MAX",
+    youtubeId: "dQw4w9WgXcQ",
+    tag: "FEATURED",
+    featured: true,
+    description: "The grand cinematic reveal of Flame of Glory Season 2, featuring all 32 qualified squads.",
+  },
+  {
+    id: "media-hl-1",
+    type: "HIGHLIGHTS",
+    title: "BEAST 1v4 CLUTCH TO SECURE MATCH 2 BOOYAH",
+    duration: "01:18",
+    views: "34K VIEWS",
+    date: "YESTERDAY",
+    game: "FREE FIRE MAX",
+    youtubeId: "dQw4w9WgXcQ",
+    tag: "CLUTCH",
+    featured: true,
+    description: "Insane 1v4 spray transfer in the final zone by team captain Beast to seal the championship booyah.",
+  },
+  {
+    id: "media-hl-2",
+    type: "HIGHLIGHTS",
+    title: "LORDZ SQUAD WIPE VS EYEGLACIERS • FINAL CIRCLE",
+    duration: "00:54",
+    views: "21K VIEWS",
+    date: "3 DAYS AGO",
+    game: "FREE FIRE MAX",
+    youtubeId: "dQw4w9WgXcQ",
+    tag: "TOP PLAY",
+    featured: true,
+    description: "Flawless tactical smoke push and coordinated flank eliminating the tournament favorites.",
+  },
+  {
+    id: "media-hl-3",
+    type: "HIGHLIGHTS",
+    title: "SHADOW 7-KILL RUSH IN BERMUDA QUALIFIERS",
+    duration: "03:12",
+    views: "52K VIEWS",
+    date: "4 DAYS AGO",
+    game: "FREE FIRE MAX",
+    youtubeId: "dQw4w9WgXcQ",
+    tag: "AGGRESSION",
+    featured: true,
+    description: "Aggressive entry fragging clinic across Clock Tower and Factory.",
+  },
+  {
+    id: "media-sh-1",
+    type: "SHORTS",
+    title: "HOW BEAST CONTROLS RECOIL AT 200M",
+    duration: "00:30",
+    views: "89K VIEWS",
+    date: "LAST WEEK",
+    game: "FREE FIRE MAX",
+    youtubeId: "dQw4w9WgXcQ",
+    tag: "PRO TIP",
+  },
+  {
+    id: "media-ph-1",
+    type: "PHOTOS",
+    title: "BEHIND THE SCENES: 2026 PRO JERSEY SHOOT",
+    views: "15K VIEWS",
+    date: "5 DAYS AGO",
+    game: "LORDZ TEAM",
+    tag: "LIFESTYLE",
+  },
+  {
+    id: "media-ph-2",
+    type: "PHOTOS",
+    title: "FLAME OF GLORY TROPHY TOUR IN CHENNAI",
+    views: "19K VIEWS",
+    date: "LAST WEEK",
+    game: "FLAME OF GLORY",
+    tag: "COMMUNITY",
+  },
+];
+
+/**
+ * Service helper to fetch featured video highlights for the Home page.
+ * Designed so it can be swapped for a backend/API call in the future without changing UI components.
+ */
+export const getFeaturedHighlights = (): MediaItem[] => {
+  const highlights = mediaData.filter(
+    (item) => item.type === "HIGHLIGHTS" || item.featured
+  );
+  // Return curated 3 videos for desktop presentation
+  return highlights.slice(0, 3);
+};

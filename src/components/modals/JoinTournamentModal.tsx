@@ -10,6 +10,7 @@ interface JoinTournamentModalProps {
   tournamentTitle?: string;
   game?: string;
   prizePool?: string;
+  tournamentId?: string;
 }
 
 export const JoinTournamentModal = ({
@@ -18,16 +19,36 @@ export const JoinTournamentModal = ({
   tournamentTitle = "FLAME OF GLORY S2",
   game = "FREE FIRE MAX",
   prizePool = "₹50,000",
+  tournamentId = "fog-season-2",
 }: JoinTournamentModalProps) => {
   const [teamName, setTeamName] = useState("");
   const [captainIgn, setCaptainIgn] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [discordTag, setDiscordTag] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!teamName || !captainIgn || !whatsapp) return;
+
+    setSubmitting(true);
+    try {
+      await fetch(`/api/tournaments/${tournamentId}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamName,
+          captainIgn,
+          whatsapp,
+          discordTag,
+        }),
+      });
+    } catch {
+      // Graceful fallback for offline demo
+    } finally {
+      setSubmitting(false);
+    }
 
     // Trigger celebration confetti
     confetti({
@@ -158,8 +179,8 @@ export const JoinTournamentModal = ({
           </div>
 
           <div className="pt-2">
-            <GoldButton type="submit" className="w-full" size="lg">
-              CONFIRM REGISTRATION
+            <GoldButton type="submit" className="w-full" size="lg" disabled={submitting}>
+              {submitting ? "REGISTERING SQUAD..." : "CONFIRM REGISTRATION"}
             </GoldButton>
             <p className="mt-2 text-center text-[11px] text-gray-500">
               By joining, you agree to official tournament rules and fair-play anti-cheat vetting.

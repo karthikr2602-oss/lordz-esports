@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { GoldButton } from "../components/common/GoldButton";
 import jerseyFrontImg from "../assets/jersey-front.jpg";
 import jerseyBackImg from "../assets/jersey-back.jpg";
-import { Sparkles, Shield, Compass, Check } from "lucide-react";
+import { Sparkles, Shield, Compass, ArrowRight } from "lucide-react";
 
 interface JerseyShowcaseSectionProps {
   onShopJersey: () => void;
@@ -174,11 +175,13 @@ export const JerseyShowcaseSection = ({
               <GoldButton onClick={onShopJersey} size="lg" className="w-full sm:w-auto">
                 SHOP JERSEY (₹1,299)
               </GoldButton>
-              <div className="text-xs text-gray-400 font-heading tracking-wider uppercase">
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <Check className="h-3.5 w-3.5" /> IN STOCK • SIZES S TO 2XL
-                </span>
-              </div>
+              <Link
+                to="/products"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/20 hover:border-[#FFBE32] text-xs font-heading font-bold uppercase tracking-wider text-gray-300 hover:text-white transition-all bg-white/5 hover:bg-white/10"
+              >
+                <span>ALL PRODUCTS</span>
+                <ArrowRight className="h-3.5 w-3.5 text-[#FFBE32]" />
+              </Link>
             </div>
           </div>
         </div>

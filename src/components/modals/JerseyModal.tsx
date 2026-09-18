@@ -15,13 +15,48 @@ export const JerseyModal = ({ isOpen, onClose }: JerseyModalProps) => {
   const [selectedSize, setSelectedSize] = useState("L");
   const [customIgn, setCustomIgn] = useState("BEAST");
   const [customNumber, setCustomNumber] = useState("00");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [previewSide, setPreviewSide] = useState<"front" | "back">("front");
   const [ordered, setOrdered] = useState(false);
+  const [orderNumber, setOrderNumber] = useState<string | null>(null);
 
   const sizes = ["S", "M", "L", "XL", "2XL"];
 
-  const handleOrder = (e: React.FormEvent) => {
+  const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productName: "LORDZ PRO COMBAT JERSEY 2026",
+          customerName: customerName || "Esports Enthusiast",
+          customerEmail: "fan@lordz.gg",
+          customerPhone: customerPhone || "+91 98765 00000",
+          address: "Official Shipping Dispatch",
+          city: "Chennai",
+          state: "Tamil Nadu",
+          pincode: "600001",
+          size: selectedSize,
+          customIgn: customIgn.toUpperCase(),
+          customNumber: customNumber,
+          totalAmount: 1299,
+          paymentMethod: "ONLINE",
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.data?.orderNumber) {
+          setOrderNumber(data.data.orderNumber);
+        }
+      }
+    } catch {
+      // offline fallback
+    }
+
     confetti({
       particleCount: 80,
       spread: 70,
@@ -54,6 +89,7 @@ export const JerseyModal = ({ isOpen, onClose }: JerseyModalProps) => {
           </h4>
           <p className="mt-2 text-sm text-[#9CA3AF] max-w-sm">
             Your customized Lordz Pro Jersey with IGN <strong className="text-[#FFBE32]">{customIgn.toUpperCase()} #{customNumber}</strong> (Size {selectedSize}) has been reserved for batch delivery.
+            {orderNumber && <span className="block mt-2 font-mono text-xs text-[#FFBE32]">Order Reference: {orderNumber}</span>}
           </p>
           <div className="mt-6 w-full">
             <GoldButton onClick={handleClose} className="w-full" showArrow={false}>
@@ -144,6 +180,36 @@ export const JerseyModal = ({ isOpen, onClose }: JerseyModalProps) => {
                       {s}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Customer Contact */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-heading uppercase tracking-wider text-gray-300 mb-1">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="e.g. Rahul"
+                    className="w-full rounded-lg border border-white/15 bg-black/60 px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-[#FFBE32] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-heading uppercase tracking-wider text-gray-300 mb-1">
+                    WhatsApp Phone
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="w-full rounded-lg border border-white/15 bg-black/60 px-3 py-1.5 text-xs text-white placeholder-gray-500 font-mono focus:border-[#FFBE32] focus:outline-none"
+                  />
                 </div>
               </div>
 

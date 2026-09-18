@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { tournamentsData, type Tournament } from "../data/tournaments";
+import { tournamentsApi } from "../api/tournaments";
 import { Trophy, Calendar, Users, Shield, ArrowRight } from "lucide-react";
 
 interface TournamentsSectionProps {
@@ -16,8 +17,18 @@ export const TournamentsSection = ({
   onSelectTournament,
   showHeader = true,
 }: TournamentsSectionProps) => {
+  const [tournaments, setTournaments] = useState<Tournament[]>(tournamentsData);
   const [selectedGame, setSelectedGame] = useState<GameFilter>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<StatusFilter>("ALL");
+
+  useEffect(() => {
+    tournamentsApi
+      .getAll()
+      .then((data) => {
+        if (data && data.length > 0) setTournaments(data);
+      })
+      .catch(() => {});
+  }, []);
 
   const gameFilters: GameFilter[] = [
     "ALL",
@@ -36,12 +47,12 @@ export const TournamentsSection = ({
   ];
 
   const filteredTournaments = useMemo(() => {
-    return tournamentsData.filter((t) => {
+    return tournaments.filter((t) => {
       const matchGame = selectedGame === "ALL" || t.gameCategory === selectedGame;
       const matchStatus = selectedStatus === "ALL" || t.status === selectedStatus;
       return matchGame && matchStatus;
     });
-  }, [selectedGame, selectedStatus]);
+  }, [tournaments, selectedGame, selectedStatus]);
 
   return (
     <section
