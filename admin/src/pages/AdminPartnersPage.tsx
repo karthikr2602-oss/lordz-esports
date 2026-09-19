@@ -28,11 +28,26 @@ import {
   Layers,
   Inbox,
   UserCheck,
-  Check
+  Check,
+  Sparkles,
+  Link as LinkIcon
 } from "lucide-react";
 
+const PRESET_PARTNER_LOGOS = [
+  { name: "Infinix", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Infinix_logo.svg/1024px-Infinix_logo.svg.png" },
+  { name: "Free Fire Max", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Garena_Free_Fire_logo.svg/1024px-Garena_Free_Fire_logo.svg.png" },
+  { name: "Red Bull", url: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f5/RedBullEnergyDrink.svg/1024px-RedBullEnergyDrink.svg.png" },
+  { name: "Monster Energy", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Monster_Energy_logo.svg/800px-Monster_Energy_logo.svg.png" },
+  { name: "Logitech G", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Logitech_G_logo.svg/1024px-Logitech_G_logo.svg.png" },
+  { name: "Razer", url: "https://upload.wikimedia.org/wikipedia/en/thumb/4/40/Razer_snake_logo.svg/800px-Razer_snake_logo.svg.png" },
+  { name: "Discord", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Discord_Logo_%282020%29.svg/1024px-Discord_Logo_%282020%29.svg.png" },
+  { name: "ASUS ROG", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Asus_Republic_of_Gamers_logo.svg/1024px-Asus_Republic_of_Gamers_logo.svg.png" },
+  { name: "Puma", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Puma_logo.svg/1024px-Puma_logo.svg.png" },
+  { name: "SteelSeries", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/SteelSeries_logo.svg/1024px-SteelSeries_logo.svg.png" },
+];
+
 export const AdminPartnersPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"inquiries" | "plans" | "logos">("inquiries");
+  const [activeTab, setActiveTab] = useState<"inquiries" | "plans" | "logos">("logos");
 
   // Inquiries State
   const [inquiries, setInquiries] = useState<PartnerInquiryItem[]>([]);
@@ -252,6 +267,22 @@ export const AdminPartnersPage: React.FC = () => {
     }
   };
 
+  const handleDirectCardLogoUpload = async (partnerId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const res = await adminApi.uploadImage(file);
+      if (res && res.url) {
+        await partnersApi.update(partnerId, { logoImage: res.url });
+        setPartners((prev) =>
+          prev.map((p) => (p.id === partnerId ? { ...p, logoImage: res.url } : p))
+        );
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to update logo");
+    }
+  };
+
   const handleSavePartner = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!partnerFormData.name?.trim()) {
@@ -344,15 +375,16 @@ export const AdminPartnersPage: React.FC = () => {
           </p>
         </div>
 
-        {activeTab === "logos" && (
-          <button
-            onClick={handleOpenCreatePartner}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-heading text-xs font-bold uppercase tracking-wider text-black bg-[#FFBE32] hover:bg-[#FFA000] transition-all cursor-pointer shadow-[0_0_20px_rgba(255,190,50,0.35)] shrink-0 group"
-          >
-            <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
-            <span>Add Brand Sponsor</span>
-          </button>
-        )}
+        <button
+          onClick={() => {
+            setActiveTab("logos");
+            handleOpenCreatePartner();
+          }}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-heading text-xs font-bold uppercase tracking-wider text-black bg-[#FFBE32] hover:bg-[#FFA000] transition-all cursor-pointer shadow-[0_0_20px_rgba(255,190,50,0.35)] shrink-0 group"
+        >
+          <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
+          <span>Add Brand Sponsor &amp; Logo</span>
+        </button>
       </div>
 
       {/* Tabs Navigation Bar */}
@@ -691,12 +723,12 @@ export const AdminPartnersPage: React.FC = () => {
                     </div>
 
                     {/* Logo Display Box */}
-                    <div className="mt-4 w-full h-32 rounded-xl bg-black/60 border border-white/5 flex items-center justify-center p-4 relative overflow-hidden group-hover:border-[#FFBE32]/30 transition-colors">
+                    <div className="mt-4 w-full h-32 rounded-xl bg-black/60 border border-white/5 flex items-center justify-center p-4 relative overflow-hidden group-hover:border-[#FFBE32]/30 transition-colors group/logo">
                       {p.logoImage ? (
                         <img
                           src={p.logoImage}
                           alt={p.name}
-                          className="max-h-20 max-w-[85%] object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] group-hover:scale-110 transition-transform duration-300"
+                          className="max-h-20 max-w-[85%] object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : p.cardImage ? (
                         <img
@@ -710,6 +742,25 @@ export const AdminPartnersPage: React.FC = () => {
                           <span className="text-[10px] font-mono uppercase">No Logo Uploaded</span>
                         </div>
                       )}
+
+                      {/* Quick Upload Hover Overlay */}
+                      <label
+                        htmlFor={`card-logo-input-${p.id}`}
+                        className="absolute inset-0 bg-black/80 backdrop-blur-xs opacity-0 group-hover/logo:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 cursor-pointer z-10"
+                        title="Click to quickly upload / change logo"
+                      >
+                        <Upload className="h-5 w-5 text-[#FFBE32]" />
+                        <span className="text-[10px] font-heading font-bold uppercase text-white tracking-wider">
+                          Change Logo File
+                        </span>
+                        <input
+                          type="file"
+                          id={`card-logo-input-${p.id}`}
+                          accept="image/*"
+                          onChange={(e) => handleDirectCardLogoUpload(p.id, e)}
+                          className="hidden"
+                        />
+                      </label>
                     </div>
 
                     <div className="mt-4">
@@ -772,20 +823,32 @@ export const AdminPartnersPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleSavePlan} className="space-y-4">
+              <div>
+                <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
+                  Plan Display Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={planFormData.name || ""}
+                  onChange={(e) => setPlanFormData({ ...planFormData, name: e.target.value })}
+                  className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-2.5 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
-                    Price (e.g. ₹1,999) *
+                    Monthly Price (Display)
                   </label>
                   <input
                     type="text"
                     required
                     value={planFormData.price || ""}
                     onChange={(e) => setPlanFormData({ ...planFormData, price: e.target.value })}
-                    className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
+                    className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-2.5 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
                   />
                 </div>
-
                 <div>
                   <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
                     Billing Cycle
@@ -793,73 +856,74 @@ export const AdminPartnersPage: React.FC = () => {
                   <input
                     type="text"
                     required
-                    value={planFormData.billing || ""}
+                    value={planFormData.billing || "/month"}
                     onChange={(e) => setPlanFormData({ ...planFormData, billing: e.target.value })}
-                    placeholder="/ Month or One-Time"
-                    className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
+                    className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-2.5 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
-                  Tagline / Subtitle
-                </label>
-                <input
-                  type="text"
-                  value={planFormData.tag || ""}
-                  onChange={(e) => setPlanFormData({ ...planFormData, tag: e.target.value })}
-                  placeholder="Best Value for Competitive Guilds & Brands"
-                  className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
-                  Subheading (optional)
+                  Tier Subtitle / Descriptor
                 </label>
                 <input
                   type="text"
                   value={planFormData.subheading || ""}
                   onChange={(e) => setPlanFormData({ ...planFormData, subheading: e.target.value })}
-                  placeholder="EVERYTHING IN BRONZE"
-                  className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
+                  className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-2.5 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
-                  Features (One per line)
+                  Features &amp; Deliverables (One per line)
                 </label>
                 <textarea
-                  rows={4}
+                  rows={5}
                   value={
-                    typeof planFormData.features === "string" && planFormData.features.startsWith("[")
-                      ? JSON.parse(planFormData.features).join("\n")
+                    Array.isArray(planFormData.features)
+                      ? planFormData.features.join("\n")
                       : planFormData.features || ""
                   }
-                  onChange={(e) => {
-                    const lines = e.target.value.split("\n").filter((l) => l.trim().length > 0);
-                    setPlanFormData({ ...planFormData, features: JSON.stringify(lines) });
-                  }}
-                  className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-xs text-white focus:border-[#FFBE32] focus:outline-none font-mono"
+                  onChange={(e) =>
+                    setPlanFormData({
+                      ...planFormData,
+                      features: e.target.value.split("\n").filter((f) => f.trim().length > 0),
+                    })
+                  }
+                  className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-2.5 text-xs text-white focus:border-[#FFBE32] focus:outline-none font-mono"
                 />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="popular-plan-check"
+                  checked={planFormData.isPopular || false}
+                  onChange={(e) => setPlanFormData({ ...planFormData, isPopular: e.target.checked })}
+                  className="rounded border-white/20 text-[#FFBE32] focus:ring-[#FFBE32] h-4 w-4 bg-black/60"
+                />
+                <label htmlFor="popular-plan-check" className="text-xs font-heading font-bold text-gray-300 cursor-pointer uppercase">
+                  Mark as Most Popular Tier
+                </label>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setPlanModalOpen(false)}
-                  className="px-5 py-2 rounded-xl border border-white/15 text-xs font-heading font-bold uppercase text-gray-300"
+                  className="px-5 py-2.5 rounded-xl border border-white/15 text-xs font-heading font-bold text-gray-300 hover:text-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingPlan}
-                  className="px-6 py-2 rounded-xl bg-[#FFBE32] text-black font-heading text-xs font-bold uppercase tracking-wider"
+                  className="px-6 py-2.5 rounded-xl bg-[#FFBE32] text-black font-heading text-xs font-bold uppercase tracking-wider hover:bg-[#FFA000] transition-all flex items-center gap-2 cursor-pointer"
                 >
-                  {savingPlan ? "Saving..." : "Update Plan"}
+                  {savingPlan ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  <span>Save Plan Tier</span>
                 </button>
               </div>
             </form>
@@ -868,15 +932,15 @@ export const AdminPartnersPage: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* EDIT / ADD PARTNER LOGO MODAL */}
+      {/* ADD / EDIT PARTNER MODAL */}
       {/* ========================================================================= */}
       {partnerModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-lg rounded-2xl bg-[#0D0D12] border border-[#FFBE32]/40 p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.9)] max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="relative w-full max-w-xl rounded-2xl bg-[#0D0D12] border border-[#FFBE32]/40 p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.95)] max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
               <div>
                 <span className="text-[10px] font-heading font-bold uppercase tracking-widest text-[#FFBE32]">
-                  {editingPartner ? "Update Partner" : "New Sponsor"}
+                  {editingPartner ? "Edit Partner & Logo" : "New Sponsor Partner"}
                 </span>
                 <h3 className="font-display text-2xl uppercase tracking-wider text-white mt-0.5">
                   {editingPartner ? "Edit Partner & Logo" : "Add Brand Sponsor"}
@@ -884,7 +948,7 @@ export const AdminPartnersPage: React.FC = () => {
               </div>
               <button
                 onClick={() => setPartnerModalOpen(false)}
-                className="p-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white"
+                className="p-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -900,19 +964,27 @@ export const AdminPartnersPage: React.FC = () => {
                   required
                   value={partnerFormData.name}
                   onChange={(e) => setPartnerFormData({ ...partnerFormData, name: e.target.value })}
-                  placeholder="e.g. LOGITECH G, RED BULL"
+                  placeholder="e.g. LOGITECH G, RED BULL, MONSTER"
                   className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-2.5 text-sm text-white focus:border-[#FFBE32] focus:outline-none uppercase"
                 />
               </div>
 
-              {/* Logo Upload */}
+              {/* Logo Upload & URL Section */}
               <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-heading font-bold uppercase text-[#FFBE32] flex items-center gap-1.5">
                     <Upload className="h-3.5 w-3.5" />
-                    <span>Partner Logo Image</span>
+                    <span>Partner Logo Image *</span>
                   </label>
-                  <span className="text-[10px] text-gray-400 font-mono">PNG, SVG, WebP, JPG</span>
+                  {partnerFormData.logoImage && (
+                    <button
+                      type="button"
+                      onClick={() => setPartnerFormData({ ...partnerFormData, logoImage: "" })}
+                      className="text-[10px] text-rose-400 hover:text-rose-300 font-mono transition-colors cursor-pointer"
+                    >
+                      Remove Logo
+                    </button>
+                  )}
                 </div>
 
                 <input
@@ -923,48 +995,100 @@ export const AdminPartnersPage: React.FC = () => {
                   className="hidden"
                 />
 
-                {partnerFormData.logoImage ? (
-                  <div className="relative rounded-xl border border-white/15 bg-[#07070a] p-4 flex items-center justify-center min-h-[100px] overflow-hidden">
-                    <img
-                      src={partnerFormData.logoImage}
-                      alt="Logo preview"
-                      className="max-h-20 max-w-[80%] object-contain"
-                    />
-                    <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-[10px] font-heading font-bold uppercase"
-                      >
-                        Change
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPartnerFormData({ ...partnerFormData, logoImage: "" })}
-                        className="px-2.5 py-1 rounded-md bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 text-[10px] font-heading font-bold uppercase"
-                      >
-                        Remove
-                      </button>
+                {/* Live Logo Preview Box */}
+                <div className="relative rounded-xl border border-white/15 bg-[#07070a] p-4 flex items-center justify-center min-h-[110px] overflow-hidden">
+                  {partnerFormData.logoImage ? (
+                    <>
+                      <img
+                        src={partnerFormData.logoImage}
+                        alt="Logo preview"
+                        className="max-h-20 max-w-[80%] object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]"
+                      />
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-[10px] font-heading font-bold uppercase cursor-pointer"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center text-gray-400 cursor-pointer p-2 text-center"
+                    >
+                      <ImageIcon className="h-7 w-7 text-white/20 mb-1" />
+                      <span className="text-xs font-heading font-bold text-white uppercase">Upload Logo from Device</span>
+                      <span className="text-[10px] text-gray-500 font-mono">PNG / SVG with transparent background recommended</span>
                     </div>
-                  </div>
-                ) : (
-                  <div
+                  )}
+                </div>
+
+                {/* Upload from device & URL input buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <button
+                    type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-white/15 hover:border-[#FFBE32]/60 rounded-xl p-5 text-center cursor-pointer transition-all hover:bg-white/[0.02]"
+                    disabled={uploadingLogo}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-white/20 hover:border-[#FFBE32]/60 bg-white/5 hover:bg-white/10 text-xs font-heading font-bold uppercase tracking-wider text-white transition-all cursor-pointer"
                   >
                     {uploadingLogo ? (
-                      <div className="flex flex-col items-center justify-center gap-2 text-gray-300">
-                        <Loader2 className="h-6 w-6 animate-spin text-[#FFBE32]" />
-                        <span className="text-xs font-mono">Uploading image...</span>
-                      </div>
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-[#FFBE32]" />
+                        <span>Uploading...</span>
+                      </>
                     ) : (
-                      <div className="flex flex-col items-center justify-center gap-1.5">
-                        <Upload className="h-5 w-5 text-[#FFBE32]" />
-                        <p className="text-xs font-heading font-bold uppercase text-white">Click to Upload Logo</p>
-                      </div>
+                      <>
+                        <Upload className="h-4 w-4 text-[#FFBE32]" />
+                        <span>Choose File / SVG</span>
+                      </>
                     )}
+                  </button>
+
+                  <div className="relative">
+                    <input
+                      type="url"
+                      value={partnerFormData.logoImage || ""}
+                      onChange={(e) =>
+                        setPartnerFormData({ ...partnerFormData, logoImage: e.target.value })
+                      }
+                      placeholder="Or paste Logo URL..."
+                      className="w-full rounded-xl border border-white/15 bg-black/60 pl-8 pr-3 py-2.5 text-xs text-white placeholder:text-gray-600 focus:border-[#FFBE32] focus:outline-none"
+                    />
+                    <LinkIcon className="h-3.5 w-3.5 text-gray-500 absolute left-3 top-3" />
                   </div>
-                )}
+                </div>
+
+                {/* Quick Preset Logos */}
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-gray-500 mb-1.5 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-[#FFBE32]" /> Quick Preset Brands:
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                    {PRESET_PARTNER_LOGOS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() =>
+                          setPartnerFormData({
+                            ...partnerFormData,
+                            name: partnerFormData.name || preset.name.toUpperCase(),
+                            logoImage: preset.url,
+                          })
+                        }
+                        className={`text-[10px] font-mono px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                          partnerFormData.logoImage === preset.url
+                            ? "bg-[#FFBE32]/20 border-[#FFBE32] text-[#FFBE32]"
+                            : "bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
+                        }`}
+                      >
+                        {preset.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

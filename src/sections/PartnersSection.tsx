@@ -122,10 +122,10 @@ export const PartnersSection = ({
         .getAll()
         .then((data) => {
           if (data && data.length > 0) {
-            // Map live items, preserving uploaded logos or falling back to high-res assets
+            // Map live items, prioritizing uploaded logos over static fallbacks
             const merged = data.map((d) => ({
               ...d,
-              logoImage: defaultFallbackLogos[d.id] || d.logoImage || null,
+              logoImage: d.logoImage || defaultFallbackLogos[d.id] || null,
               cardImage: d.cardImage || defaultFallbackCards[d.id] || null,
             }));
             setPartnerList(merged);
@@ -137,9 +137,9 @@ export const PartnersSection = ({
     }
   }, [initialPartners]);
 
-  // Resolve logo helper
+  // Resolve logo helper - prioritizes database uploaded logo first
   const resolveLogo = (partner: PartnerItem): string | null => {
-    return defaultFallbackLogos[partner.id] || partner.logoImage || null;
+    return partner.logoImage || defaultFallbackLogos[partner.id] || null;
   };
 
   // Duplicate partner list for seamless infinite loop marquee

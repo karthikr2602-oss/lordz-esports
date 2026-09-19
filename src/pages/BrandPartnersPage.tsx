@@ -154,14 +154,29 @@ export const BrandPartnersPage = () => {
       .catch(() => {});
   }, []);
 
-  // Merge DB partners if they have unique names not already in curated
+  // Merge DB partners, allowing custom uploaded logos and new partners to reflect immediately
   const mergedPartners: PartnerRowData[] = [
-    ...curatedPartners,
+    ...curatedPartners.map((cp) => {
+      const dbMatch = dbPartners.find(
+        (p) => p.id === cp.id || p.name.toLowerCase() === cp.name.toLowerCase()
+      );
+      if (dbMatch) {
+        return {
+          ...cp,
+          logo: dbMatch.logoImage || cp.logo,
+          name: dbMatch.name || cp.name,
+          category: dbMatch.category || cp.category,
+          tier: dbMatch.tier || cp.tier,
+          website: dbMatch.websiteUrl || cp.website,
+        };
+      }
+      return cp;
+    }),
     ...dbPartners
       .filter(
         (p) =>
           !curatedPartners.some(
-            (cp) => cp.name.toLowerCase() === p.name.toLowerCase()
+            (cp) => cp.id === p.id || cp.name.toLowerCase() === p.name.toLowerCase()
           ) && p.isActive !== false
       )
       .map((p) => ({

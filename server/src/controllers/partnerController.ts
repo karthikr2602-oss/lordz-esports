@@ -4,12 +4,14 @@ import { prisma } from "../config/prisma.js";
 import { AuthenticatedRequest } from "../middleware/auth.js";
 
 const partnerSchema = z.object({
-  name: z.string().min(2),
+  name: z.string().min(1),
   category: z.string().default("Gaming"),
-  tier: z.enum(["MAIN SPONSOR", "OFFICIAL PARTNER", "BROADCAST PARTNER"]).default("OFFICIAL PARTNER"),
+  tier: z.string().default("OFFICIAL PARTNER"),
   logoImage: z.string().optional().nullable(),
+  logo: z.string().optional().nullable(),
   cardImage: z.string().optional().nullable(),
   websiteUrl: z.string().optional().nullable(),
+  website: z.string().optional().nullable(),
   sortOrder: z.number().default(0),
   isActive: z.boolean().default(true),
 });
@@ -39,8 +41,16 @@ export const getAllPartnersAdmin = async (_req: AuthenticatedRequest, res: Respo
 
 export const createPartner = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const data = partnerSchema.parse(req.body);
-    const partner = await prisma.partner.create({ data });
+    const body = { ...req.body };
+    if (!body.logoImage && body.logo) body.logoImage = body.logo;
+    if (!body.websiteUrl && body.website) body.websiteUrl = body.website;
+
+    const data = partnerSchema.parse(body);
+    const { logo, website, ...prismaData } = data as any;
+    if (!prismaData.logoImage && logo) prismaData.logoImage = logo;
+    if (!prismaData.websiteUrl && website) prismaData.websiteUrl = website;
+
+    const partner = await prisma.partner.create({ data: prismaData });
     res.status(201).json({ success: true, message: "Partner added successfully", data: partner });
   } catch (error) {
     next(error);
@@ -50,10 +60,18 @@ export const createPartner = async (req: AuthenticatedRequest, res: Response, ne
 export const updatePartner = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const data = partnerSchema.partial().parse(req.body);
+    const body = { ...req.body };
+    if (!body.logoImage && body.logo) body.logoImage = body.logo;
+    if (!body.websiteUrl && body.website) body.websiteUrl = body.website;
+
+    const data = partnerSchema.partial().parse(body);
+    const { logo, website, ...prismaData } = data as any;
+    if (!prismaData.logoImage && logo) prismaData.logoImage = logo;
+    if (!prismaData.websiteUrl && website) prismaData.websiteUrl = website;
+
     const partner = await prisma.partner.update({
       where: { id },
-      data,
+      data: prismaData,
     });
     res.json({ success: true, message: "Partner updated successfully", data: partner });
   } catch (error) {
