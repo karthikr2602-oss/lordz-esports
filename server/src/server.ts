@@ -1,20 +1,13 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import rateLimit from "express-rate-limit";
 import path from "path";
-import { createRequire } from "module";
 import dotenv from "dotenv";
 import routes from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { prisma } from "./config/prisma.js";
-
-// Use createRequire to load CJS builds of packages that have ESM/CJS type issues
-// under strict NodeNext / ESNext module resolution (TS2349 workaround)
-const require = createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const helmet = require("helmet") as typeof import("helmet").default;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { rateLimit } = require("express-rate-limit") as typeof import("express-rate-limit");
 
 dotenv.config();
 
@@ -324,24 +317,15 @@ app.use((_req, res) => {
 // Global error handler
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`=========================================`);
-  console.log(`⚡ LORDZ ESPORTS REST API SERVER RUNNING`);
-  console.log(`📡 URL: http://localhost:${PORT}`);
-  console.log(`🛡️  Health check: http://localhost:${PORT}/health`);
-  console.log(`📂 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`=========================================`);
+// Verify database connection on first import (non-blocking)
+prisma.$connect()
+  .then(() => {
+    console.log("🐘 DATABASE: Connected to Neon PostgreSQL");
+  })
+  .catch((err: Error) => {
+    console.warn("⚠️  DATABASE connection failed:", err.message);
+  });
 
-  // Verify Database Connection
-  prisma.$connect()
-    .then(() => {
-      console.log("🐘 DATABASE: Connected to Neon PostgreSQL Database successfully!");
-    })
-    .catch((err: any) => {
-      console.warn("⚠️  DATABASE: Unable to connect to PostgreSQL:", err.message);
-      console.warn("👉 Please set your Neon connection string in server/.env (DATABASE_URL=postgresql://...)?sslmode=require");
-    });
-});
-
+// Export app for Vercel serverless — do NOT call app.listen() here.
+// For local dev, run src/index.ts which calls app.listen().
 export default app;
