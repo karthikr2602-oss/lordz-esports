@@ -115,27 +115,36 @@ export const AdminMediaPage: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanYtId = extractYouTubeId(formData.youtubeId);
-    const thumbnail = formData.thumbnail || (cleanYtId ? `https://img.youtube.com/vi/${cleanYtId}/hqdefault.jpg` : undefined);
+    const thumbnail =
+      formData.thumbnail && !formData.thumbnail.includes("youtube.com/vi/")
+        ? formData.thumbnail
+        : (cleanYtId ? `https://img.youtube.com/vi/${cleanYtId}/hqdefault.jpg` : undefined);
     const chosenTag = formData.tag || "FEATURED";
 
     const payload = {
-      ...formData,
-      youtubeId: cleanYtId,
+      title: formData.title?.trim() || "NEW VIDEO",
+      type: formData.type || "VIDEOS",
+      game: formData.game || "FREE FIRE MAX",
+      youtubeId: cleanYtId || "dQw4w9WgXcQ",
       thumbnail,
+      duration: formData.duration || "02:30",
+      views: formData.views || "10K VIEWS",
+      date: formData.date || "RECENT",
       tag: chosenTag,
-      featured: !!formData.featured,
+      description: formData.description || null,
+      featured: formData.featured !== undefined ? !!formData.featured : true,
     };
 
     try {
       if (editingItem) {
-        await apiRequest(`/media/${editingItem.id}`, {
+        const updated = await apiRequest<MediaItem>(`/media/${editingItem.id}`, {
           method: "PUT",
           body: JSON.stringify(payload),
         });
         setMedia((prev) =>
           prev.map((item) => {
             if (item.id === editingItem.id) {
-              return { ...item, ...payload } as MediaItem;
+              return updated ? { ...item, ...updated } : ({ ...item, ...payload } as MediaItem);
             }
             if (chosenTag === "PREMIERE" && item.tag === "PREMIERE") {
               return { ...item, tag: "FEATURED" };
@@ -144,29 +153,18 @@ export const AdminMediaPage: React.FC = () => {
           })
         );
       } else {
-        const newItem: MediaItem = {
+        const created = await apiRequest<MediaItem>("/media", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        const finalItem: MediaItem = created || {
           id: `media-${Date.now()}`,
-          title: formData.title || "VIDEO TITLE",
-          type: formData.type || "VIDEOS",
-          game: formData.game || "FREE FIRE MAX",
-          youtubeId: cleanYtId || "dQw4w9WgXcQ",
-          thumbnail,
-          duration: formData.duration || "01:00",
-          views: "10K VIEWS",
-          date: "RECENT",
-          tag: chosenTag,
-          featured: !!formData.featured,
+          ...payload,
         };
-        try {
-          await apiRequest("/media", {
-            method: "POST",
-            body: JSON.stringify(newItem),
-          });
-        } catch {
-          // fallback
-        }
+
         setMedia((prev) => [
-          newItem,
+          finalItem,
           ...prev.map((item) =>
             chosenTag === "PREMIERE" && item.tag === "PREMIERE"
               ? { ...item, tag: "FEATURED" }
@@ -184,10 +182,10 @@ export const AdminMediaPage: React.FC = () => {
     if (!confirm("Are you sure you want to delete this media item?")) return;
     try {
       await apiRequest(`/media/${id}`, { method: "DELETE" });
-    } catch {
-      // optimistic
+      setMedia((prev) => prev.filter((m) => m.id !== id));
+    } catch (err: any) {
+      alert(err.message || "Failed to delete media item");
     }
-    setMedia((prev) => prev.filter((m) => m.id !== id));
   };
 
   const filteredMedia = media.filter((m) => {
@@ -249,11 +247,11 @@ export const AdminMediaPage: React.FC = () => {
               key={m.id}
               className="rounded-2xl bg-[#0C0C10] border border-white/10 hover:border-[#FFBE32]/60 transition-all flex flex-col group shadow-[0_10px_25px_rgba(0,0,0,0.7)] overflow-hidden"
             >
-              {/* YouTube Thumbnail */}
+              {/* Video Thumbnail */}
               <div className="aspect-video w-full bg-black relative overflow-hidden">
-                {m.youtubeId ? (
+                {m.thumbnail || m.youtubeId ? (
                   <img
-                    src={`https://img.youtube.com/vi/${extractYouTubeId(m.youtubeId)}/hqdefault.jpg`}
+                    src={m.thumbnail || `https://img.youtube.com/vi/${extractYouTubeId(m.youtubeId)}/hqdefault.jpg`}
                     alt={m.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

@@ -16,18 +16,31 @@ export const VideoHighlightsSection = ({
   const [highlights, setHighlights] = useState<MediaItem[]>(getFeaturedHighlights());
 
   useEffect(() => {
-    mediaApi
-      .getAll()
-      .then((data) => {
-        if (data && data.length > 0) {
-          // Strictly display videos chosen by admin
-          const chosen = data.filter((m) => m.featured);
-          setHighlights(chosen.length > 0 ? chosen : data.slice(0, 3));
-        }
-      })
-      .catch(() => {
-        setHighlights(getFeaturedHighlights());
-      });
+    const fetchHighlights = () => {
+      mediaApi
+        .getAll()
+        .then((data) => {
+          if (data && data.length > 0) {
+            // Strictly display videos chosen by admin
+            const chosen = data.filter((m) => m.featured);
+            setHighlights(chosen.length > 0 ? chosen : data.slice(0, 3));
+          }
+        })
+        .catch(() => {
+          setHighlights(getFeaturedHighlights());
+        });
+    };
+
+    fetchHighlights();
+
+    // Re-fetch when switching back to this tab so additions in admin portal reflect immediately
+    window.addEventListener("focus", fetchHighlights);
+    const interval = setInterval(fetchHighlights, 10000);
+
+    return () => {
+      window.removeEventListener("focus", fetchHighlights);
+      clearInterval(interval);
+    };
   }, []);
 
   return (

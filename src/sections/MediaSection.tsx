@@ -21,16 +21,28 @@ export const MediaSection = ({
   const [selectedTab, setSelectedTab] = useState<MediaTab>("ALL");
 
   useEffect(() => {
-    mediaApi
-      .getAll()
-      .then((data) => {
-        if (data && data.length > 0) {
-          setItems(data);
-        }
-      })
-      .catch(() => {
-        setItems(mediaData);
-      });
+    const fetchMedia = () => {
+      mediaApi
+        .getAll()
+        .then((data) => {
+          if (data && data.length > 0) {
+            setItems(data);
+          }
+        })
+        .catch(() => {
+          setItems(mediaData);
+        });
+    };
+
+    fetchMedia();
+
+    window.addEventListener("focus", fetchMedia);
+    const interval = setInterval(fetchMedia, 10000);
+
+    return () => {
+      window.removeEventListener("focus", fetchMedia);
+      clearInterval(interval);
+    };
   }, []);
 
   const tabs: MediaTab[] = ["ALL", "VIDEOS", "HIGHLIGHTS", "PHOTOS", "SHORTS"];

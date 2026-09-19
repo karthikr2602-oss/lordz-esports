@@ -74,8 +74,10 @@ export const mediaData: MediaItem[] = [
     views: "89K VIEWS",
     date: "LAST WEEK",
     game: "FREE FIRE MAX",
-    youtubeId: "dQw4w9WgXcQ",
+    youtubeId: "sphPuFUveuM",
+    thumbnail: "https://img.youtube.com/vi/sphPuFUveuM/hqdefault.jpg",
     tag: "PRO TIP",
+    featured: true,
   },
   {
     id: "media-ph-1",
