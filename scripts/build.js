@@ -8,7 +8,11 @@ execSync("npm run build:web", { stdio: "inherit" });
 const adminDir = path.resolve("admin");
 
 console.log("⚙️ Building Lordz Esports Admin Portal...");
-execSync("npm install", { cwd: adminDir, stdio: "inherit" });
+execSync("npm install --include=dev", {
+  cwd: adminDir,
+  stdio: "inherit",
+  env: { ...process.env, NODE_ENV: "development" }
+});
 execSync("npm run build", { cwd: adminDir, stdio: "inherit" });
 
 console.log("📦 Packaging Admin Portal into dist/admin...");
