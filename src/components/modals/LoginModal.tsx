@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "../common/Modal";
 import { GoldButton } from "../common/GoldButton";
 import { OutlineButton } from "../common/OutlineButton";
@@ -17,9 +17,12 @@ import {
   ShieldCheck,
   Calendar,
   Hash,
+  Pencil,
+  Check,
 } from "lucide-react";
 import logoImg from "../../assets/lordz-logo.png";
 import { useAuth } from "../../context/AuthContext";
+import { authApi } from "../../api/auth";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -27,12 +30,40 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
-  const { user, isAuthenticated, login, register, logout } = useAuth();
+  const { user, isAuthenticated, login, register, logout, updateUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Editable Gaming Experience Tier state
+  const [isEditingTier, setIsEditingTier] = useState(false);
+  const [selectedTier, setSelectedTier] = useState(user?.gamingExperience || "1-2 Years (Semi-Pro)");
+  const [isSavingTier, setIsSavingTier] = useState(false);
+  const [tierUpdateFeedback, setTierUpdateFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.gamingExperience) {
+      setSelectedTier(user.gamingExperience);
+    }
+  }, [user?.gamingExperience]);
+
+  const handleSaveTier = async () => {
+    if (!user) return;
+    setIsSavingTier(true);
+    try {
+      await authApi.updateProfile({ gamingExperience: selectedTier });
+      updateUser({ gamingExperience: selectedTier });
+      setTierUpdateFeedback("Tier updated!");
+      setIsEditingTier(false);
+      setTimeout(() => setTierUpdateFeedback(null), 3000);
+    } catch (err: any) {
+      alert("Failed to update tier: " + (err.message || "Unknown error"));
+    } finally {
+      setIsSavingTier(false);
+    }
+  };
 
   // Login form state
   const [loginIdentifier, setLoginIdentifier] = useState("");
@@ -199,13 +230,77 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 </span>
               </div>
 
-              <div className="bg-black/40 rounded-xl p-3 border border-white/5">
-                <span className="text-[10px] font-mono text-gray-400 uppercase block mb-1 flex items-center gap-1">
-                  <Trophy className="h-3 w-3 text-[#FFBE32]" /> Experience
-                </span>
-                <span className="text-xs text-[#FFBE32] font-semibold block">
-                  {user.gamingExperience || "Semi-Pro"}
-                </span>
+              <div className="bg-black/50 rounded-xl p-3 border border-[#FFBE32]/30 relative transition-all">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-mono text-gray-400 uppercase flex items-center gap-1">
+                    <Trophy className="h-3 w-3 text-[#FFBE32]" /> Experience Tier
+                  </span>
+                  {!isEditingTier && (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingTier(true)}
+                      className="text-[10px] font-mono text-[#FFBE32] hover:text-[#FFE082] hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                      title="Edit Experience Tier"
+                    >
+                      <Pencil className="h-2.5 w-2.5" /> Edit
+                    </button>
+                  )}
+                </div>
+
+                {isEditingTier ? (
+                  <div className="space-y-2 mt-1">
+                    <select
+                      value={selectedTier}
+                      onChange={(e) => setSelectedTier(e.target.value)}
+                      className="w-full rounded-lg border border-[#FFBE32] bg-[#0A0A0C] px-2 py-1 text-xs text-white focus:outline-none cursor-pointer"
+                    >
+                      <option value="< 1 Year (Rookie / Beginner)" className="bg-[#0A0A0C]">
+                        &lt; 1 Year (Rookie / Beginner)
+                      </option>
+                      <option value="1-2 Years (Semi-Pro)" className="bg-[#0A0A0C]">
+                        1-2 Years (Semi-Pro)
+                      </option>
+                      <option value="2-4 Years (Tier-2 Competitive)" className="bg-[#0A0A0C]">
+                        2-4 Years (Tier-2 Competitive)
+                      </option>
+                      <option value="4+ Years (Tier-1 Veteran)" className="bg-[#0A0A0C]">
+                        4+ Years (Tier-1 Veteran)
+                      </option>
+                    </select>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={isSavingTier}
+                        onClick={handleSaveTier}
+                        className="px-2.5 py-1 rounded-md bg-[#FFBE32] hover:bg-[#FFE082] text-black text-[10px] font-heading font-bold uppercase cursor-pointer transition-colors flex items-center gap-1"
+                      >
+                        <Check className="h-2.5 w-2.5" />
+                        {isSavingTier ? "SAVING..." : "SAVE TIER"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedTier(user.gamingExperience || "1-2 Years (Semi-Pro)");
+                          setIsEditingTier(false);
+                        }}
+                        className="px-2 py-1 rounded-md border border-white/20 text-gray-400 text-[10px] font-heading cursor-pointer hover:text-white transition-colors"
+                      >
+                        CANCEL
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <span className="text-xs text-[#FFBE32] font-bold block truncate">
+                      {user.gamingExperience || "1-2 Years (Semi-Pro)"}
+                    </span>
+                    {tierUpdateFeedback && (
+                      <span className="text-[10px] text-emerald-400 font-mono mt-0.5 block flex items-center gap-1">
+                        <Check className="h-2.5 w-2.5" /> {tierUpdateFeedback}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="bg-black/40 rounded-xl p-3 border border-white/5">
