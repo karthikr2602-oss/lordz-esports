@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import path from "path";
+import os from "os";
 import dotenv from "dotenv";
 import routes from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -52,7 +53,9 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 // Serve static uploaded files
-const uploadDir = path.join(process.cwd(), "uploads");
+const uploadDir = process.env.VERCEL
+  ? path.join(os.tmpdir(), "uploads")
+  : path.join(process.cwd(), "uploads");
 app.use("/uploads", express.static(uploadDir));
 
 // Health check endpoint
