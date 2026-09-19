@@ -392,7 +392,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                       className="w-full rounded-xl border border-white/15 bg-black/60 pl-9 pr-3 py-2 text-xs text-white placeholder-gray-500 focus:border-[#FFBE32] focus:outline-none"
                     />
                   </div>
-                  <span className="text-[10px] text-gray-500 font-mono mt-0.5 block">
+                  <span className="text-[10px] text-gray-400 font-mono mt-0.5 block">
                     Unique handle (letters, numbers, _)
                   </span>
                 </div>
@@ -449,7 +449,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                       className="w-full rounded-xl border border-white/15 bg-black/60 pl-9 pr-3 py-2 text-xs text-white placeholder-gray-500 focus:border-[#FFBE32] focus:outline-none"
                     />
                   </div>
-                  <span className="text-[10px] text-gray-500 font-mono mt-0.5 block">
+                  <span className="text-[10px] text-gray-400 font-mono mt-0.5 block">
                     For scrim slot updates &amp; prize transfers
                   </span>
                 </div>
@@ -488,7 +488,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                       className="w-full rounded-xl border border-white/15 bg-black/60 pl-9 pr-3 py-2 text-xs text-white placeholder-gray-500 focus:border-[#FFBE32] focus:outline-none"
                     />
                   </div>
-                  <span className="text-[10px] text-gray-500 font-mono mt-0.5 block">
+                  <span className="text-[10px] text-gray-400 font-mono mt-0.5 block">
                     Defaults to username if left empty
                   </span>
                 </div>
@@ -534,10 +534,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                       className="w-full rounded-xl border border-white/15 bg-black/60 pl-9 pr-3 py-2 text-xs text-white focus:border-[#FFBE32] focus:outline-none cursor-pointer"
                     >
                       <option value="FREE FIRE MAX" className="bg-[#0A0A0B]">FREE FIRE MAX</option>
-                      <option value="BGMI" className="bg-[#0A0A0B]">BGMI / BATTLEGROUNDS</option>
-                      <option value="VALORANT" className="bg-[#0A0A0B]">VALORANT</option>
-                      <option value="CALL OF DUTY MOBILE" className="bg-[#0A0A0B]">CALL OF DUTY MOBILE</option>
-                      <option value="OTHER" className="bg-[#0A0A0B]">OTHER ESPORTS</option>
+                      <option value="FREE FIRE" className="bg-[#0A0A0B]">FREE FIRE</option>
                     </select>
                   </div>
                 </div>
@@ -581,8 +578,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div className="pt-2">
-                <GoldButton type="submit" disabled={loading} className="w-full" size="md">
-                  {loading ? "REGISTERING ATHLETE..." : "COMPLETE REGISTRATION & JOIN CLAN"}
+                <GoldButton type="submit" disabled={loading} className="w-full" size="md" showArrow={false}>
+                  {loading ? "REGISTERING ATHLETE..." : "COMPLETE REGISTRATION"}
                 </GoldButton>
               </div>
 
