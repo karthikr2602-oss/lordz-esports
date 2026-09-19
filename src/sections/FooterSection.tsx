@@ -47,7 +47,63 @@ export const FooterSection = () => {
 
             <div className="mt-2 flex items-center gap-2 text-xs text-gray-400 font-body">
               <Mail className="h-4 w-4 text-[#FFBE32]" />
-              <span>contact@lordzesports.gg</span>
+              <a href="mailto:lordesportz75@gmail.com" className="hover:text-[#FFBE32] transition-colors">
+                lordesportz75@gmail.com
+              </a>
+            </div>
+
+            {/* Official Channels Quick Access */}
+            <div className="mt-6 pt-5 border-t border-white/10">
+              <span className="block text-[10px] font-heading font-bold uppercase tracking-[0.2em] text-[#FFBE32] mb-3">
+                OFFICIAL CHANNELS
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href="https://whatsapp.com/channel/0029Vb8sSc66hENsTW35hd11"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Official WhatsApp Channel"
+                  className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-[#25D366]/20 border border-white/10 hover:border-[#25D366]/50 text-gray-300 hover:text-[#25D366] text-[11px] font-heading font-semibold flex items-center gap-1.5 transition-all"
+                >
+                  <span>WhatsApp</span>
+                </a>
+                <a
+                  href="https://whatsapp.com/channel/0029Vb8fM218kyySLfM90o0l"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="BR Scrims Channel"
+                  className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-[#FFBE32]/20 border border-white/10 hover:border-[#FFBE32]/50 text-gray-300 hover:text-[#FFBE32] text-[11px] font-heading font-semibold flex items-center gap-1.5 transition-all"
+                >
+                  <span>BR Scrims</span>
+                </a>
+                <a
+                  href="https://discord.gg/Q8KR7tU96"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Discord Server"
+                  className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-[#5865F2]/20 border border-white/10 hover:border-[#5865F2]/50 text-gray-300 hover:text-[#5865F2] text-[11px] font-heading font-semibold flex items-center gap-1.5 transition-all"
+                >
+                  <span>Discord</span>
+                </a>
+                <a
+                  href="https://www.instagram.com/lord.esportz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Instagram @lord.esportz"
+                  className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-[#E1306C]/20 border border-white/10 hover:border-[#E1306C]/50 text-gray-300 hover:text-[#E1306C] text-[11px] font-heading font-semibold flex items-center gap-1.5 transition-all"
+                >
+                  <span>Instagram</span>
+                </a>
+                <a
+                  href="https://youtube.com/@lord-esportz07"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="YouTube @lord-esportz07"
+                  className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-[#FF0000]/20 border border-white/10 hover:border-[#FF0000]/50 text-gray-300 hover:text-[#FF0000] text-[11px] font-heading font-semibold flex items-center gap-1.5 transition-all"
+                >
+                  <span>YouTube</span>
+                </a>
+              </div>
             </div>
           </div>
 

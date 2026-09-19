@@ -125,6 +125,17 @@ export const merchandiseApi = {
     return apiRequest<OrderItem[]>(`/orders/track?query=${encodeURIComponent(query)}`, { method: "GET" }, []);
   },
 
+  getMyOrders: async (): Promise<OrderItem[]> => {
+    try {
+      const res = await apiRequest<{ success: boolean; data: OrderItem[]; user?: any } | OrderItem[]>("/orders/my-orders", { method: "GET" });
+      if (Array.isArray(res)) return res;
+      if (res && Array.isArray((res as any).data)) return (res as any).data;
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
   updateOrderStatus: async (
     id: string,
     orderStatus: string,

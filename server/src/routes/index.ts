@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, requireRole } from "../middleware/auth.js";
+import { authenticate, optionalAuth, requireRole } from "../middleware/auth.js";
 
 // Controllers
 import * as authCtrl from "../controllers/authController.js";
@@ -163,8 +163,9 @@ router.delete(
 );
 
 // ================= ORDERS ROUTES =================
-router.post("/orders", orderCtrl.createOrder);
+router.post("/orders", optionalAuth, orderCtrl.createOrder);
 router.get("/orders/track", orderCtrl.trackOrder);
+router.get("/orders/my-orders", authenticate, orderCtrl.getMyOrders);
 router.get(
   "/orders",
   authenticate,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { merchandiseApi, type OrderItem } from "../api/merchandise";
 import {
   Search,
@@ -12,6 +12,10 @@ import {
   Check,
   Edit3,
   X,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  Mail,
 } from "lucide-react";
 
 export const AdminOrdersPage: React.FC = () => {
@@ -19,6 +23,8 @@ export const AdminOrdersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"LIST" | "USERS">("LIST");
+  const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [trackingModalOrder, setTrackingModalOrder] = useState<OrderItem | null>(null);
   const [copiedUtr, setCopiedUtr] = useState<string | null>(null);
 
@@ -30,6 +36,42 @@ export const AdminOrdersPage: React.FC = () => {
     paymentStatus: "PENDING",
     adminNotes: "",
   });
+
+  const customerGroups = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        key: string;
+        customerName: string;
+        customerEmail: string;
+        customerPhone: string;
+        totalSpent: number;
+        orders: OrderItem[];
+      }
+    >();
+
+    orders.forEach((ord) => {
+      const email = ord.customerEmail?.toLowerCase().trim() || "";
+      const phone = ord.customerPhone?.replace(/[^0-9]/g, "") || "";
+      const key = email || phone || ord.customerName;
+
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          customerName: ord.customerName,
+          customerEmail: ord.customerEmail,
+          customerPhone: ord.customerPhone,
+          totalSpent: 0,
+          orders: [],
+        });
+      }
+      const grp = map.get(key)!;
+      grp.totalSpent += ord.totalAmount;
+      grp.orders.push(ord);
+    });
+
+    return Array.from(map.values());
+  }, [orders]);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -116,46 +158,212 @@ export const AdminOrdersPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Filter Bar */}
-      <div className="p-4 rounded-2xl bg-[#0D0D12] border border-white/10 flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="flex flex-wrap gap-2">
-          {["ALL", "PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"].map((st) => (
+      {/* View Mode & Filter Bar */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2 p-1 rounded-xl bg-black/60 border border-white/10">
             <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                statusFilter === st
-                  ? "bg-[#FFBE32] text-black shadow-[0_0_10px_rgba(255,190,50,0.3)] font-extrabold"
-                  : "bg-black/50 text-gray-400 hover:text-white border border-white/5"
+              type="button"
+              onClick={() => setViewMode("LIST")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === "LIST"
+                  ? "bg-[#FFBE32] text-black shadow-[0_0_10px_rgba(255,190,50,0.3)]"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
             >
-              {st}
+              <Truck className="h-3.5 w-3.5" />
+              <span>All Orders ({orders.length})</span>
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setViewMode("USERS")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                viewMode === "USERS"
+                  ? "bg-[#FFBE32] text-black shadow-[0_0_10px_rgba(255,190,50,0.3)]"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Users className="h-3.5 w-3.5" />
+              <span>Customer Order Histories ({customerGroups.length})</span>
+            </button>
+          </div>
+
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="text-xs font-mono text-[#FFBE32] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <X className="h-3 w-3" /> Clear user filter ({searchQuery})
+            </button>
+          )}
         </div>
 
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search order #, customer, UTR, phone..."
-            className="w-full rounded-xl border border-white/10 bg-black/60 pl-9 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-[#FFBE32] focus:outline-none font-body"
-          />
+        <div className="p-4 rounded-2xl bg-[#0D0D12] border border-white/10 flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-wrap gap-2">
+            {["ALL", "PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"].map((st) => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  statusFilter === st
+                    ? "bg-[#FFBE32] text-black shadow-[0_0_10px_rgba(255,190,50,0.3)] font-extrabold"
+                    : "bg-black/50 text-gray-400 hover:text-white border border-white/5"
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search order #, customer email, phone..."
+              className="w-full rounded-xl border border-white/10 bg-black/60 pl-9 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-[#FFBE32] focus:outline-none font-body"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Orders List */}
+      {/* Orders View */}
       {loading ? (
         <div className="py-20 text-center text-gray-400 font-mono text-xs animate-pulse">
-          Loading merchandise orders...
+          Loading merchandise orders from database...
         </div>
       ) : orders.length === 0 ? (
         <div className="py-20 text-center text-gray-400 font-mono text-xs bg-[#0C0C10] rounded-2xl border border-white/10">
           No orders found matching the criteria.
         </div>
+      ) : viewMode === "USERS" ? (
+        /* CUSTOMER GROUPED VIEW */
+        <div className="space-y-4">
+          {customerGroups.map((grp) => {
+            const isExpanded = expandedCustomer === grp.key;
+
+            return (
+              <div
+                key={grp.key}
+                className="rounded-2xl bg-[#0C0C10] border border-white/10 overflow-hidden shadow-lg"
+              >
+                {/* Customer Group Header */}
+                <div
+                  onClick={() => setExpandedCustomer(isExpanded ? null : grp.key)}
+                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#FFBE32] to-[#FFE082] text-black font-display font-bold flex items-center justify-center text-lg shadow-md shrink-0">
+                      {grp.customerName.slice(0, 2).toUpperCase() || "CU"}
+                    </div>
+                    <div>
+                      <h3 className="font-heading font-bold text-white uppercase text-base flex items-center gap-2">
+                        {grp.customerName}
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#FFBE32]/10 text-[#FFBE32] border border-[#FFBE32]/30">
+                          {grp.orders.length} {grp.orders.length === 1 ? "Order" : "Orders"}
+                        </span>
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-gray-400 mt-0.5">
+                        {grp.customerEmail && (
+                          <span className="flex items-center gap-1">
+                            <Mail className="h-3 w-3 text-[#FFBE32]" />
+                            {grp.customerEmail}
+                          </span>
+                        )}
+                        {grp.customerPhone && (
+                          <span className="flex items-center gap-1">
+                            <Phone className="h-3 w-3 text-[#FFBE32]" />
+                            {grp.customerPhone}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-5">
+                    <div className="text-left sm:text-right font-mono">
+                      <span className="text-gray-400 text-xs block">Total Spend:</span>
+                      <strong className="text-emerald-400 text-sm">₹{grp.totalSpent}</strong>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-white"
+                    >
+                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expanded Customer Orders List */}
+                {isExpanded && (
+                  <div className="p-5 pt-0 space-y-3 border-t border-white/5 mt-2">
+                    <div className="text-xs font-mono text-gray-400 pt-3">
+                      Order History for <strong>{grp.customerName}</strong> ({grp.orders.length} orders):
+                    </div>
+                    {grp.orders.map((ord) => (
+                      <div
+                        key={ord.id}
+                        className="p-4 rounded-xl bg-black/60 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono text-xs font-bold text-[#FFBE32]">
+                              {ord.orderNumber}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-heading font-bold uppercase ${
+                                ord.orderStatus === "SHIPPED"
+                                  ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                                  : ord.orderStatus === "PROCESSING"
+                                  ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
+                                  : ord.orderStatus === "DELIVERED"
+                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                  : ord.orderStatus === "CANCELLED"
+                                  ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                                  : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                              }`}
+                            >
+                              {ord.orderStatus}
+                            </span>
+                            <span className="text-[11px] font-mono text-gray-400">
+                              {new Date(ord.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="text-xs font-mono text-gray-300">
+                            {ord.productName} • Size: {ord.size}
+                            {ord.customIgn ? ` • IGN: ${ord.customIgn} #${ord.customNumber || "00"}` : ""} • ₹{ord.totalAmount}
+                          </div>
+                          {ord.trackingNumber && (
+                            <div className="text-[11px] font-mono text-gray-400">
+                              Courier: {ord.courierPartner || "Standard"} • AWB: {ord.trackingNumber}
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenTrackingModal(ord);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-[#FFBE32]/10 hover:bg-[#FFBE32] text-[#FFBE32] hover:text-black border border-[#FFBE32]/30 text-xs font-heading font-bold uppercase transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                          <span>Update Tracking</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       ) : (
+        /* STANDARD ALL ORDERS LIST */
         <div className="space-y-4">
           {orders.map((ord) => {
             const phoneClean = ord.customerPhone?.replace(/[^0-9]/g, "") || "";

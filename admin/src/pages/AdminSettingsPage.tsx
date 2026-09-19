@@ -222,6 +222,17 @@ export const AdminSettingsPage: React.FC = () => {
             </div>
             <div>
               <label className="block text-xs font-heading font-bold uppercase text-gray-400 mb-1">
+                WhatsApp BR Scrims Channel URL
+              </label>
+              <input
+                type="url"
+                value={settings.whatsappScrimsUrl || ""}
+                onChange={(e) => handleChange("whatsappScrimsUrl", e.target.value)}
+                className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-heading font-bold uppercase text-gray-400 mb-1">
                 YouTube Channel URL
               </label>
               <input
@@ -239,6 +250,17 @@ export const AdminSettingsPage: React.FC = () => {
                 type="url"
                 value={settings.instagramUrl || ""}
                 onChange={(e) => handleChange("instagramUrl", e.target.value)}
+                className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-heading font-bold uppercase text-gray-400 mb-1">
+                Business &amp; Partnership Email
+              </label>
+              <input
+                type="email"
+                value={settings.businessEmail || ""}
+                onChange={(e) => handleChange("businessEmail", e.target.value)}
                 className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
               />
             </div>

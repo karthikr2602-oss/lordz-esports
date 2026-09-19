@@ -689,10 +689,12 @@ async function main() {
     { key: "playersCount", value: "500+", category: "STATS" },
     { key: "teamsCount", value: "50+", category: "STATS" },
     { key: "prizePoolCount", value: "₹5L+", category: "STATS" },
-    { key: "discordUrl", value: "https://discord.gg/lordzesports", category: "SOCIAL" },
-    { key: "whatsappUrl", value: "https://chat.whatsapp.com/lordzesports", category: "SOCIAL" },
-    { key: "youtubeUrl", value: "https://youtube.com/@lordzesports", category: "SOCIAL" },
-    { key: "instagramUrl", value: "https://instagram.com/lordzesports", category: "SOCIAL" },
+    { key: "discordUrl", value: "https://discord.gg/Q8KR7tU96", category: "SOCIAL" },
+    { key: "whatsappUrl", value: "https://whatsapp.com/channel/0029Vb8sSc66hENsTW35hd11", category: "SOCIAL" },
+    { key: "whatsappScrimsUrl", value: "https://whatsapp.com/channel/0029Vb8fM218kyySLfM90o0l", category: "SOCIAL" },
+    { key: "youtubeUrl", value: "https://youtube.com/@lord-esportz07", category: "SOCIAL" },
+    { key: "instagramUrl", value: "https://www.instagram.com/lord.esportz", category: "SOCIAL" },
+    { key: "businessEmail", value: "lordesportz75@gmail.com", category: "CONTACT" },
   ];
 
   for (const s of defaultSettings) {

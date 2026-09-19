@@ -24,7 +24,7 @@ const orderSchema = z.object({
   expectedDeliveryDate: z.string().optional().nullable(),
 });
 
-export const createOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createOrder = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = orderSchema.parse(req.body);
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
@@ -36,9 +36,13 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         ? (data.utrNumber ? "PENDING_VERIFICATION" : "PENDING")
         : "COD_PENDING");
 
+    // If user is logged in, ensure customerEmail and customerName default cleanly
+    const customerEmail = data.customerEmail || req.user?.email || "fan@lordz.gg";
+
     const order = await prisma.order.create({
       data: {
         ...data,
+        customerEmail,
         orderNumber,
         paymentStatus: defaultPaymentStatus,
         orderStatus: "PENDING",
@@ -55,12 +59,79 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
+export const getMyOrders = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: "Authentication required" });
+      return;
+    }
+
+    const userId = req.user.id;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, phone: true, ign: true, fullName: true, username: true },
+    });
+
+    const email = user?.email || req.user.email;
+    const conditions: any[] = [
+      { customerEmail: { equals: email, mode: "insensitive" } },
+    ];
+
+    if (user?.phone) {
+      const cleanPhone = user.phone.replace(/[^0-9]/g, "");
+      if (cleanPhone.length >= 6) {
+        conditions.push({ customerPhone: { contains: cleanPhone } });
+        if (cleanPhone.length >= 10) {
+          const last10 = cleanPhone.slice(-10);
+          conditions.push({ customerPhone: { contains: `${last10.slice(0, 5)} ${last10.slice(5)}` } });
+        }
+        conditions.push({ customerPhone: { contains: cleanPhone.slice(-5) } });
+      }
+    }
+
+    if (user?.ign && user.ign.trim().length > 1) {
+      conditions.push({ customIgn: { equals: user.ign.trim(), mode: "insensitive" } });
+    }
+
+    const orders = await prisma.order.findMany({
+      where: {
+        OR: conditions,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({
+      success: true,
+      data: orders,
+      user: {
+        id: userId,
+        email,
+        ign: user?.ign || user?.username,
+        fullName: user?.fullName,
+        phone: user?.phone,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getOrders = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { status, search } = req.query;
+    const { status, search, email, phone } = req.query;
 
     const where: any = {};
     if (status && status !== "ALL") where.orderStatus = String(status);
+    if (email) where.customerEmail = { equals: String(email), mode: "insensitive" };
+    if (phone) {
+      const clean = String(phone).replace(/[^0-9]/g, "");
+      if (clean.length >= 6) where.customerPhone = { contains: clean };
+    }
+
     if (search) {
       where.OR = [
         { orderNumber: { contains: String(search), mode: "insensitive" } },
@@ -87,18 +158,31 @@ export const trackOrder = async (req: Request, res: Response, next: NextFunction
   try {
     const { query } = req.query;
     if (!query || typeof query !== "string") {
-      res.status(400).json({ success: false, message: "Order number or phone number is required" });
+      res.status(400).json({ success: false, message: "Order number, phone number, or email is required" });
       return;
     }
     const cleanQuery = query.trim();
     const cleanPhone = cleanQuery.replace(/[^0-9]/g, "");
 
+    const conditions: any[] = [
+      { orderNumber: { contains: cleanQuery, mode: "insensitive" } },
+      { customerEmail: { equals: cleanQuery, mode: "insensitive" } },
+      { customerName: { contains: cleanQuery, mode: "insensitive" } },
+      { customIgn: { contains: cleanQuery, mode: "insensitive" } },
+    ];
+
+    if (cleanPhone.length >= 6) {
+      conditions.push({ customerPhone: { contains: cleanPhone } });
+      if (cleanPhone.length >= 10) {
+        const last10 = cleanPhone.slice(-10);
+        conditions.push({ customerPhone: { contains: `${last10.slice(0, 5)} ${last10.slice(5)}` } });
+      }
+      conditions.push({ customerPhone: { contains: cleanPhone.slice(-5) } });
+    }
+
     const orders = await prisma.order.findMany({
       where: {
-        OR: [
-          { orderNumber: { equals: cleanQuery, mode: "insensitive" } },
-          ...(cleanPhone.length >= 6 ? [{ customerPhone: { contains: cleanPhone } }] : []),
-        ],
+        OR: conditions,
       },
       orderBy: { createdAt: "desc" },
     });

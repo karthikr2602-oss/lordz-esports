@@ -10,8 +10,10 @@ export interface SettingsMap {
   prizePoolCount?: string;
   discordUrl?: string;
   whatsappUrl?: string;
+  whatsappScrimsUrl?: string;
   youtubeUrl?: string;
   instagramUrl?: string;
+  businessEmail?: string;
   [key: string]: string | undefined;
 }
 
@@ -23,10 +25,12 @@ export const fallbackSettings: SettingsMap = {
   playersCount: "500+",
   teamsCount: "50+",
   prizePoolCount: "₹5L+",
-  discordUrl: "https://discord.gg/lordzesports",
-  whatsappUrl: "https://chat.whatsapp.com/lordzesports",
-  youtubeUrl: "https://youtube.com/@lordzesports",
-  instagramUrl: "https://instagram.com/lordzesports",
+  discordUrl: "https://discord.gg/Q8KR7tU96",
+  whatsappUrl: "https://whatsapp.com/channel/0029Vb8sSc66hENsTW35hd11",
+  whatsappScrimsUrl: "https://whatsapp.com/channel/0029Vb8fM218kyySLfM90o0l",
+  youtubeUrl: "https://youtube.com/@lord-esportz07",
+  instagramUrl: "https://www.instagram.com/lord.esportz",
+  businessEmail: "lordesportz75@gmail.com",
 };
 
 export const settingsApi = {

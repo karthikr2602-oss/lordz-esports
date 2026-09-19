@@ -553,6 +553,14 @@ export const PartnersPage = () => {
                     />
                   </div>
 
+                  {/* Direct Contact Note */}
+                  <div className="text-[11px] text-gray-400 font-body flex items-center justify-between px-1">
+                    <span>Direct Business &amp; Partnership Desk:</span>
+                    <a href="mailto:lordesportz75@gmail.com" className="text-[#FFBE32] hover:underline font-mono">
+                      lordesportz75@gmail.com
+                    </a>
+                  </div>
+
                   {/* Submit Button */}
                   <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-3">
                     <button
