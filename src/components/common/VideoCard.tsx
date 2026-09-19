@@ -61,25 +61,14 @@ export const VideoCard = ({ item, onPlay }: VideoCardProps) => {
       </div>
 
       {/* Content Below Thumbnail */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-        <div>
-          <h3 className="font-display text-base sm:text-lg uppercase tracking-wide text-white group-hover:text-[#FFBE32] transition-colors line-clamp-2 leading-snug font-bold">
-            {item.title}
-          </h3>
-
-          {item.description && (
-            <p className="mt-2 text-xs text-gray-400 font-body line-clamp-2 leading-relaxed">
-              {item.description}
-            </p>
-          )}
-        </div>
+      <div className="p-4 flex-1 flex flex-col justify-between">
+        <h3 className="font-display text-base sm:text-lg uppercase tracking-wide text-white group-hover:text-[#FFBE32] transition-colors line-clamp-2 leading-snug font-bold">
+          {item.title}
+        </h3>
 
         {/* Meta Bar */}
-        <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-gray-400">
-          <span>{item.views}</span>
-          <span>•</span>
+        <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-gray-400">
           <span>{item.date}</span>
-          <span>•</span>
           <span className="text-[#FFBE32] font-semibold">{item.game}</span>
         </div>
       </div>

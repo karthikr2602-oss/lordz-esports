@@ -16,7 +16,7 @@ export const TournamentsPage = () => {
         badge="COMPETITIVE CIRCUITS"
         title="TOURNAMENT"
         titleHighlight="ARENA"
-        subtitle="Register your squad, compete for verified cash prize pools, and earn national circuit ranking in Free Fire MAX, BGMI, and Valorant."
+        subtitle="Register your squad, compete for verified cash prize pools, and earn national circuit ranking in official Free Fire and Free Fire MAX championships."
       />
 
       <TournamentsSection onSelectTournament={openJoinTournament} showHeader={false} />

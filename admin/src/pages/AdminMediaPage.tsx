@@ -6,9 +6,20 @@ import {
   Edit,
   Trash2,
   Play,
-  Eye,
+  Star,
+  Flame,
   X
 } from "lucide-react";
+
+function extractYouTubeId(input?: string | null): string {
+  if (!input) return "";
+  const trimmed = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  const match = trimmed.match(
+    /(?:youtube(?:-nocookie)?\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?|shorts|live)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i
+  );
+  return match ? match[1] : trimmed;
+}
 
 export const AdminMediaPage: React.FC = () => {
   const [media, setMedia] = useState<MediaItem[]>([]);
@@ -51,12 +62,11 @@ export const AdminMediaPage: React.FC = () => {
       title: "",
       type: "VIDEOS",
       game: "FREE FIRE MAX",
-      youtubeId: "dQw4w9WgXcQ",
+      youtubeId: "",
       duration: "02:30",
       views: "15K VIEWS",
-      tag: "CLUTCH",
-      description: "Official match highlight and commentary breakdown.",
-      featured: false,
+      tag: "FEATURED",
+      featured: true,
     });
     setModalOpen(true);
   };
@@ -67,16 +77,71 @@ export const AdminMediaPage: React.FC = () => {
     setModalOpen(true);
   };
 
+  const handleToggleFeatured = async (m: MediaItem) => {
+    const updatedFeatured = !m.featured;
+    try {
+      await apiRequest(`/media/${m.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ featured: updatedFeatured }),
+      });
+      setMedia((prev) =>
+        prev.map((item) => (item.id === m.id ? { ...item, featured: updatedFeatured } : item))
+      );
+    } catch (err: any) {
+      alert(err.message || "Failed to update main website display status");
+    }
+  };
+
+  const handleSetPremiere = async (m: MediaItem) => {
+    try {
+      await apiRequest(`/media/${m.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ tag: "PREMIERE" }),
+      });
+      setMedia((prev) =>
+        prev.map((item) =>
+          item.id === m.id
+            ? { ...item, tag: "PREMIERE" }
+            : item.tag === "PREMIERE"
+            ? { ...item, tag: "FEATURED" }
+            : item
+        )
+      );
+    } catch (err: any) {
+      alert(err.message || "Failed to set big premiere video");
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanYtId = extractYouTubeId(formData.youtubeId);
+    const thumbnail = formData.thumbnail || (cleanYtId ? `https://img.youtube.com/vi/${cleanYtId}/hqdefault.jpg` : undefined);
+    const chosenTag = formData.tag || "FEATURED";
+
+    const payload = {
+      ...formData,
+      youtubeId: cleanYtId,
+      thumbnail,
+      tag: chosenTag,
+      featured: !!formData.featured,
+    };
+
     try {
       if (editingItem) {
         await apiRequest(`/media/${editingItem.id}`, {
           method: "PUT",
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payload),
         });
         setMedia((prev) =>
-          prev.map((item) => (item.id === editingItem.id ? ({ ...item, ...formData } as MediaItem) : item))
+          prev.map((item) => {
+            if (item.id === editingItem.id) {
+              return { ...item, ...payload } as MediaItem;
+            }
+            if (chosenTag === "PREMIERE" && item.tag === "PREMIERE") {
+              return { ...item, tag: "FEATURED" };
+            }
+            return item;
+          })
         );
       } else {
         const newItem: MediaItem = {
@@ -84,12 +149,12 @@ export const AdminMediaPage: React.FC = () => {
           title: formData.title || "VIDEO TITLE",
           type: formData.type || "VIDEOS",
           game: formData.game || "FREE FIRE MAX",
-          youtubeId: formData.youtubeId || "dQw4w9WgXcQ",
+          youtubeId: cleanYtId || "dQw4w9WgXcQ",
+          thumbnail,
           duration: formData.duration || "01:00",
-          views: formData.views || "10K VIEWS",
+          views: "10K VIEWS",
           date: "RECENT",
-          tag: formData.tag || "FEATURED",
-          description: formData.description,
+          tag: chosenTag,
           featured: !!formData.featured,
         };
         try {
@@ -100,7 +165,14 @@ export const AdminMediaPage: React.FC = () => {
         } catch {
           // fallback
         }
-        setMedia((prev) => [newItem, ...prev]);
+        setMedia((prev) => [
+          newItem,
+          ...prev.map((item) =>
+            chosenTag === "PREMIERE" && item.tag === "PREMIERE"
+              ? { ...item, tag: "FEATURED" }
+              : item
+          ),
+        ]);
       }
       setModalOpen(false);
     } catch (err: any) {
@@ -118,9 +190,14 @@ export const AdminMediaPage: React.FC = () => {
     setMedia((prev) => prev.filter((m) => m.id !== id));
   };
 
-  const filteredMedia = media.filter(
-    (item) => typeFilter === "ALL" || item.type === typeFilter
-  );
+  const filteredMedia = media.filter((m) => {
+    if (typeFilter === "ALL") return true;
+    if (typeFilter === "BIG PREMIERE") return m.tag === "PREMIERE";
+    if (typeFilter === "MAIN WEBSITE") return m.featured;
+    return m.type === typeFilter;
+  });
+
+  const previewId = extractYouTubeId(formData.youtubeId);
 
   return (
     <div className="space-y-6">
@@ -130,7 +207,7 @@ export const AdminMediaPage: React.FC = () => {
             VIDEO HIGHLIGHTS & MEDIA HUB
           </h1>
           <p className="text-xs text-gray-400 font-body">
-            Curate YouTube tournament streams, Booyah clutch replays, and shorts displayed across the website.
+            Curate YouTube videos, choose what displays on the homepage, and select the Big Featured Premiere banner video.
           </p>
         </div>
 
@@ -143,9 +220,9 @@ export const AdminMediaPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Type Filter */}
-      <div className="flex gap-2">
-        {["ALL", "VIDEOS", "HIGHLIGHTS", "PHOTOS", "SHORTS"].map((tf) => (
+      {/* Type Filter Tabs */}
+      <div className="flex flex-wrap gap-2">
+        {["ALL", "BIG PREMIERE", "MAIN WEBSITE", "VIDEOS", "HIGHLIGHTS", "PHOTOS", "SHORTS"].map((tf) => (
           <button
             key={tf}
             onClick={() => setTypeFilter(tf)}
@@ -155,7 +232,7 @@ export const AdminMediaPage: React.FC = () => {
                 : "bg-black/50 text-gray-400 hover:text-white border border-white/5"
             }`}
           >
-            {tf}
+            {tf === "BIG PREMIERE" ? "🔥 BIG PREMIERE" : tf === "MAIN WEBSITE" ? "★ ON MAIN WEBSITE" : tf}
           </button>
         ))}
       </div>
@@ -166,65 +243,111 @@ export const AdminMediaPage: React.FC = () => {
           Loading media library...
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {filteredMedia.map((m) => (
-          <div
-            key={m.id}
-            className="p-5 rounded-2xl bg-[#0C0C10] border border-white/10 hover:border-[#FFBE32]/60 transition-all flex flex-col justify-between group shadow-[0_10px_25px_rgba(0,0,0,0.7)]"
-          >
-            <div>
-              {/* Type pill & views */}
-              <div className="flex items-center justify-between pb-3 border-b border-white/5">
-                <span className="px-2.5 py-0.5 rounded bg-black border border-white/10 text-[10px] font-heading font-bold text-[#FFBE32] uppercase">
-                  {m.type}
-                </span>
-                <span className="text-[11px] font-mono text-gray-400 flex items-center gap-1">
-                  <Eye className="h-3.5 w-3.5" /> {m.views}
-                </span>
-              </div>
+            <div
+              key={m.id}
+              className="rounded-2xl bg-[#0C0C10] border border-white/10 hover:border-[#FFBE32]/60 transition-all flex flex-col group shadow-[0_10px_25px_rgba(0,0,0,0.7)] overflow-hidden"
+            >
+              {/* YouTube Thumbnail */}
+              <div className="aspect-video w-full bg-black relative overflow-hidden">
+                {m.youtubeId ? (
+                  <img
+                    src={`https://img.youtube.com/vi/${extractYouTubeId(m.youtubeId)}/hqdefault.jpg`}
+                    alt={m.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : null}
 
-              {/* YouTube Visual / Embed preview */}
-              <div className="mt-3 aspect-video rounded-xl bg-black/60 border border-white/5 flex flex-col items-center justify-center relative overflow-hidden group-hover:border-[#FFBE32]/30 transition-all">
-                <div className="h-10 w-10 rounded-full bg-[#FFBE32]/20 border border-[#FFBE32] flex items-center justify-center text-[#FFBE32]">
-                  <Play className="h-4 w-4 fill-current ml-0.5" />
+                {/* Vignette & play button */}
+                <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-full bg-[#FFBE32] text-black flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <Play className="h-4 w-4 fill-current ml-0.5" />
+                  </div>
                 </div>
-                <span className="mt-2 text-[10px] font-mono text-gray-400">
-                  YT ID: {m.youtubeId || "dQw4w9WgXcQ"}
-                </span>
+
+                {/* Floating Top Left Badges: Type + Big Premiere */}
+                <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-lg bg-black/80 border border-white/15 text-[10px] font-heading font-bold text-[#FFBE32] uppercase backdrop-blur-md">
+                    {m.type}
+                  </span>
+                  {m.tag === "PREMIERE" && (
+                    <span className="px-2 py-0.5 rounded-lg bg-red-600 text-white text-[10px] font-heading font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_12px_rgba(239,68,68,0.6)] backdrop-blur-md">
+                      <Flame className="h-3 w-3 fill-current" />
+                      Big Premiere
+                    </span>
+                  )}
+                </div>
+
+                {/* Floating Top Right Buttons */}
+                <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+                  {m.tag !== "PREMIERE" && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSetPremiere(m);
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-heading font-bold uppercase tracking-wider transition-all cursor-pointer backdrop-blur-md bg-black/80 border border-white/20 text-gray-300 hover:text-red-400 hover:border-red-500/50"
+                      title="Set as the Big Featured Premiere Video on Media Hub"
+                    >
+                      <Flame className="h-3 w-3 text-red-500" />
+                      <span>Set Big Video</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleFeatured(m);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-heading font-bold uppercase tracking-wider transition-all cursor-pointer backdrop-blur-md ${
+                      m.featured
+                        ? "bg-[#FFBE32] text-black shadow-[0_0_12px_rgba(255,190,50,0.45)]"
+                        : "bg-black/80 border border-white/20 text-gray-300 hover:text-white hover:border-white/40"
+                    }`}
+                    title={m.featured ? "Click to remove from main website" : "Click to display on main website"}
+                  >
+                    <Star className={`h-3 w-3 ${m.featured ? "fill-current text-black" : ""}`} />
+                    <span>{m.featured ? "On Main Website" : "Show on Website"}</span>
+                  </button>
+                </div>
+
+                {/* Duration Badge */}
+                {m.duration && (
+                  <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/85 text-[10px] font-mono text-white border border-white/15">
+                    {m.duration}
+                  </span>
+                )}
               </div>
 
-              {/* Title & Description */}
-              <h3 className="font-display text-lg uppercase tracking-wider text-white group-hover:text-[#FFBE32] transition-colors mt-3 line-clamp-2">
-                {m.title}
-              </h3>
-              <p className="text-xs text-gray-400 font-body mt-1 line-clamp-2">
-                {m.description}
-              </p>
-            </div>
+              {/* Title & Actions Only - Tight & Snug without Empty Space or Description */}
+              <div className="p-4 flex items-center justify-between gap-3 bg-[#0C0C10]">
+                <h3 className="font-display text-base uppercase tracking-wider text-white group-hover:text-[#FFBE32] transition-colors line-clamp-2 leading-snug font-bold flex-1">
+                  {m.title}
+                </h3>
 
-            {/* Footer */}
-            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-              <span className="text-gray-500 font-mono">{m.duration || "Clip"}</span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleOpenEdit(m)}
-                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-[#FFBE32] cursor-pointer"
-                  title="Edit Media"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(m.id)}
-                  className="p-1.5 rounded-lg bg-white/5 hover:bg-rose-500/10 text-gray-400 hover:text-rose-400 cursor-pointer"
-                  title="Delete Media"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => handleOpenEdit(m)}
+                    className="p-2 rounded-lg bg-white/5 hover:bg-white/15 text-gray-300 hover:text-[#FFBE32] cursor-pointer transition-colors"
+                    title="Edit Media"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(m.id)}
+                    className="p-2 rounded-lg bg-white/5 hover:bg-rose-500/20 text-gray-400 hover:text-rose-400 cursor-pointer transition-colors"
+                    title="Delete Media"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       )}
 
       {/* Modal */}
@@ -258,63 +381,133 @@ export const AdminMediaPage: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
-                    Media Category
-                  </label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                    className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
-                  >
-                    <option value="VIDEOS">VIDEOS</option>
-                    <option value="HIGHLIGHTS">HIGHLIGHTS</option>
-                    <option value="SHORTS">SHORTS</option>
-                    <option value="PHOTOS">PHOTOS</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
-                    YouTube Video ID
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.youtubeId}
-                    onChange={(e) => setFormData({ ...formData, youtubeId: e.target.value })}
-                    placeholder="dQw4w9WgXcQ"
-                    className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none font-mono"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
+                  Media Category
+                </label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                  className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
+                >
+                  <option value="VIDEOS">VIDEOS</option>
+                  <option value="HIGHLIGHTS">HIGHLIGHTS</option>
+                  <option value="SHORTS">SHORTS</option>
+                  <option value="PHOTOS">PHOTOS</option>
+                </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* YouTube Video Link Input */}
+              <div>
+                <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
+                  YouTube Video Link or ID *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.youtubeId || ""}
+                  onChange={(e) => setFormData({ ...formData, youtubeId: e.target.value })}
+                  placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/... or ID"
+                  className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2.5 text-sm text-white focus:border-[#FFBE32] focus:outline-none font-mono"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Paste any YouTube URL (Watch link, Shorts link, Share link, or direct Video ID).
+                </p>
+
+                {/* Live Video Preview in Modal */}
+                {previewId ? (
+                  <div className="mt-3 p-3 rounded-xl bg-black/70 border border-[#FFBE32]/35 flex items-center gap-3">
+                    <div className="relative w-28 aspect-video rounded-lg overflow-hidden bg-black shrink-0 border border-white/10">
+                      <img
+                        src={`https://img.youtube.com/vi/${previewId}/hqdefault.jpg`}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                        <Play className="h-4 w-4 text-[#FFBE32] fill-current" />
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-heading font-bold">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>Connected to YouTube</span>
+                      </div>
+                      <p className="font-mono text-[11px] text-gray-300 truncate mt-0.5">
+                        Video ID: <span className="text-[#FFBE32] font-bold">{previewId}</span>
+                      </p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">
+                        Will stream in 1080p directly on the website
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-amber-400/90 mt-1.5">
+                    ⚠️ Enter a YouTube link to stream this video on the website.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
+                  Duration Display
+                </label>
+                <input
+                  type="text"
+                  value={formData.duration || ""}
+                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  placeholder="02:45"
+                  className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none font-mono"
+                />
+              </div>
+
+              {/* Display on Main Website Toggle Switch */}
+              <div className="p-3.5 rounded-xl bg-black/60 border border-white/15 flex items-center justify-between gap-4">
                 <div>
-                  <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
-                    Duration Display
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.duration || ""}
-                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    placeholder="02:45"
-                    className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none font-mono"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Star className={`h-4 w-4 ${formData.featured ? "text-[#FFBE32] fill-current" : "text-gray-400"}`} />
+                    <span className="text-xs font-heading font-bold uppercase text-white">
+                      Display on Main Website
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 font-body mt-0.5">
+                    Showcase this video in the Video Highlights section on the Lordz Esports homepage.
+                  </p>
                 </div>
+
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={!!formData.featured}
+                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FFBE32] peer-checked:after:bg-black"></div>
+                </label>
+              </div>
+
+              {/* Set as Big Premiere Video Toggle Switch */}
+              <div className="p-3.5 rounded-xl bg-black/60 border border-white/15 flex items-center justify-between gap-4">
                 <div>
-                  <label className="block text-xs font-heading font-bold uppercase text-gray-300 mb-1">
-                    Views
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.views || ""}
-                    onChange={(e) => setFormData({ ...formData, views: e.target.value })}
-                    placeholder="48K VIEWS"
-                    className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none font-mono"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Flame className={`h-4 w-4 ${formData.tag === "PREMIERE" ? "text-red-500 fill-current" : "text-gray-400"}`} />
+                    <span className="text-xs font-heading font-bold uppercase text-white">
+                      Set as Big Premiere Video
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 font-body mt-0.5">
+                    Showcase this video in the large cinematic hero banner at the top of the Media Hub.
+                  </p>
                 </div>
+
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={formData.tag === "PREMIERE"}
+                    onChange={(e) => setFormData({ ...formData, tag: e.target.checked ? "PREMIERE" : "FEATURED" })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600 peer-checked:after:bg-white"></div>
+                </label>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">

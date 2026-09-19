@@ -32,7 +32,7 @@ export const AdminRegistrationsPage: React.FC = () => {
       status: "APPROVED",
       slotNumber: 1,
       createdAt: new Date().toISOString(),
-      tournament: { id: "lordz-clutch-cup", title: "LORDZ CLUTCH CUP S1", game: "BGMI", prizePool: "₹1,00,000", status: "UPCOMING" },
+      tournament: { id: "lordz-clutch-cup", title: "LORDZ CLUTCH CUP S1", game: "FREE FIRE MAX", prizePool: "₹1,00,000", status: "UPCOMING" },
     },
     {
       id: "reg-2",
@@ -55,7 +55,7 @@ export const AdminRegistrationsPage: React.FC = () => {
       status: "APPROVED",
       slotNumber: 2,
       createdAt: new Date(Date.now() - 7200000).toISOString(),
-      tournament: { id: "lordz-clutch-cup", title: "LORDZ CLUTCH CUP S1", game: "BGMI", prizePool: "₹1,00,000", status: "UPCOMING" },
+      tournament: { id: "lordz-clutch-cup", title: "LORDZ CLUTCH CUP S1", game: "FREE FIRE MAX", prizePool: "₹1,00,000", status: "UPCOMING" },
     },
     {
       id: "reg-4",

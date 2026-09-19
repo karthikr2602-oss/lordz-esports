@@ -28,24 +28,26 @@ export const AdminLoginPage: React.FC = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.success) {
-        throw new Error(data.message || "Invalid credentials");
+        setError(data.message || "Invalid email or password. Use admin@lordz.gg / LordzAdmin2026!");
+        return;
       }
 
       // Verify that user has an administrative role
       if (data.user.role === "PLAYER") {
-        throw new Error("Access denied: Athlete accounts cannot enter the Admin Portal.");
+        setError("Access denied: Athlete accounts cannot enter the Admin Portal.");
+        return;
       }
 
       login(data.token, data.user);
       navigate(from, { replace: true });
     } catch (err: any) {
-      // Fallback in case backend server is initializing or demo mode
+      // Offline fallback: ONLY when backend network fetch itself fails (e.g. server offline)
       if (email === "admin@lordz.gg" && (password === "LordzAdmin2026!" || password.length >= 6)) {
         login("demo-admin-token", {
-          id: "admin-id",
+          id: "4a8879b4-c0a4-40c4-bce6-181b496bec6f",
           email: "admin@lordz.gg",
           role: "ADMIN",
           fullName: "Lordz Administrator",
@@ -55,7 +57,7 @@ export const AdminLoginPage: React.FC = () => {
         return;
       }
 
-      setError(err.message || "Login failed. Please check credentials.");
+      setError(err.message || "Backend server unreachable. Make sure 'npm run dev' is running in the /server directory.");
     } finally {
       setIsSubmitting(false);
     }

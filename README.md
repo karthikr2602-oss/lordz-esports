@@ -35,7 +35,7 @@ Lordz Esports is designed around high-stakes gaming culture, Indian cultural her
 2. **Live Esports Status Bar**:
    - Real-time broadcast ticker with animated `LIVE NOW` indicator.
 3. **"Enter the Arena" Tournament Engine**:
-   - Interactive client-side filters for **Game** (*Free Fire, Free Fire Max, BGMI, Valorant*) and **Status** (*Live, Upcoming, Completed*).
+   - Interactive client-side filters for **Game** (*Free Fire, Free Fire Max*) and **Status** (*Live, Upcoming, Completed*).
    - Modal registration flow with instant celebration feedback.
 4. **Flame of Glory Leaderboard**:
    - Reimagined Black & Gold edition of the official Grand Finals standings.

@@ -150,30 +150,38 @@ body {
 
 /* Infinite Marquee Animation for Partner Logos */
 @keyframes marqueeLeft {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 @keyframes marqueeRight {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0%); }
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 .animate-marquee-left {
   display: flex;
   width: max-content;
-  animation: marqueeLeft 28s linear infinite;
+  animation: marqueeLeft 32s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-smooth {
+  display: flex;
+  width: max-content;
+  animation: marqueeLeft 34s linear infinite;
   will-change: transform;
 }
 
 .animate-marquee-right {
   display: flex;
   width: max-content;
-  animation: marqueeRight 30s linear infinite;
+  animation: marqueeRight 32s linear infinite;
   will-change: transform;
 }
 
 .animate-marquee-left:hover,
+.animate-marquee-smooth:hover,
 .animate-marquee-right:hover {
   animation-play-state: paused;
 }

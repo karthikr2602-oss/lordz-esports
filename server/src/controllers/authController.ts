@@ -141,7 +141,7 @@ export const getMe = async (req: AuthenticatedRequest, res: Response, next: Next
       return;
     }
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: {
         id: true,
@@ -156,6 +156,24 @@ export const getMe = async (req: AuthenticatedRequest, res: Response, next: Next
         createdAt: true,
       },
     });
+
+    if (!user && req.user.email) {
+      user = await prisma.user.findUnique({
+        where: { email: req.user.email },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          ign: true,
+          fullName: true,
+          avatarUrl: true,
+          phone: true,
+          discord: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+    }
 
     if (!user) {
       res.status(404).json({ success: false, message: "User not found" });

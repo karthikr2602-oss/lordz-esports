@@ -29,7 +29,7 @@ model Tournament {
   id              String                   @id @default(uuid())
   title           String
   game            String                   @default("FREE FIRE MAX")
-  gameCategory    String                   @default("FREE FIRE MAX") // FREE FIRE, FREE FIRE MAX, BGMI, VALORANT, OTHER
+  gameCategory    String                   @default("FREE FIRE MAX") // FREE FIRE, FREE FIRE MAX
   status          String                   @default("UPCOMING") // LIVE, UPCOMING, COMPLETED
   prizePool       String                   @default("₹50,000")
   entryFee        String                   @default("FREE ENTRY")

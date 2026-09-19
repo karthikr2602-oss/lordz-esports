@@ -112,6 +112,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
         title={selectedVideo.title}
         category={selectedVideo.category}
         game={selectedVideo.game}
+        youtubeId={selectedVideo.youtubeId}
       />
 
       <JerseyModal isOpen={jerseyModalOpen} onClose={closeJersey} />
@@ -122,21 +123,62 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
         onClose={closeArticle}
         title={selectedArticle?.title || "NEWS DISPATCH"}
         subtitle={`${selectedArticle?.category} • ${selectedArticle?.date}`}
-        maxWidth="md"
+        maxWidth="lg"
       >
-        <div className="space-y-4 text-sm text-gray-300 font-body">
-          <p className="text-base leading-relaxed text-white font-semibold">
-            {selectedArticle?.excerpt}
-          </p>
-          <p className="leading-relaxed">
-            As competitive esports across India enters an unprecedented era of professionalization, Lordz Esports continues to establish the gold standard for player development, scrim infrastructure, and fair play.
-          </p>
-          <p className="leading-relaxed text-gray-400">
-            For further media inquiries, caster accreditation, or official scrim invites, please reach out directly through our Discord community portal.
-          </p>
-          <div className="pt-4 border-t border-white/10 flex justify-between items-center text-xs text-gray-500 font-mono">
-            <span>Author: {selectedArticle?.author}</span>
-            <span>Ref ID: #{selectedArticle?.id}</span>
+        <div className="space-y-5 text-sm text-gray-300 font-body">
+          {/* Announcement Banner Image */}
+          {(selectedArticle?.coverImage || selectedArticle?.image || selectedArticle?.bannerImage) && (
+            <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden rounded-xl bg-black/80 border border-white/10 shadow-lg">
+              <img
+                src={selectedArticle.coverImage || selectedArticle.image || selectedArticle.bannerImage}
+                alt={selectedArticle.title}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E] via-transparent to-transparent" />
+              <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                <span
+                  className={`px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-wider border shadow-md backdrop-blur-md ${
+                    selectedArticle.badgeColor || "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                  }`}
+                >
+                  {selectedArticle.category}
+                </span>
+                <span className="text-[11px] font-mono text-gray-300 bg-black/60 px-2.5 py-0.5 rounded backdrop-blur-sm border border-white/10">
+                  {selectedArticle.readTime}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Excerpt Summary */}
+          {selectedArticle?.excerpt && (
+            <p className="text-base sm:text-lg leading-relaxed text-white font-semibold border-l-2 border-[#FFBE32] pl-3 py-0.5">
+              {selectedArticle.excerpt}
+            </p>
+          )}
+
+          {/* Full Announcement Description */}
+          {selectedArticle?.content ? (
+            <div className="space-y-3 leading-relaxed text-gray-300 whitespace-pre-line text-sm sm:text-base font-body">
+              {selectedArticle.content}
+            </div>
+          ) : selectedArticle?.description ? (
+            <div className="space-y-3 leading-relaxed text-gray-300 whitespace-pre-line text-sm sm:text-base font-body">
+              {selectedArticle.description}
+            </div>
+          ) : (
+            <p className="leading-relaxed text-gray-400">
+              As competitive esports across India enters an unprecedented era of professionalization, Lordz Esports continues to establish the gold standard for player development, scrim infrastructure, and fair play.
+            </p>
+          )}
+
+          <div className="pt-4 border-t border-white/10 flex flex-wrap justify-between items-center text-xs text-gray-400 font-mono gap-2">
+            <span>
+              Desk: <strong className="text-white">{selectedArticle?.author || "Lordz Editorial"}</strong>
+            </span>
+            <span>
+              Date: <strong className="text-[#FFBE32]">{selectedArticle?.date}</strong>
+            </span>
           </div>
         </div>
       </Modal>

@@ -370,9 +370,6 @@ export const AdminTournamentsPage: React.FC = () => {
                   >
                     <option value="FREE FIRE MAX">FREE FIRE MAX</option>
                     <option value="FREE FIRE">FREE FIRE</option>
-                    <option value="BGMI">BGMI</option>
-                    <option value="VALORANT">VALORANT</option>
-                    <option value="OTHER">OTHER</option>
                   </select>
                 </div>
 

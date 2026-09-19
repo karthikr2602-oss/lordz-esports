@@ -112,7 +112,7 @@ export const HeroSection = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <Sparkles className="h-4 w-4 text-[#FFBE32]" />
-                <span>FREE FIRE MAX • BGMI • VALORANT</span>
+                <span>FREE FIRE &amp; FREE FIRE MAX EXCLUSIVE</span>
               </div>
             </motion.div>
 

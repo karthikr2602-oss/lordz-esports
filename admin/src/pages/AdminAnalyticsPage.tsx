@@ -97,31 +97,21 @@ export const AdminAnalyticsPage: React.FC = () => {
             <div className="space-y-3.5 font-mono text-xs">
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-white font-bold">FREE FIRE MAX</span>
-                  <span className="text-[#FFBE32]">55% (52 Squads)</span>
+                  <span className="text-white font-bold">FREE FIRE MAX (CHAMPIONSHIP)</span>
+                  <span className="text-[#FFBE32]">68% (65 Squads)</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
-                  <div className="h-full bg-[#FFBE32] rounded-full" style={{ width: "55%" }} />
+                  <div className="h-full bg-[#FFBE32] rounded-full" style={{ width: "68%" }} />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-white font-bold">BGMI</span>
-                  <span className="text-indigo-400">30% (28 Squads)</span>
+                  <span className="text-white font-bold">FREE FIRE (PRO SCRIMS)</span>
+                  <span className="text-amber-500">32% (31 Squads)</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
-                  <div className="h-full bg-indigo-500 rounded-full" style={{ width: "30%" }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-white font-bold">VALORANT</span>
-                  <span className="text-rose-400">15% (16 Squads)</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
-                  <div className="h-full bg-rose-500 rounded-full" style={{ width: "15%" }} />
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: "32%" }} />
                 </div>
               </div>
             </div>

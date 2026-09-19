@@ -149,7 +149,7 @@ export const AboutSection = ({ showHeader = true }: AboutSectionProps) => {
             </p>
 
             <p className="mt-3 text-xs sm:text-sm text-gray-400 font-body leading-relaxed">
-              Rooted in the fierce legacy of South India and competing nationwide in Free Fire MAX, BGMI, and Valorant, our squads combine tactical precision with unstoppable clutch instinct.
+              Rooted in the fierce legacy of South India and competing nationwide in Free Fire and Free Fire MAX, our squads combine tactical precision with unstoppable clutch instinct.
             </p>
 
             {/* Micro Stats Grid */}

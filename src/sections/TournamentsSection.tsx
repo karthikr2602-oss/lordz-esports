@@ -10,7 +10,7 @@ interface TournamentsSectionProps {
   showHeader?: boolean;
 }
 
-type GameFilter = "ALL" | "FREE FIRE" | "FREE FIRE MAX" | "BGMI" | "VALORANT" | "OTHER";
+type GameFilter = "ALL" | "FREE FIRE MAX" | "FREE FIRE";
 type StatusFilter = "ALL" | "LIVE" | "UPCOMING" | "COMPLETED";
 
 export const TournamentsSection = ({
@@ -32,11 +32,8 @@ export const TournamentsSection = ({
 
   const gameFilters: GameFilter[] = [
     "ALL",
-    "FREE FIRE",
     "FREE FIRE MAX",
-    "BGMI",
-    "VALORANT",
-    "OTHER",
+    "FREE FIRE",
   ];
 
   const statusFilters: { label: string; value: StatusFilter }[] = [

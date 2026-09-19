@@ -70,11 +70,11 @@ export const matchesData: Match[] = [
     status: "UPCOMING",
     tournament: "LORDZ CLUTCH CUP",
     stage: "ROUND OF 16",
-    game: "BGMI",
-    map: "ERANGEL",
+    game: "FREE FIRE MAX",
+    map: "BERMUDA",
     teamA: {
-      name: "LORDZ RED",
-      tag: "LZR",
+      name: "LORDZ ESPORTS",
+      tag: "LORDZ",
     },
     teamB: {
       name: "GODLIKE INVINCIBLE",

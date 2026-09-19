@@ -2,7 +2,7 @@ export interface Tournament {
   id: string;
   title: string;
   game: string;
-  gameCategory: "FREE FIRE" | "FREE FIRE MAX" | "BGMI" | "VALORANT" | "OTHER";
+  gameCategory: "FREE FIRE" | "FREE FIRE MAX";
   status: "LIVE" | "UPCOMING" | "COMPLETED";
   prizePool: string;
   entryFee: string;
@@ -37,16 +37,16 @@ export const tournamentsData: Tournament[] = [
   {
     id: "lordz-clutch-cup",
     title: "LORDZ CLUTCH CUP S1",
-    game: "BGMI",
-    gameCategory: "BGMI",
+    game: "FREE FIRE MAX",
+    gameCategory: "FREE FIRE MAX",
     status: "UPCOMING",
     prizePool: "₹1,00,000",
     entryFee: "₹250 / SQUAD",
     slots: "64 TEAMS",
     date: "SEP 20, 2026 • 5:00 PM IST",
-    format: "ERANGEL & MIRAMAR • HARDCORE",
+    format: "BERMUDA & PURGATORY • HARDCORE",
     featured: true,
-    tagline: "India's fiercest mobile warriors clash for the crown.",
+    tagline: "India's fiercest mobile Free Fire squads clash for the crown.",
     registeredTeams: 48,
     totalTeams: 64,
   },
@@ -68,17 +68,17 @@ export const tournamentsData: Tournament[] = [
   },
   {
     id: "val-ignite-series",
-    title: "IGNITE PROTOCOL 2026",
-    game: "VALORANT",
-    gameCategory: "VALORANT",
+    title: "IGNITE PROTOCOL: PURGATORY",
+    game: "FREE FIRE MAX",
+    gameCategory: "FREE FIRE MAX",
     status: "UPCOMING",
     prizePool: "₹75,000",
     entryFee: "FREE ENTRY",
     slots: "32 TEAMS",
     date: "OCT 02, 2026 • 4:00 PM IST",
-    format: "5v5 DOUBLE ELIMINATION",
+    format: "BATTLE ROYALE • 6 ROUNDS",
     featured: false,
-    tagline: "Tactical FPS championship for emerging Indian rosters.",
+    tagline: "High-octane Free Fire MAX championship for emerging squads.",
     registeredTeams: 22,
     totalTeams: 32,
   },
@@ -115,10 +115,10 @@ export const tournamentsData: Tournament[] = [
     totalTeams: 24,
   },
   {
-    id: "india-showdown-bgmi",
+    id: "india-showdown-ff",
     title: "SHOWDOWN INVITATIONAL",
-    game: "BGMI",
-    gameCategory: "BGMI",
+    game: "FREE FIRE MAX",
+    gameCategory: "FREE FIRE MAX",
     status: "COMPLETED",
     prizePool: "₹50,000",
     entryFee: "COMPLETED",
@@ -126,7 +126,7 @@ export const tournamentsData: Tournament[] = [
     date: "JULY 2026",
     format: "CUSTOM LOBBY FINALS",
     featured: false,
-    tagline: "Top tier Indian squads competed in 3-day showdown.",
+    tagline: "Top tier Indian Free Fire squads competed in 3-day showdown.",
     registeredTeams: 32,
     totalTeams: 32,
   },

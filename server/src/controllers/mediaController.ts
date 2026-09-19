@@ -3,6 +3,16 @@ import { z } from "zod";
 import { prisma } from "../config/prisma.js";
 import { AuthenticatedRequest } from "../middleware/auth.js";
 
+function extractYouTubeId(input?: string | null): string | null {
+  if (!input) return null;
+  const trimmed = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  const match = trimmed.match(
+    /(?:youtube(?:-nocookie)?\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?|shorts|live)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i
+  );
+  return match ? match[1] : trimmed;
+}
+
 const mediaSchema = z.object({
   type: z.enum(["VIDEOS", "HIGHLIGHTS", "PHOTOS", "SHORTS"]).default("VIDEOS"),
   title: z.string().min(3),
@@ -37,6 +47,18 @@ export const getMedia = async (req: Request, res: Response, next: NextFunction):
 export const createMedia = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = mediaSchema.parse(req.body);
+    if (data.youtubeId) {
+      data.youtubeId = extractYouTubeId(data.youtubeId);
+      if (!data.thumbnail && data.youtubeId) {
+        data.thumbnail = `https://img.youtube.com/vi/${data.youtubeId}/hqdefault.jpg`;
+      }
+    }
+    if (data.tag === "PREMIERE") {
+      await prisma.mediaItem.updateMany({
+        where: { tag: "PREMIERE" },
+        data: { tag: "FEATURED" },
+      });
+    }
     const item = await prisma.mediaItem.create({ data });
     res.status(201).json({ success: true, message: "Media item added successfully", data: item });
   } catch (error) {
@@ -48,6 +70,18 @@ export const updateMedia = async (req: AuthenticatedRequest, res: Response, next
   try {
     const { id } = req.params;
     const data = mediaSchema.partial().parse(req.body);
+    if (data.youtubeId !== undefined) {
+      data.youtubeId = extractYouTubeId(data.youtubeId);
+      if (!data.thumbnail && data.youtubeId) {
+        data.thumbnail = `https://img.youtube.com/vi/${data.youtubeId}/hqdefault.jpg`;
+      }
+    }
+    if (data.tag === "PREMIERE") {
+      await prisma.mediaItem.updateMany({
+        where: { tag: "PREMIERE", id: { not: id } },
+        data: { tag: "FEATURED" },
+      });
+    }
     const item = await prisma.mediaItem.update({
       where: { id },
       data,

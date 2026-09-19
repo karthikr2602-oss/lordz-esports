@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, Flame } from "lucide-react";
 import { VideoCard } from "../components/common/VideoCard";
 import { getFeaturedHighlights, type MediaItem } from "../data/media";
+import { mediaApi } from "../api/media";
 
 interface VideoHighlightsSectionProps {
   onPlayVideo: (item: MediaItem) => void;
@@ -11,7 +13,22 @@ interface VideoHighlightsSectionProps {
 export const VideoHighlightsSection = ({
   onPlayVideo,
 }: VideoHighlightsSectionProps) => {
-  const highlights = getFeaturedHighlights();
+  const [highlights, setHighlights] = useState<MediaItem[]>(getFeaturedHighlights());
+
+  useEffect(() => {
+    mediaApi
+      .getAll()
+      .then((data) => {
+        if (data && data.length > 0) {
+          // Strictly display videos chosen by admin
+          const chosen = data.filter((m) => m.featured);
+          setHighlights(chosen.length > 0 ? chosen : data.slice(0, 3));
+        }
+      })
+      .catch(() => {
+        setHighlights(getFeaturedHighlights());
+      });
+  }, []);
 
   return (
     <section id="highlights" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden">
