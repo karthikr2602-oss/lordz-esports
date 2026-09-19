@@ -26,6 +26,7 @@ router.post("/auth/login", authCtrl.login);
 router.post("/auth/register", authCtrl.register);
 router.post("/auth/logout", authCtrl.logout);
 router.get("/auth/me", authenticate, authCtrl.getMe);
+router.put("/auth/profile", authenticate, authCtrl.updateProfile);
 
 // ================= TOURNAMENT ROUTES =================
 router.get("/tournaments", tournamentCtrl.getTournaments);

@@ -5,6 +5,7 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import { Navbar } from "./components/navbar/Navbar";
 import { FooterSection } from "./sections/FooterSection";
 import { ModalProvider } from "./context/ModalContext";
+import { AuthProvider } from "./context/AuthContext";
 
 // Public Pages
 import { HomePage } from "./pages/HomePage";
@@ -40,26 +41,28 @@ function PublicLayout() {
 export function App() {
   return (
     <BrowserRouter>
-      <ModalProvider>
-        <Routes>
-          {/* Public Esports Website Routes */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/tournaments" element={<TournamentsPage />} />
-            <Route path="/players" element={<PlayersPage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/jersey" element={<Navigate to="/products" replace />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/hall-of-glory" element={<Navigate to="/tournaments" replace />} />
-            <Route path="/news" element={<NewsPage />} />
-            <Route path="/media" element={<MediaPage />} />
-            <Route path="/community" element={<CommunityPage />} />
-            <Route path="/partners" element={<BrandPartnersPage />} />
-            <Route path="/partner-with-us" element={<PartnersPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
-      </ModalProvider>
+      <AuthProvider>
+        <ModalProvider>
+          <Routes>
+            {/* Public Esports Website Routes */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/tournaments" element={<TournamentsPage />} />
+              <Route path="/players" element={<PlayersPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/jersey" element={<Navigate to="/products" replace />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/hall-of-glory" element={<Navigate to="/tournaments" replace />} />
+              <Route path="/news" element={<NewsPage />} />
+              <Route path="/media" element={<MediaPage />} />
+              <Route path="/community" element={<CommunityPage />} />
+              <Route path="/partners" element={<BrandPartnersPage />} />
+              <Route path="/partner-with-us" element={<PartnersPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </ModalProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

@@ -17,7 +17,10 @@ export async function apiRequest<T = any>(
   options: RequestInit = {},
   fallbackData?: T
 ): Promise<T> {
-  const token = localStorage.getItem("lordz_admin_token");
+  const token =
+    localStorage.getItem("lordz_player_token") ||
+    localStorage.getItem("lordz_admin_token") ||
+    localStorage.getItem("token");
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

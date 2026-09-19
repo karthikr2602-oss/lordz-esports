@@ -7,6 +7,8 @@ import { Menu } from "lucide-react";
 import { useScrollPosition } from "../../hooks/useScrollPosition";
 import { MobileMenu } from "./MobileMenu";
 import { useModals } from "../../context/useModals";
+import { useAuth } from "../../context/AuthContext";
+import { ShieldCheck } from "lucide-react";
 
 // Straight Desktop Nav Items (No 'MORE' dropdown, 'JERSEY' replaced with 'PRODUCTS', 'HALL OF GLORY' removed)
 const straightNavItems = [
@@ -27,6 +29,7 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { pathname } = useLocation();
   const { openJoinTournament, openLogin } = useModals();
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <>
@@ -82,12 +85,32 @@ export const Navbar = () => {
 
           {/* Right Action CTAs */}
           <div className="hidden sm:flex items-center gap-2.5 shrink-0">
-            <OutlineButton
-              onClick={openLogin}
-              className="py-2 px-3 sm:px-4 text-[11px] font-heading font-bold"
-            >
-              LOGIN
-            </OutlineButton>
+            {isAuthenticated && user ? (
+              <button
+                onClick={openLogin}
+                className="flex items-center gap-2 py-1.5 px-3 rounded-xl border border-[#FFBE32]/40 bg-[#FFBE32]/10 hover:bg-[#FFBE32]/20 transition-all cursor-pointer group shadow-[0_0_15px_rgba(255,190,50,0.15)]"
+                title="Open Athlete Passport & Profile"
+              >
+                <div className="w-6 h-6 rounded-lg bg-[#FFBE32] text-black font-display text-[11px] font-bold flex items-center justify-center">
+                  {user.ign?.slice(0, 2).toUpperCase() || user.username?.slice(0, 2).toUpperCase() || "LZ"}
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-[11px] font-heading font-bold uppercase tracking-wider text-white group-hover:text-[#FFBE32] leading-none">
+                    {user.ign || user.username}
+                  </span>
+                  <span className="text-[8px] font-mono tracking-widest text-[#FFBE32] leading-tight flex items-center gap-0.5">
+                    <ShieldCheck className="h-2.5 w-2.5 text-[#22C55E]" /> ATHLETE
+                  </span>
+                </div>
+              </button>
+            ) : (
+              <OutlineButton
+                onClick={openLogin}
+                className="py-2 px-3 sm:px-4 text-[11px] font-heading font-bold"
+              >
+                LOGIN
+              </OutlineButton>
+            )}
             <GoldButton
               onClick={() => openJoinTournament()}
               className="py-2 px-3 sm:px-4 text-[11px] font-heading font-bold"

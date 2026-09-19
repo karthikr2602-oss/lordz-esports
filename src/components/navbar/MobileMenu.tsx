@@ -16,6 +16,7 @@ import {
 import logoImg from "../../assets/lordz-logo.png";
 import { GoldButton } from "../common/GoldButton";
 import { OutlineButton } from "../common/OutlineButton";
+import { useAuth } from "../../context/AuthContext";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -45,6 +46,7 @@ export const MobileMenu = ({
   onOpenLogin,
   currentPath,
 }: MobileMenuProps) => {
+  const { user, isAuthenticated } = useAuth();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -125,16 +127,31 @@ export const MobileMenu = ({
             >
               JOIN TOURNAMENT
             </GoldButton>
-            <OutlineButton
-              onClick={() => {
-                onClose();
-                onOpenLogin();
-              }}
-              className="w-full"
-              size="md"
-            >
-              PLAYER LOGIN
-            </OutlineButton>
+            {isAuthenticated && user ? (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenLogin();
+                }}
+                className="w-full py-2.5 px-4 rounded-xl border border-[#FFBE32]/40 bg-[#FFBE32]/10 hover:bg-[#FFBE32]/20 text-white font-heading font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              >
+                <div className="w-5 h-5 rounded-md bg-[#FFBE32] text-black font-display text-[10px] font-bold flex items-center justify-center">
+                  {user.ign?.slice(0, 2).toUpperCase() || user.username?.slice(0, 2).toUpperCase() || "LZ"}
+                </div>
+                <span>ATHLETE PASSPORT ({user.ign || user.username})</span>
+              </button>
+            ) : (
+              <OutlineButton
+                onClick={() => {
+                  onClose();
+                  onOpenLogin();
+                }}
+                className="w-full"
+                size="md"
+              >
+                PLAYER LOGIN / REGISTER
+              </OutlineButton>
+            )}
           </motion.div>
         </motion.div>
       )}
