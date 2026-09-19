@@ -17,7 +17,11 @@ const orderSchema = z.object({
   customIgn: z.string().optional().nullable(),
   customNumber: z.string().optional().nullable(),
   totalAmount: z.number().default(1299),
-  paymentMethod: z.string().default("ONLINE"),
+  paymentMethod: z.string().default("UPI"),
+  utrNumber: z.string().optional().nullable(),
+  paymentStatus: z.string().optional().nullable(),
+  courierPartner: z.string().optional().nullable(),
+  expectedDeliveryDate: z.string().optional().nullable(),
 });
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -26,11 +30,17 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const orderNumber = `LZ-${new Date().getFullYear()}-${randomSuffix}`;
 
+    const defaultPaymentStatus =
+      data.paymentStatus ||
+      (data.paymentMethod === "UPI"
+        ? (data.utrNumber ? "PENDING_VERIFICATION" : "PENDING")
+        : "COD_PENDING");
+
     const order = await prisma.order.create({
       data: {
         ...data,
         orderNumber,
-        paymentStatus: "PAID", // Default to paid for pre-order demo/sim
+        paymentStatus: defaultPaymentStatus,
         orderStatus: "PENDING",
       },
     });
@@ -53,16 +63,43 @@ export const getOrders = async (req: AuthenticatedRequest, res: Response, next: 
     if (status && status !== "ALL") where.orderStatus = String(status);
     if (search) {
       where.OR = [
-        { orderNumber: { contains: String(search) } },
-        { customerName: { contains: String(search) } },
+        { orderNumber: { contains: String(search), mode: "insensitive" } },
+        { customerName: { contains: String(search), mode: "insensitive" } },
         { customerPhone: { contains: String(search) } },
-        { customerEmail: { contains: String(search) } },
-        { customIgn: { contains: String(search) } },
+        { customerEmail: { contains: String(search), mode: "insensitive" } },
+        { customIgn: { contains: String(search), mode: "insensitive" } },
+        { utrNumber: { contains: String(search) } },
       ];
     }
 
     const orders = await prisma.order.findMany({
       where,
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const trackOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { query } = req.query;
+    if (!query || typeof query !== "string") {
+      res.status(400).json({ success: false, message: "Order number or phone number is required" });
+      return;
+    }
+    const cleanQuery = query.trim();
+    const cleanPhone = cleanQuery.replace(/[^0-9]/g, "");
+
+    const orders = await prisma.order.findMany({
+      where: {
+        OR: [
+          { orderNumber: { equals: cleanQuery, mode: "insensitive" } },
+          ...(cleanPhone.length >= 6 ? [{ customerPhone: { contains: cleanPhone } }] : []),
+        ],
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -79,7 +116,14 @@ export const updateOrderStatus = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { orderStatus, trackingNumber, paymentStatus } = req.body;
+    const {
+      orderStatus,
+      trackingNumber,
+      paymentStatus,
+      courierPartner,
+      expectedDeliveryDate,
+      adminNotes,
+    } = req.body;
 
     const order = await prisma.order.update({
       where: { id },
@@ -87,6 +131,9 @@ export const updateOrderStatus = async (
         ...(orderStatus ? { orderStatus } : {}),
         ...(trackingNumber !== undefined ? { trackingNumber } : {}),
         ...(paymentStatus ? { paymentStatus } : {}),
+        ...(courierPartner !== undefined ? { courierPartner } : {}),
+        ...(expectedDeliveryDate !== undefined ? { expectedDeliveryDate } : {}),
+        ...(adminNotes !== undefined ? { adminNotes } : {}),
       },
     });
 
@@ -97,12 +144,12 @@ export const updateOrderStatus = async (
           adminEmail: req.user.email,
           action: "UPDATE_ORDER_STATUS",
           resource: "Order",
-          details: `Updated order ${order.orderNumber} to ${orderStatus}`,
+          details: `Updated order ${order.orderNumber} to ${orderStatus || order.orderStatus}`,
         },
       });
     }
 
-    res.json({ success: true, message: `Order updated to ${orderStatus}`, data: order });
+    res.json({ success: true, message: `Order updated successfully`, data: order });
   } catch (error) {
     next(error);
   }

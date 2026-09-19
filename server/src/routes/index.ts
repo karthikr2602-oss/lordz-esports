@@ -164,6 +164,7 @@ router.delete(
 
 // ================= ORDERS ROUTES =================
 router.post("/orders", orderCtrl.createOrder);
+router.get("/orders/track", orderCtrl.trackOrder);
 router.get(
   "/orders",
   authenticate,

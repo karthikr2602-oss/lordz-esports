@@ -155,13 +155,18 @@ model Product {
   slug          String   @unique
   subtitle      String?
   description   String?
+  tag           String?  @default("OFFICIAL ATHLETE SPEC")
   price         Int      @default(1299)
   originalPrice Int?     @default(1999)
   stock         Int      @default(100)
-  category      String   @default("JERSEY") // JERSEY, HOODIE, ACCESSORY
+  category      String   @default("JERSEY") // JERSEY, HOODIE, ACCESSORY, GEAR
   sizes         String   @default("[\"S\",\"M\",\"L\",\"XL\",\"2XL\"]")
   frontImage    String?
   backImage     String?
+  upiId         String?  @default("lordzesports@upi")
+  upiQrImage    String?
+  hasCustomIgn  Boolean  @default(false)
+  specs         String?
   isAvailable   Boolean  @default(true)
   isFeatured    Boolean  @default(true)
   createdAt     DateTime @default(now())
@@ -170,28 +175,32 @@ model Product {
 }
 
 model Order {
-  id             String   @id @default(uuid())
-  orderNumber    String   @unique
-  productId      String?
-  product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
-  productName    String   @default("LORDZ PRO COMBAT JERSEY 2026")
-  customerName   String
-  customerEmail  String
-  customerPhone  String
-  address        String
-  city           String
-  state          String
-  pincode        String
-  size           String   @default("L")
-  customIgn      String?
-  customNumber   String?
-  totalAmount    Int      @default(1299)
-  paymentMethod  String   @default("ONLINE") // RAZORPAY, COD, ONLINE
-  paymentStatus  String   @default("PENDING") // PENDING, PAID, FAILED
-  orderStatus    String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
-  trackingNumber String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                   String   @id @default(uuid())
+  orderNumber          String   @unique
+  productId            String?
+  product              Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName          String   @default("LORDZ PRO COMBAT JERSEY 2026")
+  customerName         String
+  customerEmail        String
+  customerPhone        String
+  address              String
+  city                 String
+  state                String
+  pincode              String
+  size                 String   @default("L")
+  customIgn            String?
+  customNumber         String?
+  totalAmount          Int      @default(1299)
+  paymentMethod        String   @default("UPI") // UPI, COD, ONLINE
+  paymentStatus        String   @default("PENDING") // PENDING, PAID, FAILED, VERIFIED
+  utrNumber            String?
+  orderStatus          String   @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  courierPartner       String?
+  trackingNumber       String?
+  expectedDeliveryDate String?
+  adminNotes           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model NewsArticle {

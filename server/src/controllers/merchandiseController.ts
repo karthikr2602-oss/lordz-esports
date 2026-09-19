@@ -5,16 +5,21 @@ import { AuthenticatedRequest } from "../middleware/auth.js";
 
 const productSchema = z.object({
   name: z.string().min(2),
-  slug: z.string().min(2),
+  slug: z.string().optional(),
   subtitle: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
+  tag: z.string().default("OFFICIAL ATHLETE SPEC"),
   price: z.number().positive(),
   originalPrice: z.number().optional().nullable(),
   stock: z.number().int().default(100),
-  category: z.enum(["JERSEY", "HOODIE", "ACCESSORY"]).default("JERSEY"),
+  category: z.string().default("JERSEY"),
   sizes: z.string().default("[\"S\",\"M\",\"L\",\"XL\",\"2XL\"]"),
   frontImage: z.string().optional().nullable(),
   backImage: z.string().optional().nullable(),
+  upiId: z.string().default("lordzesports@upi"),
+  upiQrImage: z.string().optional().nullable(),
+  hasCustomIgn: z.boolean().default(false),
+  specs: z.string().optional().nullable(),
   isAvailable: z.boolean().default(true),
   isFeatured: z.boolean().default(true),
 });
@@ -33,7 +38,18 @@ export const getProducts = async (_req: Request, res: Response, next: NextFuncti
 export const createProduct = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = productSchema.parse(req.body);
-    const product = await prisma.product.create({ data });
+    const baseSlug = (data.slug || data.name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    let finalSlug = baseSlug || `product-${Date.now()}`;
+    const existing = await prisma.product.findUnique({ where: { slug: finalSlug } });
+    if (existing) {
+      finalSlug = `${finalSlug}-${Date.now().toString(36)}`;
+    }
+    const product = await prisma.product.create({
+      data: {
+        ...data,
+        slug: finalSlug,
+      },
+    });
     res.status(201).json({ success: true, message: "Product created successfully", data: product });
   } catch (error) {
     next(error);

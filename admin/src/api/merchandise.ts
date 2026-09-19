@@ -6,6 +6,7 @@ export interface ProductItem {
   slug: string;
   subtitle?: string | null;
   description?: string | null;
+  tag?: string | null;
   price: number;
   originalPrice?: number | null;
   stock: number;
@@ -13,6 +14,10 @@ export interface ProductItem {
   sizes: string;
   frontImage?: string | null;
   backImage?: string | null;
+  upiId?: string | null;
+  upiQrImage?: string | null;
+  hasCustomIgn?: boolean;
+  specs?: string | null;
   isAvailable: boolean;
   isFeatured: boolean;
 }
@@ -35,8 +40,12 @@ export interface OrderItem {
   totalAmount: number;
   paymentMethod: string;
   paymentStatus: string;
+  utrNumber?: string | null;
   orderStatus: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  courierPartner?: string | null;
   trackingNumber?: string | null;
+  expectedDeliveryDate?: string | null;
+  adminNotes?: string | null;
   createdAt: string;
 }
 
@@ -114,12 +123,24 @@ export const merchandiseApi = {
 
   updateOrderStatus: async (
     id: string,
-    orderStatus: string,
+    payload: {
+      orderStatus?: string;
+      trackingNumber?: string | null;
+      courierPartner?: string | null;
+      expectedDeliveryDate?: string | null;
+      paymentStatus?: string | null;
+      adminNotes?: string | null;
+    } | string,
     trackingNumber?: string
   ): Promise<OrderItem> => {
+    const body =
+      typeof payload === "string"
+        ? { orderStatus: payload, trackingNumber }
+        : payload;
+
     return apiRequest<OrderItem>(`/orders/${id}/status`, {
       method: "PUT",
-      body: JSON.stringify({ orderStatus, trackingNumber }),
+      body: JSON.stringify(body),
     });
   },
 };

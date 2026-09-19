@@ -6,6 +6,7 @@ export interface ProductItem {
   slug: string;
   subtitle?: string | null;
   description?: string | null;
+  tag?: string | null;
   price: number;
   originalPrice?: number | null;
   stock: number;
@@ -13,6 +14,10 @@ export interface ProductItem {
   sizes: string;
   frontImage?: string | null;
   backImage?: string | null;
+  upiId?: string | null;
+  upiQrImage?: string | null;
+  hasCustomIgn?: boolean;
+  specs?: string | null;
   isAvailable: boolean;
   isFeatured: boolean;
 }
@@ -35,8 +40,12 @@ export interface OrderItem {
   totalAmount: number;
   paymentMethod: string;
   paymentStatus: string;
+  utrNumber?: string | null;
   orderStatus: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  courierPartner?: string | null;
   trackingNumber?: string | null;
+  expectedDeliveryDate?: string | null;
+  adminNotes?: string | null;
   createdAt: string;
 }
 
@@ -110,6 +119,10 @@ export const merchandiseApi = {
 
     const qs = query.toString() ? `?${query.toString()}` : "";
     return apiRequest<OrderItem[]>(`/orders${qs}`, { method: "GET" }, []);
+  },
+
+  trackOrders: async (query: string): Promise<OrderItem[]> => {
+    return apiRequest<OrderItem[]>(`/orders/track?query=${encodeURIComponent(query)}`, { method: "GET" }, []);
   },
 
   updateOrderStatus: async (
