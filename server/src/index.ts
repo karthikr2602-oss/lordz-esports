@@ -1,6 +1,6 @@
 /**
  * Local development entry point.
- * This file is NOT used by Vercel — it only runs when you do `npm run dev` locally.
+ * This file runs when you do `npm run dev` locally.
  * Vercel uses vercel.json + server.ts (which exports the Express app directly).
  */
 import app from "./server.js";
