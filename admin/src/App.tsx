@@ -23,13 +23,15 @@ import { AdminSettingsPage } from "./pages/AdminSettingsPage";
 import { AdminUsersPage } from "./pages/AdminUsersPage";
 
 export const App: React.FC = () => {
+  const basename = window.location.pathname.startsWith("/admin") ? "/admin" : "/";
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <AdminAuthProvider>
         <Routes>
           {/* Authentication */}
           <Route path="/login" element={<AdminLoginPage />} />
-          <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
 
           {/* Protected Admin Console Routes */}
           <Route

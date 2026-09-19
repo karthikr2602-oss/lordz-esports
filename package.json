@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build:web": "tsc -b && vite build",
+    "build": "node scripts/build.js",
     "server": "cd server && npm run dev",
     "server:push": "cd server && npm run prisma:push",
     "server:seed": "cd server && npm run seed",
