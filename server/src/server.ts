@@ -1,13 +1,20 @@
 import express from "express";
 import cors from "cors";
-import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import { rateLimit } from "express-rate-limit";
 import path from "path";
+import { createRequire } from "module";
 import dotenv from "dotenv";
 import routes from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { prisma } from "./config/prisma.js";
+
+// Use createRequire to load CJS builds of packages that have ESM/CJS type issues
+// under strict NodeNext / ESNext module resolution (TS2349 workaround)
+const require = createRequire(import.meta.url);
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const helmet = require("helmet") as typeof import("helmet").default;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { rateLimit } = require("express-rate-limit") as typeof import("express-rate-limit");
 
 dotenv.config();
 
