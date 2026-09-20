@@ -584,10 +584,7 @@ export const getTournaments = async (req: Request, res: Response, next: NextFunc
           orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
           include: {
             _count: {
-              select: { registrations: true, stages: true },
-            },
-            stages: {
-              orderBy: { order: "asc" },
+              select: { registrations: true },
             },
           },
         });
@@ -595,7 +592,8 @@ export const getTournaments = async (req: Request, res: Response, next: NextFunc
         const mapped = tournaments.map((t) => ({
           ...t,
           registeredTeams: t._count?.registrations || 0,
-          stagesCount: t._count?.stages || t.stages.length,
+          stages: (t as any).stages || [],
+          stagesCount: 0,
         }));
 
         res.json({ success: true, data: mapped });
@@ -658,15 +656,7 @@ export const getTournamentById = async (req: Request, res: Response, next: NextF
             OR: [{ id }, { slug: id }],
           },
           include: {
-            stages: { orderBy: { order: "asc" } },
-            leaderboard: { orderBy: { rank: "asc" } },
             registrations: {
-              include: {
-                players: true,
-                payment: true,
-                currentStage: true,
-                activityLogs: { orderBy: { createdAt: "desc" } },
-              },
               orderBy: { createdAt: "desc" },
             },
             matches: { orderBy: { createdAt: "desc" } },
@@ -758,15 +748,7 @@ export const createTournament = async (req: AuthenticatedRequest, res: Response,
             ...data,
             slug: generatedSlug,
             registeredTeams: 0,
-            stages: {
-              create: [
-                { name: "ROUND 1", order: 1, status: "UPCOMING", teamsCount: data.totalTeams },
-                { name: "ROUND 2", order: 2, status: "UPCOMING", teamsCount: Math.ceil(data.totalTeams / 2) },
-                { name: "GRAND FINALS", order: 3, status: "UPCOMING", teamsCount: 12 },
-              ],
-            },
           },
-          include: { stages: true },
         });
 
         if (req.user) {
@@ -823,7 +805,6 @@ export const updateTournament = async (req: AuthenticatedRequest, res: Response,
         const updated = await prisma.tournament.update({
           where: { id },
           data,
-          include: { stages: true },
         });
 
         res.json({ success: true, message: "Tournament updated successfully", data: updated });
