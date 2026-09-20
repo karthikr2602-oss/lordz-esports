@@ -356,15 +356,15 @@ export const AdminDashboardPage: React.FC = () => {
               </Link>
 
               <Link
-                to="/admin/legends"
+                to="/admin/players"
                 className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-[#FFBE32]/10 border border-white/5 hover:border-[#FFBE32]/40 transition-colors group"
               >
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
-                    <Sparkles className="h-4 w-4" />
+                    <Users className="h-4 w-4" />
                   </div>
                   <span className="text-xs font-heading font-bold uppercase tracking-wider text-gray-200 group-hover:text-white">
-                    Manage Hall of Fame
+                    Manage Pro Athletes
                   </span>
                 </div>
                 <ArrowUpRight className="h-4 w-4 text-gray-500 group-hover:text-amber-400" />

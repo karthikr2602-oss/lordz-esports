@@ -6,12 +6,10 @@ import {
   LayoutDashboard,
   Trophy,
   Users,
-  Swords,
   BarChart3,
   ShoppingBag,
   PackageCheck,
   Newspaper,
-  Award,
   Video,
   Handshake,
   Settings,
@@ -22,7 +20,6 @@ import {
   X,
   Radio,
   Clock,
-  Sparkles,
   ChevronRight
 } from "lucide-react";
 
@@ -49,15 +46,12 @@ const navGroups: NavGroup[] = [
     items: [
       { name: "Tournaments", path: "/tournaments", icon: Trophy },
       { name: "Squad Registrations", path: "/registrations", icon: Users, badge: "Live" },
-      { name: "Match Center", path: "/matches", icon: Swords },
-      { name: "Standings Leaderboard", path: "/standings", icon: Award },
     ],
   },
   {
     group: "ROSTERS & TALENT",
     items: [
       { name: "Pro Athletes", path: "/players", icon: Users },
-      { name: "Hall of Fame Legends", path: "/legends", icon: Sparkles },
     ],
   },
   {

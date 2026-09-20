@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { playersData, type Player } from "../data/players";
 import { playersApi } from "../api/players";
-import jerseyBackImg from "../assets/jersey-back.jpg";
 import logoImg from "../assets/lordz-logo.png";
 import { Crosshair, Shield, Zap, Target } from "lucide-react";
 

@@ -10,10 +10,7 @@ import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { AdminAnalyticsPage } from "./pages/AdminAnalyticsPage";
 import { AdminTournamentsPage } from "./pages/AdminTournamentsPage";
 import { AdminRegistrationsPage } from "./pages/AdminRegistrationsPage";
-import { AdminMatchesPage } from "./pages/AdminMatchesPage";
-import { AdminStandingsPage } from "./pages/AdminStandingsPage";
 import { AdminPlayersPage } from "./pages/AdminPlayersPage";
-import { AdminLegendsPage } from "./pages/AdminLegendsPage";
 import { AdminMerchandisePage } from "./pages/AdminMerchandisePage";
 import { AdminOrdersPage } from "./pages/AdminOrdersPage";
 import { AdminNewsPage } from "./pages/AdminNewsPage";
@@ -49,10 +46,7 @@ export const App: React.FC = () => {
             <Route path="tournaments" element={<AdminTournamentsPage />} />
             <Route path="tournaments/:tournamentId" element={<AdminTournamentDetailPage />} />
             <Route path="registrations" element={<AdminRegistrationsPage />} />
-            <Route path="matches" element={<AdminMatchesPage />} />
-            <Route path="standings" element={<AdminStandingsPage />} />
             <Route path="players" element={<AdminPlayersPage />} />
-            <Route path="legends" element={<AdminLegendsPage />} />
             <Route path="merchandise" element={<AdminMerchandisePage />} />
             <Route path="orders" element={<AdminOrdersPage />} />
             <Route path="news" element={<AdminNewsPage />} />
@@ -68,10 +62,7 @@ export const App: React.FC = () => {
               <Route path="tournaments" element={<AdminTournamentsPage />} />
               <Route path="tournaments/:tournamentId" element={<AdminTournamentDetailPage />} />
               <Route path="registrations" element={<AdminRegistrationsPage />} />
-              <Route path="matches" element={<AdminMatchesPage />} />
-              <Route path="standings" element={<AdminStandingsPage />} />
               <Route path="players" element={<AdminPlayersPage />} />
-              <Route path="legends" element={<AdminLegendsPage />} />
               <Route path="merchandise" element={<AdminMerchandisePage />} />
               <Route path="orders" element={<AdminOrdersPage />} />
               <Route path="news" element={<AdminNewsPage />} />
