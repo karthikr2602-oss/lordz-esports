@@ -55,7 +55,7 @@ export const getDashboardMetrics = async (
       where: { paymentStatus: "PAID" },
       select: { totalAmount: true },
     });
-    const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.totalAmount || 0), 0);
 
     // Mock/Simulated 6-month trend data for rich admin charts
     const monthlyRevenue = [

@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from "react";
-import type { Tournament } from "../data/tournaments";
+import { tournamentsData, type Tournament } from "../data/tournaments";
 import type { Match } from "../data/matches";
 import type { MediaItem } from "../data/media";
 import type { NewsArticle } from "../data/news";
-import { JoinTournamentModal } from "../components/modals/JoinTournamentModal";
+import { TournamentRegistrationStepper } from "../components/tournament/TournamentRegistrationStepper";
 import { LoginModal } from "../components/modals/LoginModal";
 import { VideoModal } from "../components/modals/VideoModal";
 import { JerseyModal } from "../components/modals/JerseyModal";
@@ -95,13 +95,11 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     >
       {children}
 
-      {/* Global Modals Mounted */}
-      <JoinTournamentModal
+      {/* Global 6-Step Tournament Registration Stepper */}
+      <TournamentRegistrationStepper
         isOpen={joinModalOpen}
         onClose={closeJoinTournament}
-        tournamentTitle={selectedTournament?.title || "FLAME OF GLORY S2"}
-        game={selectedTournament?.game || "FREE FIRE MAX"}
-        prizePool={selectedTournament?.prizePool || "₹50,000"}
+        tournament={selectedTournament || tournamentsData[0]}
       />
 
       <LoginModal isOpen={loginModalOpen} onClose={closeLogin} />

@@ -10,71 +10,92 @@ generator client {
 }
 
 model User {
-  id               String     @id @default(uuid())
-  username         String?    @unique
-  email            String     @unique
-  passwordHash     String
-  role             String     @default("PLAYER") // ADMIN, PLAYER
-  ign              String?
-  fullName         String?
-  avatarUrl        String?
-  phone            String?
-  discord          String?
-  gamingExperience String?
-  primaryGame      String?    @default("FREE FIRE MAX")
-  device           String?
-  bio              String?
-  status           String     @default("ACTIVE") // ACTIVE, SUSPENDED
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
-  auditLogs        AuditLog[]
+  id                   String                   @id @default(uuid())
+  username             String?                  @unique
+  email                String                   @unique
+  passwordHash         String
+  role                 String                   @default("PLAYER") // ADMIN, PLAYER
+  ign                  String?
+  gameUid              String?
+  fullName             String?
+  avatarUrl            String?
+  phone                String?
+  discord              String?
+  gamingExperience     String?
+  primaryGame          String?                  @default("FREE FIRE MAX")
+  device               String?
+  bio                  String?
+  status               String                   @default("ACTIVE") // ACTIVE, SUSPENDED
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  auditLogs            AuditLog[]
+  activityLogs         ActivityLog[]
+  ledTeams             Team[]
+  teamMemberships      TeamMember[]
+  sentInvitations      TeamInvitation[]         @relation("SentInvitations")
+  receivedInvitations  TeamInvitation[]         @relation("ReceivedInvitations")
+  notifications        Notification[]
+  submittedRegistrations TournamentRegistration[]
 }
 
 model Tournament {
-  id                String                   @id @default(uuid())
-  title             String
-  slug              String?                  @unique
-  game              String                   @default("FREE FIRE MAX")
-  gameCategory      String                   @default("FREE FIRE MAX") // FREE FIRE, FREE FIRE MAX
-  status            String                   @default("UPCOMING") // DRAFT, REGISTRATION_OPEN, REGISTRATION_CLOSED, ONGOING, COMPLETED, CANCELLED, ARCHIVED, UPCOMING, LIVE
-  prizePool         String                   @default("₹50,000")
-  firstPrize        String?
-  secondPrize       String?
-  thirdPrize        String?
-  entryFee          String                   @default("FREE ENTRY")
-  feeAmount         Int                      @default(0)
-  currency          String                   @default("INR")
-  slots             String                   @default("32 TEAMS")
-  totalTeams        Int                      @default(32)
-  registeredTeams   Int                      @default(0)
-  teamSize          Int                      @default(4)
-  maxPlayersPerTeam Int                      @default(5)
-  substituteCount   Int                      @default(1)
-  date              String
-  startDate         String?
-  endDate           String?
-  regStartDate      String?
-  regEndDate        String?
-  format            String                   @default("BATTLE ROYALE • 6 MATCHES")
-  featured          Boolean                  @default(false)
-  tagline           String                   @default("Official Lordz Esports Tournament")
-  shortDescription  String?
-  description       String?
-  streamUrl         String?
-  bannerImage       String?
-  logoImage         String?
-  rules             String?
-  termsConditions   String?
-  upiId             String?                  @default("lordzesports@upi")
-  upiQrImage        String?
-  bankDetails       String?
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
-  registrations     TournamentRegistration[]
-  stages            TournamentStage[]
-  leaderboard       TournamentLeaderboard[]
-  matches           Match[]
-  standings         Standing[]
+  id                      String                   @id @default(uuid())
+  title                   String
+  slug                    String?                  @unique
+  game                    String                   @default("FREE FIRE MAX")
+  gameCategory            String                   @default("FREE FIRE MAX") // FREE FIRE, FREE FIRE MAX
+  gameMode                String                   @default("SQUAD BATTLE ROYALE")
+  status                  String                   @default("UPCOMING") // DRAFT, REGISTRATION_OPEN, REGISTRATION_CLOSED, ONGOING, COMPLETED, CANCELLED, ARCHIVED, UPCOMING, LIVE
+  prizePool               String                   @default("₹50,000")
+  firstPrize              String?
+  secondPrize             String?
+  thirdPrize              String?
+  entryFee                String                   @default("FREE ENTRY")
+  feeAmount               Int                      @default(0)
+  currency                String                   @default("INR")
+  slots                   String                   @default("32 TEAMS")
+  totalTeams              Int                      @default(32)
+  registeredTeams         Int                      @default(0)
+  teamSize                Int                      @default(4)
+  maxPlayersPerTeam       Int                      @default(5)
+  substituteCount         Int                      @default(1)
+  date                    String
+  startDate               String?
+  endDate                 String?
+  startTime               String?                  @default("18:00 IST")
+  regStartDate            String?
+  regEndDate              String?
+  regDeadline             DateTime?
+  rosterLockDate          DateTime?
+  allowMultipleTeams      Boolean                  @default(false)
+  requireTeammateApproval Boolean                  @default(true)
+  slotReservationDuration Int                      @default(10) // In minutes
+  format                  String                   @default("BATTLE ROYALE • 6 MATCHES")
+  matchFormat             String?
+  featured                Boolean                  @default(false)
+  tagline                 String                   @default("Official Lordz Esports Tournament")
+  shortDescription        String?
+  description             String?
+  streamUrl               String?
+  bannerImage             String?
+  logoImage               String?
+  rules                   String?
+  scoringRules            String?
+  termsConditions         String?
+  contactInfo             String?
+  upiId                   String?                  @default("lordzesports@upi")
+  upiQrImage              String?
+  bankDetails             String?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  registrations           TournamentRegistration[]
+  teams                   Team[]
+  stages                  TournamentStage[]
+  leaderboard             TournamentLeaderboard[]
+  slotReservations        SlotReservation[]
+  matches                 Match[]
+  standings               Standing[]
+  activityLogs            ActivityLog[]
 }
 
 model TournamentStage {
@@ -94,11 +115,64 @@ model TournamentStage {
   stageProgressions     StageProgression[]
 }
 
+model Team {
+  id              String                  @id @default(uuid())
+  tournamentId    String
+  tournament      Tournament              @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamName        String
+  teamLogo        String?
+  teamTag         String?
+  leaderId        String
+  leader          User                    @relation(fields: [leaderId], references: [id], onDelete: Cascade)
+  status          String                  @default("PENDING") // PENDING, CONFIRMED, REJECTED, DISQUALIFIED
+  isLocked        Boolean                 @default(false)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  members         TeamMember[]
+  invitations     TeamInvitation[]
+  registration    TournamentRegistration?
+  slotReservation SlotReservation?
+  leaderboard     TournamentLeaderboard[]
+  activityLogs    ActivityLog[]
+}
+
+model TeamMember {
+  id               String    @id @default(uuid())
+  teamId           String
+  team             Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role             String    @default("STARTER") // IGL, RUSHER, SNIPER, SUPPORT, STARTER, SUBSTITUTE
+  invitationStatus String    @default("ACCEPTED") // PENDING, ACCEPTED, REJECTED
+  joinedAt         DateTime  @default(now())
+
+  @@unique([teamId, userId])
+}
+
+model TeamInvitation {
+  id            String    @id @default(uuid())
+  tournamentId  String
+  teamId        String
+  team          Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  invitedUserId String
+  invitedUser   User      @relation("ReceivedInvitations", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedById   String
+  invitedBy     User      @relation("SentInvitations", fields: [invitedById], references: [id], onDelete: Cascade)
+  status        String    @default("PENDING") // PENDING, ACCEPTED, REJECTED, CANCELLED, EXPIRED
+  createdAt     DateTime  @default(now())
+  respondedAt   DateTime?
+  expiresAt     DateTime?
+}
+
 model TournamentRegistration {
   id                 String                    @id @default(uuid())
-  registrationNumber String?                   @unique // e.g. "LZ-FGF-00127"
+  registrationNumber String?                   @unique // e.g. "REG-2026-00127"
   tournamentId       String
   tournament         Tournament                @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamId             String?                   @unique
+  team               Team?                     @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  submittedById      String?
+  submittedBy        User?                     @relation(fields: [submittedById], references: [id], onDelete: SetNull)
   teamName           String
   teamLogo           String?
   captainIgn         String
@@ -108,13 +182,14 @@ model TournamentRegistration {
   whatsapp           String
   discordTag         String?
   playerNames        String?                   // Comma separated or JSON string
-  status             String                    @default("PENDING") // PENDING, PAYMENT_PENDING, UNDER_REVIEW, APPROVED, REJECTED, WAITLISTED, DISQUALIFIED
-  paymentStatus      String                    @default("PENDING") // PENDING, SUBMITTED, VERIFIED, REJECTED, REFUNDED
+  status             String                    @default("PENDING") // DRAFT, PAYMENT_PENDING, PAYMENT_UNDER_REVIEW, CONFIRMED, REJECTED, CANCELLED
+  paymentStatus      String                    @default("PENDING") // PENDING, SUBMITTED, UNDER_REVIEW, VERIFIED, REJECTED, REFUNDED
   currentStageId     String?
   currentStage       TournamentStage?          @relation(fields: [currentStageId], references: [id], onDelete: SetNull)
   slotNumber         Int?
   adminNotes         String?
   approvedAt         DateTime?
+  confirmedAt        DateTime?
   rejectedAt         DateTime?
   createdAt          DateTime                  @default(now())
   updatedAt          DateTime                  @updatedAt
@@ -141,28 +216,71 @@ model RegistrationPlayer {
 }
 
 model PaymentRecord {
-  id             String                 @id @default(uuid())
-  registrationId String                 @unique
-  registration   TournamentRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  amount         Int                    @default(0)
-  method         String                 @default("UPI")
-  utr            String?
-  payerName      String?
-  screenshot     String?
-  status         String                 @default("PENDING") // PENDING, SUBMITTED, VERIFIED, REJECTED, REFUNDED
-  remarks        String?
-  submittedAt    DateTime?
-  verifiedAt     DateTime?
-  verifiedBy     String?
-  adminNotes     String?
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
+  id              String                 @id @default(uuid())
+  registrationId  String                 @unique
+  registration    TournamentRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  amount          Int                    @default(0)
+  currency        String                 @default("INR")
+  method          String                 @default("UPI")
+  transactionId   String?
+  utr             String?
+  payerName       String?
+  screenshot      String?
+  status          String                 @default("PENDING") // PENDING, PROCESSING, SUBMITTED, UNDER_REVIEW, VERIFIED, REJECTED, REFUNDED
+  remarks         String?
+  rejectionReason String?
+  submittedAt     DateTime?
+  verifiedAt      DateTime?
+  verifiedBy      String?
+  adminNotes      String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+}
+
+model SlotReservation {
+  id           String     @id @default(uuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamId       String     @unique
+  team         Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  status       String     @default("ACTIVE") // ACTIVE, CONFIRMED, EXPIRED, RELEASED
+  expiresAt    DateTime
+  createdAt    DateTime   @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // INVITATION, PAYMENT_SUCCESS, PAYMENT_REJECTED, PAYMENT_UNDER_REVIEW, REGISTRATION_CONFIRMED, ROSTER_LOCKED, ANNOUNCEMENT
+  title     String
+  message   String
+  metadata  String?  // JSON string e.g. { tournamentId, teamId, invitationId, rejectionReason }
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ActivityLog {
+  id             String      @id @default(uuid())
+  userId         String?
+  user           User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  adminId        String?
+  tournamentId   String?
+  tournament     Tournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  teamId         String?
+  team           Team?       @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  registrationId String?
+  action         String
+  description    String?
+  createdAt      DateTime    @default(now())
 }
 
 model TournamentLeaderboard {
   id              String     @id @default(uuid())
   tournamentId    String
   tournament      Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teamId          String?
+  team            Team?      @relation(fields: [teamId], references: [id], onDelete: SetNull)
   teamName        String
   tag             String?
   rank            Int        @default(1)
@@ -172,6 +290,7 @@ model TournamentLeaderboard {
   kills           Int        @default(0)
   placementPoints Int        @default(0)
   bonusPoints     Int        @default(0)
+  penalties       Int        @default(0)
   totalPoints     Int        @default(0)
   status          String     @default("ACTIVE")
   createdAt       DateTime   @default(now())

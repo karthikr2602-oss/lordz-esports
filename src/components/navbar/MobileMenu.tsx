@@ -128,18 +128,31 @@ export const MobileMenu = ({
               JOIN TOURNAMENT
             </GoldButton>
             {isAuthenticated && user ? (
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenLogin();
-                }}
-                className="w-full py-2.5 px-4 rounded-xl border border-[#FFBE32]/40 bg-[#FFBE32]/10 hover:bg-[#FFBE32]/20 text-white font-heading font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
-              >
-                <div className="w-5 h-5 rounded-md bg-[#FFBE32] text-black font-display text-[10px] font-bold flex items-center justify-center">
-                  {user.ign?.slice(0, 2).toUpperCase() || user.username?.slice(0, 2).toUpperCase() || "LZ"}
-                </div>
-                <span>ATHLETE PASSPORT ({user.ign || user.username})</span>
-              </button>
+              <>
+                <Link
+                  to="/my-tournaments"
+                  onClick={onClose}
+                  className="w-full py-2.5 px-4 rounded-xl border border-[#FFBE32]/60 bg-gradient-to-r from-[#FFBE32]/20 to-[#FFA000]/20 hover:from-[#FFBE32]/30 text-[#FFBE32] font-heading font-bold text-xs uppercase tracking-wider flex items-center justify-between transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <Trophy className="h-4 w-4 text-[#FFBE32]" />
+                    <span>MY TOURNAMENTS</span>
+                  </span>
+                  <span className="h-2 w-2 rounded-full bg-[#FFBE32] animate-pulse" />
+                </Link>
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenLogin();
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl border border-[#FFBE32]/40 bg-[#FFBE32]/10 hover:bg-[#FFBE32]/20 text-white font-heading font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                >
+                  <div className="w-5 h-5 rounded-md bg-[#FFBE32] text-black font-display text-[10px] font-bold flex items-center justify-center">
+                    {user.ign?.slice(0, 2).toUpperCase() || user.username?.slice(0, 2).toUpperCase() || "LZ"}
+                  </div>
+                  <span>ATHLETE PASSPORT ({user.ign || user.username})</span>
+                </button>
+              </>
             ) : (
               <OutlineButton
                 onClick={() => {

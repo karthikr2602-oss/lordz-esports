@@ -39,4 +39,4 @@ dist-ssr
 # Uploads
 uploads/
 **/uploads/
-
+server/uploads/lordz-*

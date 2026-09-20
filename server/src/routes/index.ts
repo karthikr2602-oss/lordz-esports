@@ -4,6 +4,8 @@ import { authenticate, optionalAuth, requireRole } from "../middleware/auth.js";
 // Controllers
 import * as authCtrl from "../controllers/authController.js";
 import * as tournamentCtrl from "../controllers/tournamentController.js";
+import * as notificationCtrl from "../controllers/notificationController.js";
+import * as teamCtrl from "../controllers/teamController.js";
 import * as matchCtrl from "../controllers/matchController.js";
 import * as standingCtrl from "../controllers/standingController.js";
 import * as playerCtrl from "../controllers/playerController.js";
@@ -28,13 +30,54 @@ router.post("/auth/logout", authCtrl.logout);
 router.get("/auth/me", authenticate, authCtrl.getMe);
 router.put("/auth/profile", authenticate, authCtrl.updateProfile);
 
+// ================= NOTIFICATIONS & INVITATIONS =================
+router.get("/notifications", authenticate, notificationCtrl.getNotifications);
+router.put("/notifications/read-all", authenticate, notificationCtrl.markAllNotificationsRead);
+router.put("/notifications/:id/read", authenticate, notificationCtrl.markNotificationRead);
+router.post("/invitations/:id/respond", authenticate, notificationCtrl.respondToInvitation);
+
+// ================= PLAYER SEARCH & TEAM ROSTER =================
+router.get("/players/search", optionalAuth, teamCtrl.searchPlayers);
+router.get("/my-tournaments", authenticate, teamCtrl.getMyTournaments);
+router.post("/teams/:teamId/invite", authenticate, teamCtrl.invitePlayerToTeam);
+router.delete("/teams/:teamId/members/:memberId", authenticate, teamCtrl.removePlayerFromTeam);
+router.post(
+  "/teams/:teamId/override-roster",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  teamCtrl.adminOverrideRoster
+);
+
 // ================= TOURNAMENT ROUTES =================
 router.get("/tournaments", tournamentCtrl.getTournaments);
+router.get(
+  "/tournaments/admin/analytics",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.getTournamentAnalytics
+);
 router.get(
   "/tournaments/registrations",
   authenticate,
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
   tournamentCtrl.getAllRegistrations
+);
+router.post(
+  "/tournaments/registrations/:id/payment",
+  authenticate,
+  tournamentCtrl.submitPayment
+);
+router.put(
+  "/tournaments/registrations/:id/payment-verify",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.verifyPayment
+);
+router.put(
+  "/tournaments/registrations/:id/payment-reject",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.rejectPayment
 );
 router.put(
   "/tournaments/registrations/:id/status",
@@ -60,6 +103,7 @@ router.get(
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
   tournamentCtrl.exportRegistrationsCsv
 );
+router.get("/tournaments/:id/teams", tournamentCtrl.getTournamentTeams);
 router.post(
   "/tournaments/:id/duplicate",
   authenticate,
@@ -134,7 +178,7 @@ router.delete(
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
   tournamentCtrl.deleteTournament
 );
-router.post("/tournaments/:id/register", tournamentCtrl.registerSquad);
+router.post("/tournaments/:id/register", optionalAuth, tournamentCtrl.registerSquad);
 
 // ================= MATCH CENTER ROUTES =================
 router.get("/matches", matchCtrl.getMatches);

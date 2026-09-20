@@ -10,9 +10,10 @@ export const errorHandler = (
   console.error("[API ERROR]", err);
 
   if (err instanceof ZodError) {
+    const detailMsg = err.errors.map((e) => `${e.path.join(".") || "field"}: ${e.message}`).join(" • ");
     res.status(400).json({
       success: false,
-      message: "Validation failed",
+      message: detailMsg || "Validation failed",
       errors: err.errors.map((e) => ({
         path: e.path.join("."),
         message: e.message,

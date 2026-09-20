@@ -10,9 +10,12 @@ const tournamentSchema = z.object({
   slug: z.string().optional().nullable(),
   game: z.string().default("FREE FIRE MAX"),
   gameCategory: z.string().default("FREE FIRE MAX"),
+  gameMode: z.string().default("SQUAD BATTLE ROYALE"),
   status: z.enum([
     "DRAFT",
     "REGISTRATION_OPEN",
+    "CLOSING_SOON",
+    "FULL",
     "REGISTRATION_CLOSED",
     "ONGOING",
     "COMPLETED",
@@ -36,9 +39,16 @@ const tournamentSchema = z.object({
   date: z.string(),
   startDate: z.string().optional().nullable(),
   endDate: z.string().optional().nullable(),
+  startTime: z.string().optional().default("18:00 IST"),
   regStartDate: z.string().optional().nullable(),
   regEndDate: z.string().optional().nullable(),
+  regDeadline: z.any().optional().nullable(),
+  rosterLockDate: z.any().optional().nullable(),
+  allowMultipleTeams: z.boolean().optional().default(false),
+  requireTeammateApproval: z.boolean().optional().default(true),
+  slotReservationDuration: z.number().optional().default(10),
   format: z.string().default("BATTLE ROYALE • 6 MATCHES"),
+  matchFormat: z.string().optional().nullable(),
   featured: z.boolean().default(false),
   tagline: z.string().default("Official Lordz Esports Tournament"),
   shortDescription: z.string().optional().nullable(),
@@ -47,15 +57,17 @@ const tournamentSchema = z.object({
   bannerImage: z.string().optional().nullable(),
   logoImage: z.string().optional().nullable(),
   rules: z.string().optional().nullable(),
+  scoringRules: z.string().optional().nullable(),
   termsConditions: z.string().optional().nullable(),
+  contactInfo: z.string().optional().nullable(),
   upiId: z.string().optional().nullable(),
   upiQrImage: z.string().optional().nullable(),
   bankDetails: z.string().optional().nullable(),
 });
 
 const playerSchema = z.object({
-  name: z.string().min(1),
-  ign: z.string().min(1),
+  name: z.string().optional().nullable().default("Player"),
+  ign: z.string().min(1, "Player IGN is required"),
   playerId: z.string().optional().nullable(),
   role: z.string().default("STARTER"),
   phone: z.string().optional().nullable(),
@@ -66,13 +78,13 @@ const playerSchema = z.object({
 });
 
 const registrationSchema = z.object({
-  teamName: z.string().min(2),
+  teamName: z.string().min(1, "Team Name is required"),
   teamLogo: z.string().optional().nullable(),
-  captainIgn: z.string().min(2),
+  captainIgn: z.string().min(1, "Captain IGN is required"),
   captainName: z.string().optional().nullable(),
   captainPhone: z.string().optional().nullable(),
   captainEmail: z.string().optional().nullable(),
-  whatsapp: z.string().min(8),
+  whatsapp: z.string().optional().nullable().default(""),
   discordTag: z.string().optional().nullable(),
   playerNames: z.string().optional().nullable(),
   players: z.array(playerSchema).optional().default([]),
@@ -586,15 +598,48 @@ export const getTournaments = async (req: Request, res: Response, next: NextFunc
             _count: {
               select: { registrations: true },
             },
+            registrations: {
+              select: {
+                id: true,
+                status: true,
+                paymentStatus: true,
+              },
+            },
           },
         });
 
-        const mapped = tournaments.map((t) => ({
-          ...t,
-          registeredTeams: t._count?.registrations || 0,
-          stages: (t as any).stages || [],
-          stagesCount: 0,
-        }));
+        const mapped = tournaments.map((t: any) => {
+          const confirmedCount = (t.registrations || []).filter(
+            (r: any) => r.status === "CONFIRMED" || r.status === "APPROVED"
+          ).length;
+          const totalSlots = t.totalTeams || 32;
+          const availableSlots = Math.max(0, totalSlots - confirmedCount);
+
+          let dynamicStatus = t.status;
+          if (t.status === "CANCELLED" || t.status === "COMPLETED") {
+            dynamicStatus = t.status;
+          } else if (confirmedCount >= totalSlots) {
+            dynamicStatus = "FULL";
+          } else if ((t as any).regDeadline && new Date() > new Date((t as any).regDeadline)) {
+            dynamicStatus = "REGISTRATION_CLOSED";
+          } else if (
+            (t as any).regDeadline &&
+            new Date((t as any).regDeadline).getTime() - Date.now() < 24 * 3600 * 1000 &&
+            new Date((t as any).regDeadline).getTime() > Date.now()
+          ) {
+            dynamicStatus = "CLOSING_SOON";
+          }
+
+          return {
+            ...t,
+            registeredTeams: confirmedCount,
+            confirmedTeams: confirmedCount,
+            availableSlots,
+            status: dynamicStatus,
+            stages: (t as any).stages || [],
+            stagesCount: (t as any)._count?.stages || (t as any).stages?.length || 0,
+          };
+        });
 
         res.json({ success: true, data: mapped });
         return;
@@ -627,9 +672,19 @@ export const getTournaments = async (req: Request, res: Response, next: NextFunc
     const enhanced = result.map((t) => {
       const stats = getTournamentStats(t.id);
       const stages = memoryStages.filter((s) => s.tournamentId === t.id);
+      const confirmedCount = stats.approved;
+      const totalSlots = t.totalTeams || 32;
+      const availableSlots = Math.max(0, totalSlots - confirmedCount);
+
+      let dynamicStatus = t.status;
+      if (confirmedCount >= totalSlots) dynamicStatus = "FULL";
+
       return {
         ...t,
-        registeredTeams: stats.total,
+        registeredTeams: confirmedCount,
+        confirmedTeams: confirmedCount,
+        availableSlots,
+        status: dynamicStatus,
         stagesCount: stages.length,
         stats,
       };
@@ -667,17 +722,38 @@ export const getTournamentById = async (req: Request, res: Response, next: NextF
         if (tournament) {
           const regs: any[] = tournament.registrations || [];
           const total = regs.length;
-          const approved = regs.filter((r: any) => r.status === "APPROVED").length;
+          const approved = regs.filter((r: any) => r.status === "CONFIRMED" || r.status === "APPROVED").length;
           const pending = regs.filter((r: any) => r.status === "PENDING" || r.status === "UNDER_REVIEW").length;
           const paymentPending = regs.filter((r: any) => r.status === "PAYMENT_PENDING" || r.paymentStatus === "PENDING").length;
           const paymentVerified = regs.filter((r: any) => r.paymentStatus === "VERIFIED").length;
           const rejected = regs.filter((r: any) => r.status === "REJECTED").length;
 
+          const totalSlots = tournament.totalTeams || 32;
+          const availableSlots = Math.max(0, totalSlots - approved);
+
+          let dynamicStatus = tournament.status;
+          if (tournament.status === "CANCELLED" || tournament.status === "COMPLETED") {
+            dynamicStatus = tournament.status;
+          } else if (approved >= totalSlots) {
+            dynamicStatus = "FULL";
+          } else if (tournament.regDeadline && new Date() > new Date(tournament.regDeadline)) {
+            dynamicStatus = "REGISTRATION_CLOSED";
+          } else if (
+            tournament.regDeadline &&
+            new Date(tournament.regDeadline).getTime() - Date.now() < 24 * 3600 * 1000 &&
+            new Date(tournament.regDeadline).getTime() > Date.now()
+          ) {
+            dynamicStatus = "CLOSING_SOON";
+          }
+
           res.json({
             success: true,
             data: {
               ...tournament,
-              registeredTeams: total,
+              registeredTeams: approved,
+              confirmedTeams: approved,
+              availableSlots,
+              status: dynamicStatus,
               stats: {
                 total,
                 approved,
@@ -706,12 +782,17 @@ export const getTournamentById = async (req: Request, res: Response, next: NextF
     const registrations = memoryRegistrations.filter((r) => r.tournamentId === tournament.id);
     const leaderboard = memoryLeaderboard.filter((lb) => lb.tournamentId === tournament.id).sort((a, b) => a.rank - b.rank);
     const stats = getTournamentStats(tournament.id);
+    const totalSlots = tournament.totalTeams || 32;
+    const confirmedCount = stats.approved;
+    const availableSlots = Math.max(0, totalSlots - confirmedCount);
 
     res.json({
       success: true,
       data: {
         ...tournament,
-        registeredTeams: stats.total,
+        registeredTeams: confirmedCount,
+        confirmedTeams: confirmedCount,
+        availableSlots,
         stages,
         registrations,
         leaderboard,
@@ -920,172 +1001,702 @@ export const duplicateTournament = async (req: AuthenticatedRequest, res: Respon
  * POST /api/tournaments/:id/register
  * Register a complete squad with roster and optional UPI payment record
  */
-export const registerSquad = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const registerSquad = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
     const data = registrationSchema.parse(req.body);
 
-    const tournament = memoryTournaments.find((t) => t.id === id || t.slug === id);
+    // Identify user: from auth or find by email/IGN
+    let userId = req.user?.id;
+    if (!userId && data.captainEmail) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: data.captainEmail.toLowerCase().trim() },
+      });
+      if (existingUser) userId = existingUser.id;
+    }
+
+    if (!userId && data.captainIgn) {
+      const existingUserByIgn = await prisma.user.findFirst({
+        where: { ign: { equals: data.captainIgn.trim(), mode: "insensitive" } },
+      });
+      if (existingUserByIgn) userId = existingUserByIgn.id;
+    }
+
+    if (!userId && process.env.NODE_ENV !== "production") {
+      const fallbackUser = await prisma.user.findFirst({
+        where: { role: { in: ["USER", "ADMIN", "SUPER_ADMIN"] } },
+      });
+      if (fallbackUser) userId = fallbackUser.id;
+    }
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: "You need to login to join this tournament.",
+      });
+      return;
+    }
+
+    // 1. Fetch tournament from database
+    const tournament = await prisma.tournament.findFirst({
+      where: { OR: [{ id }, { slug: id }] },
+      include: {
+        stages: { orderBy: { order: "asc" } },
+        _count: { select: { registrations: true } },
+      },
+    });
+
     if (!tournament) {
       res.status(404).json({ success: false, message: "Tournament not found" });
       return;
     }
 
-    if (tournament.status === "COMPLETED" || tournament.status === "REGISTRATION_CLOSED") {
+    // 2. Validate tournament status
+    if (tournament.status === "COMPLETED" || tournament.status === "CANCELLED" || tournament.status === "REGISTRATION_CLOSED") {
       res.status(400).json({ success: false, message: "Registration for this tournament is closed" });
       return;
     }
 
-    // Check duplicate team name in this tournament
-    const existing = memoryRegistrations.find(
-      (r) => r.tournamentId === tournament.id && r.teamName.toLowerCase() === data.teamName.trim().toLowerCase()
-    );
-    if (existing) {
-      res.status(400).json({ success: false, message: "A team with this name is already registered for this tournament" });
+    if (tournament.regDeadline && new Date() > new Date(tournament.regDeadline)) {
+      res.status(400).json({ success: false, message: "Tournament registration deadline has passed" });
       return;
     }
 
-    // Find default starting stage (Round 1)
-    const stages = memoryStages.filter((s) => s.tournamentId === tournament.id).sort((a, b) => a.order - b.order);
-    const firstStageId = stages.length > 0 ? stages[0].id : null;
+    // 3. Validate tournament capacity
+    const confirmedCount = await prisma.tournamentRegistration.count({
+      where: {
+        tournamentId: tournament.id,
+        status: { in: ["CONFIRMED", "APPROVED"] },
+      },
+    });
 
-    // Generate unique Registration Number: LZ-[T-PREFIX]-[NUMBER]
-    const prefix = tournament.title.split(" ").map((w: string) => w[0]).join("").slice(0, 3).toUpperCase();
-    const count = memoryRegistrations.filter((r) => r.tournamentId === tournament.id).length + 1;
-    const regNumber = `LZ-${prefix}-${String(count).padStart(5, "0")}`;
+    if (confirmedCount >= tournament.totalTeams) {
+      res.status(400).json({ success: false, message: "TOURNAMENT FULL. All slots have been confirmed." });
+      return;
+    }
 
-    // Determine initial status based on payment requirement
+    // 4. Validate duplicate team name in this tournament
+    const existingTeam = await prisma.team.findFirst({
+      where: {
+        tournamentId: tournament.id,
+        teamName: { equals: data.teamName.trim(), mode: "insensitive" },
+      },
+    });
+
+    if (existingTeam) {
+      res.status(400).json({
+        success: false,
+        message: "A team with this name is already registered for this tournament",
+      });
+      return;
+    }
+
+    // 5. Validate player team restriction (if not allowMultipleTeams)
+    if (!tournament.allowMultipleTeams) {
+      const existingMembership = await prisma.teamMember.findFirst({
+        where: {
+          userId,
+          invitationStatus: "ACCEPTED",
+          team: { tournamentId: tournament.id },
+        },
+      });
+
+      if (existingMembership) {
+        res.status(400).json({
+          success: false,
+          message: "You're already registered with another team for this tournament.",
+        });
+        return;
+      }
+    }
+
+    // 6. Check duplicate UTR if payment provided
+    const cleanUtr = data.payment?.utr ? data.payment.utr.trim().toUpperCase() : null;
+    if (cleanUtr) {
+      const dupUtr = await prisma.paymentRecord.findFirst({
+        where: { utr: cleanUtr },
+      });
+      if (dupUtr) {
+        res.status(400).json({
+          success: false,
+          message: "This UTR / Transaction ID has already been submitted for another registration.",
+        });
+        return;
+      }
+    }
+
+    // 7. Generate unique Registration Number: REG-YYYY-XXXXXX
+    const year = new Date().getFullYear();
+    const randomSeq = Math.floor(100000 + Math.random() * 900000);
+    const regNumber = `REG-${year}-${randomSeq}`;
+
     const isPaid = tournament.feeAmount > 0;
-    const hasUtr = !!(data.payment && data.payment.utr && data.payment.utr.trim());
+    const hasUtr = !!cleanUtr;
 
     let initialStatus = "PENDING";
     let paymentStatus = "PENDING";
+    let teamStatus = "PENDING";
 
     if (isPaid) {
       if (hasUtr) {
-        initialStatus = "PENDING"; // Awaiting admin payment verification
-        paymentStatus = "SUBMITTED";
+        initialStatus = "PAYMENT_UNDER_REVIEW";
+        paymentStatus = "UNDER_REVIEW";
       } else {
         initialStatus = "PAYMENT_PENDING";
         paymentStatus = "PENDING";
       }
     } else {
-      initialStatus = "PENDING"; // Free pre-entry registered, awaiting admin review
-      paymentStatus = "FREE";
+      initialStatus = "CONFIRMED";
+      paymentStatus = "VERIFIED";
+      teamStatus = "CONFIRMED";
     }
 
-    const regId = "reg-" + Date.now();
+    const firstStageId = tournament.stages.length > 0 ? tournament.stages[0].id : null;
+    const reservationMinutes = tournament.slotReservationDuration || 10;
+    const reservationExpiry = new Date(Date.now() + reservationMinutes * 60 * 1000);
 
-    // Map players
-    const mappedPlayers = (data.players && data.players.length > 0)
-      ? data.players.map((p, idx) => ({
-          id: `p-${regId}-${idx + 1}`,
-          ...p,
-          createdAt: new Date(),
-        }))
-      : [
-          {
-            id: `p-${regId}-1`,
-            name: data.captainName || data.captainIgn,
-            ign: data.captainIgn,
-            role: "IGL",
-            phone: data.whatsapp,
-            isCaptain: true,
-            isSubstitute: false,
-            createdAt: new Date(),
-          },
-        ];
-
-    // Payment record
-    const paymentRecord = data.payment
-      ? {
-          id: "pay-" + Date.now(),
-          registrationId: regId,
-          amount: data.payment.amount || tournament.feeAmount || 0,
-          method: data.payment.method || "UPI",
-          utr: data.payment.utr || null,
-          payerName: data.payment.payerName || data.captainName || null,
-          screenshot: data.payment.screenshot || null,
-          status: paymentStatus,
-          remarks: data.payment.remarks || null,
-          submittedAt: hasUtr ? new Date() : null,
-          verifiedAt: null,
-          verifiedBy: null,
-          adminNotes: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }
-      : null;
-
-    // Activity log entries
-    const logs = [
-      {
-        id: "log-" + Date.now() + "-1",
-        registrationId: regId,
-        action: "REGISTRATION_SUBMITTED",
-        performedBy: data.captainName || data.captainIgn,
-        details: `Squad registered with ${mappedPlayers.length} players`,
-        createdAt: new Date(),
-      },
-    ];
-
-    if (hasUtr) {
-      logs.push({
-        id: "log-" + Date.now() + "-2",
-        registrationId: regId,
-        action: "PAYMENT_SUBMITTED",
-        performedBy: data.captainName || data.captainIgn,
-        details: `UPI payment submitted with UTR: ${data.payment?.utr}`,
-        createdAt: new Date(),
+    // 8. Execute atomic transaction to create Team, Members, Registration, Payment, and SlotReservation
+    const result = await prisma.$transaction(async (tx: any) => {
+      // A. Create Team
+      const team = await tx.team.create({
+        data: {
+          tournamentId: tournament.id,
+          teamName: data.teamName.trim().toUpperCase(),
+          teamLogo: data.teamLogo || null,
+          leaderId: userId!,
+          status: teamStatus,
+        },
       });
-    }
 
-    const newRegistration = {
-      id: regId,
-      registrationNumber: regNumber,
-      tournamentId: tournament.id,
-      teamName: data.teamName.trim().toUpperCase(),
-      teamLogo: data.teamLogo || null,
-      captainIgn: data.captainIgn.trim().toUpperCase(),
-      captainName: data.captainName || null,
-      captainPhone: data.captainPhone || data.whatsapp,
-      captainEmail: data.captainEmail || null,
-      whatsapp: data.whatsapp,
-      discordTag: data.discordTag || null,
-      playerNames: mappedPlayers.map((p) => p.ign).join(", "),
-      status: initialStatus,
-      paymentStatus,
-      currentStageId: firstStageId,
-      slotNumber: count,
-      adminNotes: null,
-      approvedAt: initialStatus === "APPROVED" ? new Date() : null,
-      rejectedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      players: mappedPlayers,
-      payment: paymentRecord,
-      activityLogs: logs,
-    };
+      // B. Create Leader as TeamMember
+      await tx.teamMember.create({
+        data: {
+          teamId: team.id,
+          userId: userId!,
+          role: "IGL",
+          invitationStatus: "ACCEPTED",
+        },
+      });
 
-    memoryRegistrations.unshift(newRegistration);
+      // C. Create SlotReservation
+      await tx.slotReservation.create({
+        data: {
+          tournamentId: tournament.id,
+          teamId: team.id,
+          status: initialStatus === "CONFIRMED" ? "CONFIRMED" : "ACTIVE",
+          expiresAt: reservationExpiry,
+        },
+      });
 
-    // Update tournament's dynamic count
-    const stats = getTournamentStats(tournament.id);
-    tournament.registeredTeams = stats.total;
+      // D. Create TournamentRegistration
+      const reg = await tx.tournamentRegistration.create({
+        data: {
+          registrationNumber: regNumber,
+          tournamentId: tournament.id,
+          teamId: team.id,
+          submittedById: userId,
+          teamName: data.teamName.trim().toUpperCase(),
+          teamLogo: data.teamLogo || null,
+          captainIgn: data.captainIgn.trim().toUpperCase(),
+          captainName: data.captainName || null,
+          captainPhone: data.captainPhone || data.whatsapp || "",
+          captainEmail: data.captainEmail || null,
+          whatsapp: data.whatsapp || "",
+          discordTag: data.discordTag || null,
+          playerNames: data.players && data.players.length > 0 ? data.players.map((p) => p.ign).join(", ") : data.captainIgn,
+          status: initialStatus,
+          paymentStatus,
+          currentStageId: firstStageId,
+          slotNumber: confirmedCount + 1,
+          approvedAt: initialStatus === "CONFIRMED" ? new Date() : null,
+          confirmedAt: initialStatus === "CONFIRMED" ? new Date() : null,
+        },
+      });
+
+      // E. Create RegistrationPlayer records via batch createMany
+      const playersList = (data.players && data.players.length > 0)
+        ? data.players
+        : [
+            {
+              name: data.captainName || data.captainIgn,
+              ign: data.captainIgn,
+              role: "IGL",
+              phone: data.whatsapp || "",
+              isCaptain: true,
+              isSubstitute: false,
+            },
+          ];
+
+      await tx.registrationPlayer.createMany({
+        data: playersList.map((p) => ({
+          registrationId: reg.id,
+          name: p.name || p.ign || "Player",
+          ign: p.ign,
+          playerId: p.playerId || null,
+          role: p.role || "STARTER",
+          phone: p.phone || null,
+          email: p.email || null,
+          discordId: p.discordId || null,
+          isCaptain: p.isCaptain || false,
+          isSubstitute: p.isSubstitute || false,
+        })),
+      });
+
+      // F. Create PaymentRecord
+      let paymentRecord = null;
+      if (isPaid || data.payment) {
+        paymentRecord = await tx.paymentRecord.create({
+          data: {
+            registrationId: reg.id,
+            amount: data.payment?.amount || tournament.feeAmount || 0,
+            currency: tournament.currency || "INR",
+            method: data.payment?.method || "UPI",
+            utr: cleanUtr,
+            payerName: data.payment?.payerName || data.captainName || null,
+            screenshot: data.payment?.screenshot || null,
+            status: paymentStatus,
+            remarks: data.payment?.remarks || null,
+            submittedAt: hasUtr ? new Date() : null,
+          },
+        });
+      }
+
+      // G. If free, increment tournament registeredTeams and add leaderboard entry
+      if (initialStatus === "CONFIRMED") {
+        await tx.tournament.update({
+          where: { id: tournament.id },
+          data: { registeredTeams: { increment: 1 } },
+        });
+
+        await tx.tournamentLeaderboard.create({
+          data: {
+            tournamentId: tournament.id,
+            teamId: team.id,
+            teamName: data.teamName.trim().toUpperCase(),
+            rank: confirmedCount + 1,
+            status: "ACTIVE",
+          },
+        });
+      }
+
+      return { team, reg, paymentRecord };
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
+    });
+
+    // H. Non-blocking Post-Registration Tasks (Notifications & Activity Logs)
+    (async () => {
+      try {
+        if (initialStatus === "CONFIRMED") {
+          await prisma.notification.create({
+            data: {
+              userId: userId!,
+              type: "REGISTRATION_CONFIRMED",
+              title: "Registration Confirmed! 🏆",
+              message: `Your team ${data.teamName} has officially registered for ${tournament.title}! Registration ID: ${regNumber}`,
+              metadata: JSON.stringify({
+                registrationId: result.reg.id,
+                tournamentId: tournament.id,
+                status: "CONFIRMED",
+              }),
+            },
+          });
+        } else if (hasUtr) {
+          await prisma.notification.create({
+            data: {
+              userId: userId!,
+              type: "PAYMENT_UNDER_REVIEW",
+              title: "Payment Submitted ⏳",
+              message: `Your payment of ₹${data.payment?.amount || tournament.feeAmount} for ${data.teamName} has been submitted with UTR ${cleanUtr}. Verification is pending.`,
+              metadata: JSON.stringify({
+                registrationId: result.reg.id,
+                tournamentId: tournament.id,
+                utr: cleanUtr,
+              }),
+            },
+          });
+        }
+
+        await prisma.activityLog.create({
+          data: {
+            userId,
+            tournamentId: tournament.id,
+            teamId: result.team.id,
+            registrationId: result.reg.id,
+            action: "REGISTRATION_CREATED",
+            description: `Squad ${data.teamName} registered by ${data.captainIgn}. Initial status: ${initialStatus}`,
+          },
+        });
+      } catch (postErr) {
+        console.warn("[Post-Registration Side Effects Warning]", postErr);
+      }
+    })();
 
     res.status(201).json({
       success: true,
-      message: "Squad registered successfully!",
+      message: initialStatus === "CONFIRMED" ? "Registration confirmed! You have joined the tournament." : "Squad registered! Please proceed to complete payment verification.",
       data: {
-        id: regId,
-        registrationId: regId,
+        id: result.reg.id,
+        registrationId: result.reg.id,
         registrationNumber: regNumber,
+        teamId: result.team.id,
+        teamName: result.team.teamName,
         status: initialStatus,
         paymentStatus,
-        totalRegisteredTeams: stats.total,
-        maxTeams: tournament.totalTeams,
-        registration: newRegistration,
+        slotReservationExpiry: reservationExpiry,
+        payment: result.paymentRecord,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/tournaments/registrations/:id/payment
+ * User submits manual UPI payment (UTR + screenshot)
+ */
+export const submitPayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { utr, screenshot, amount, payerName, method = "UPI", remarks } = req.body;
+
+    if (!utr || !utr.trim()) {
+      res.status(400).json({ success: false, message: "UTR / Transaction ID is required" });
+      return;
+    }
+
+    const cleanUtr = utr.trim().toUpperCase();
+
+    // Check duplicate UTR across payments
+    const existingUtr = await prisma.paymentRecord.findFirst({
+      where: {
+        utr: cleanUtr,
+        registrationId: { not: id },
+      },
+    });
+
+    if (existingUtr) {
+      res.status(400).json({
+        success: false,
+        message: "This UTR / Transaction ID has already been submitted for another registration.",
+      });
+      return;
+    }
+
+    const registration = await prisma.tournamentRegistration.findUnique({
+      where: { id },
+      include: {
+        tournament: true,
+        team: true,
+      },
+    });
+
+    if (!registration) {
+      res.status(404).json({ success: false, message: "Registration not found" });
+      return;
+    }
+
+    const submittedAmount = amount ? Number(amount) : registration.tournament.feeAmount;
+
+    const payment = await prisma.paymentRecord.upsert({
+      where: { registrationId: id },
+      update: {
+        utr: cleanUtr,
+        screenshot: screenshot || null,
+        amount: submittedAmount,
+        payerName: payerName || registration.captainName || null,
+        method,
+        remarks: remarks || null,
+        status: "UNDER_REVIEW",
+        submittedAt: new Date(),
+        rejectionReason: null,
+      },
+      create: {
+        registrationId: id,
+        utr: cleanUtr,
+        screenshot: screenshot || null,
+        amount: submittedAmount,
+        payerName: payerName || registration.captainName || null,
+        method,
+        remarks: remarks || null,
+        status: "UNDER_REVIEW",
+        submittedAt: new Date(),
+      },
+    });
+
+    await prisma.tournamentRegistration.update({
+      where: { id },
+      data: {
+        status: "PAYMENT_UNDER_REVIEW",
+        paymentStatus: "UNDER_REVIEW",
+      },
+    });
+
+    if (registration.submittedById) {
+      await prisma.notification.create({
+        data: {
+          userId: registration.submittedById,
+          type: "PAYMENT_UNDER_REVIEW",
+          title: "Payment Submitted For Review ⏳",
+          message: `Your payment of ₹${submittedAmount} for ${registration.teamName} with UTR ${cleanUtr} has been submitted for admin verification.`,
+          metadata: JSON.stringify({
+            registrationId: registration.id,
+            tournamentId: registration.tournamentId,
+            utr: cleanUtr,
+          }),
+        },
+      });
+    }
+
+    await prisma.activityLog.create({
+      data: {
+        userId: req.user?.id,
+        tournamentId: registration.tournamentId,
+        teamId: registration.teamId,
+        registrationId: registration.id,
+        action: "PAYMENT_SUBMITTED",
+        description: `User submitted UTR ${cleanUtr} for payment of ₹${submittedAmount}`,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: "Payment submitted successfully. Waiting for admin verification.",
+      data: {
+        registrationId: registration.id,
+        status: "PAYMENT_UNDER_REVIEW",
+        payment,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * PUT /api/tournaments/registrations/:id/payment-verify
+ * Admin verifies payment: updates payment, registration, team, slot reservation, and leaderboard
+ */
+export const verifyPayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const adminUser = req.user;
+
+    const registration = await prisma.tournamentRegistration.findUnique({
+      where: { id },
+      include: {
+        tournament: true,
+        team: true,
+        payment: true,
+      },
+    });
+
+    if (!registration) {
+      res.status(404).json({ success: false, message: "Registration not found" });
+      return;
+    }
+
+    await prisma.$transaction(async (tx: any) => {
+      // 1. Update PaymentRecord
+      if (registration.payment) {
+        await tx.paymentRecord.update({
+          where: { registrationId: id },
+          data: {
+            status: "VERIFIED",
+            verifiedAt: new Date(),
+            verifiedBy: adminUser?.email || "Admin",
+          },
+        });
+      }
+
+      // 2. Update Registration
+      await tx.tournamentRegistration.update({
+        where: { id },
+        data: {
+          status: "CONFIRMED",
+          paymentStatus: "VERIFIED",
+          confirmedAt: new Date(),
+          approvedAt: new Date(),
+        },
+      });
+
+      // 3. Update Team if exists
+      if (registration.teamId) {
+        await tx.team.update({
+          where: { id: registration.teamId },
+          data: { status: "CONFIRMED" },
+        });
+
+        // 4. Update SlotReservation
+        await tx.slotReservation.updateMany({
+          where: { teamId: registration.teamId },
+          data: { status: "CONFIRMED" },
+        });
+
+        // 5. Add or activate Leaderboard entry
+        const existingLb = await tx.tournamentLeaderboard.findFirst({
+          where: {
+            tournamentId: registration.tournamentId,
+            teamId: registration.teamId,
+          },
+        });
+
+        if (!existingLb) {
+          const count = await tx.tournamentLeaderboard.count({
+            where: { tournamentId: registration.tournamentId },
+          });
+          await tx.tournamentLeaderboard.create({
+            data: {
+              tournamentId: registration.tournamentId,
+              teamId: registration.teamId,
+              teamName: registration.teamName,
+              tag: registration.team?.teamTag || null,
+              rank: count + 1,
+              status: "ACTIVE",
+            },
+          });
+        }
+      }
+
+      // 6. Increment tournament registered teams count
+      await tx.tournament.update({
+        where: { id: registration.tournamentId },
+        data: {
+          registeredTeams: { increment: 1 },
+        },
+      });
+
+      // 7. Notification
+      if (registration.submittedById) {
+        await tx.notification.create({
+          data: {
+            userId: registration.submittedById,
+            type: "PAYMENT_VERIFIED",
+            title: "Payment Verified! Registration Confirmed 🏆",
+            message: `Your payment has been verified! Team ${registration.teamName} has officially joined ${registration.tournament.title}. Registration ID: ${registration.registrationNumber || registration.id}`,
+            metadata: JSON.stringify({
+              registrationId: registration.id,
+              tournamentId: registration.tournamentId,
+              teamId: registration.teamId,
+              status: "CONFIRMED",
+            }),
+          },
+        });
+      }
+
+      // 8. Activity Log
+      await tx.activityLog.create({
+        data: {
+          adminId: adminUser?.id,
+          tournamentId: registration.tournamentId,
+          teamId: registration.teamId,
+          registrationId: registration.id,
+          action: "PAYMENT_VERIFIED",
+          description: `Admin verified payment for registration ${registration.registrationNumber || registration.id}`,
+        },
+      });
+    });
+
+    res.json({
+      success: true,
+      message: "Payment verified and registration confirmed!",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * PUT /api/tournaments/registrations/:id/payment-reject
+ * Admin rejects payment with reason
+ */
+export const rejectPayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { rejectionReason = "UTR or payment screenshot verification failed" } = req.body;
+    const adminUser = req.user;
+
+    const registration = await prisma.tournamentRegistration.findUnique({
+      where: { id },
+      include: {
+        tournament: true,
+        payment: true,
+      },
+    });
+
+    if (!registration) {
+      res.status(404).json({ success: false, message: "Registration not found" });
+      return;
+    }
+
+    await prisma.$transaction(async (tx: any) => {
+      // 1. Update PaymentRecord
+      if (registration.payment) {
+        await tx.paymentRecord.update({
+          where: { registrationId: id },
+          data: {
+            status: "REJECTED",
+            rejectionReason,
+            verifiedAt: new Date(),
+            verifiedBy: adminUser?.email || "Admin",
+          },
+        });
+      }
+
+      // 2. Update Registration
+      await tx.tournamentRegistration.update({
+        where: { id },
+        data: {
+          status: "REJECTED",
+          paymentStatus: "REJECTED",
+          rejectedAt: new Date(),
+          adminNotes: rejectionReason,
+        },
+      });
+
+      // 3. Release slot reservation
+      if (registration.teamId) {
+        await tx.slotReservation.updateMany({
+          where: { teamId: registration.teamId },
+          data: { status: "RELEASED" },
+        });
+      }
+
+      // 4. Send user notification with rejection reason
+      if (registration.submittedById) {
+        await tx.notification.create({
+          data: {
+            userId: registration.submittedById,
+            type: "PAYMENT_REJECTED",
+            title: "Payment Rejected ⚠️",
+            message: `Your payment for ${registration.teamName} in ${registration.tournament.title} was rejected. Reason: ${rejectionReason}. You may retry your payment.`,
+            metadata: JSON.stringify({
+              registrationId: registration.id,
+              tournamentId: registration.tournamentId,
+              rejectionReason,
+            }),
+          },
+        });
+      }
+
+      // 5. Activity Log
+      await tx.activityLog.create({
+        data: {
+          adminId: adminUser?.id,
+          tournamentId: registration.tournamentId,
+          teamId: registration.teamId,
+          registrationId: registration.id,
+          action: "PAYMENT_REJECTED",
+          description: `Admin rejected payment. Reason: ${rejectionReason}`,
+        },
+      });
+    });
+
+    res.json({
+      success: true,
+      message: "Payment rejected and user notified with reason.",
     });
   } catch (error) {
     next(error);
@@ -1099,6 +1710,52 @@ export const registerSquad = async (req: Request, res: Response, next: NextFunct
 export const getAllRegistrations = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { tournamentId, stageId, status, paymentStatus, search } = req.query;
+
+    if (dbConnected) {
+      try {
+        const where: any = {};
+        if (tournamentId && tournamentId !== "ALL") where.tournamentId = String(tournamentId);
+        if (stageId && stageId !== "ALL") where.currentStageId = String(stageId);
+        if (status && status !== "ALL") where.status = String(status);
+        if (paymentStatus && paymentStatus !== "ALL") where.paymentStatus = String(paymentStatus);
+        if (search) {
+          const q = String(search);
+          where.OR = [
+            { teamName: { contains: q, mode: "insensitive" } },
+            { captainIgn: { contains: q, mode: "insensitive" } },
+            { captainName: { contains: q, mode: "insensitive" } },
+            { captainEmail: { contains: q, mode: "insensitive" } },
+            { whatsapp: { contains: q, mode: "insensitive" } },
+            { registrationNumber: { contains: q, mode: "insensitive" } },
+            { payment: { utr: { contains: q, mode: "insensitive" } } },
+          ];
+        }
+
+        const list = await prisma.tournamentRegistration.findMany({
+          where,
+          include: {
+            tournament: {
+              select: { id: true, title: true, game: true, prizePool: true, status: true, totalTeams: true },
+            },
+            currentStage: { select: { id: true, name: true, order: true } },
+            payment: true,
+            players: true,
+            team: {
+              include: {
+                leader: { select: { id: true, username: true, ign: true, fullName: true, avatarUrl: true, email: true, phone: true, gameUid: true } },
+                members: { include: { user: { select: { id: true, username: true, ign: true, fullName: true, gameUid: true, avatarUrl: true } } } },
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+
+        res.json({ success: true, data: list });
+        return;
+      } catch (err) {
+        console.warn("Prisma getAllRegistrations failed, falling back to memory store:", err);
+      }
+    }
 
     let result = [...memoryRegistrations];
 
@@ -1128,7 +1785,6 @@ export const getAllRegistrations = async (req: AuthenticatedRequest, res: Respon
       });
     }
 
-    // Attach tournament metadata & current stage metadata
     const mapped = result.map((r) => {
       const t = memoryTournaments.find((tourney) => tourney.id === r.tournamentId);
       const stage = memoryStages.find((s) => s.id === r.currentStageId);
@@ -1146,6 +1802,113 @@ export const getAllRegistrations = async (req: AuthenticatedRequest, res: Respon
 };
 
 /**
+ * GET /api/tournaments/:id/teams
+ * View all teams registered for a tournament
+ */
+export const getTournamentTeams = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const teams = await prisma.team.findMany({
+      where: { tournamentId: id },
+      include: {
+        leader: {
+          select: { id: true, username: true, ign: true, gameUid: true, fullName: true, avatarUrl: true, email: true, phone: true },
+        },
+        members: {
+          include: {
+            user: {
+              select: { id: true, username: true, ign: true, gameUid: true, fullName: true, avatarUrl: true },
+            },
+          },
+        },
+        registration: {
+          include: { payment: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({ success: true, teams });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/tournaments/admin/analytics
+ * Aggregated statistics for admin portal
+ */
+export const getTournamentAnalytics = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { tournamentId } = req.query;
+    const whereClause = tournamentId ? { tournamentId: String(tournamentId) } : {};
+
+    const [
+      totalTeams,
+      confirmedTeams,
+      paymentPending,
+      paymentsUnderReview,
+      paymentsFailed,
+      verifiedPayments,
+      pendingPayments,
+    ] = await Promise.all([
+      prisma.tournamentRegistration.count({ where: whereClause }),
+      prisma.tournamentRegistration.count({ where: { ...whereClause, status: { in: ["CONFIRMED", "APPROVED"] } } }),
+      prisma.tournamentRegistration.count({ where: { ...whereClause, status: "PAYMENT_PENDING" } }),
+      prisma.tournamentRegistration.count({ where: { ...whereClause, status: "PAYMENT_UNDER_REVIEW" } }),
+      prisma.tournamentRegistration.count({ where: { ...whereClause, status: "REJECTED" } }),
+      prisma.paymentRecord.aggregate({
+        where: {
+          status: "VERIFIED",
+          ...(tournamentId ? { registration: { tournamentId: String(tournamentId) } } : {}),
+        },
+        _sum: { amount: true },
+      }),
+      prisma.paymentRecord.aggregate({
+        where: {
+          status: { in: ["PENDING", "UNDER_REVIEW"] },
+          ...(tournamentId ? { registration: { tournamentId: String(tournamentId) } } : {}),
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    let totalSlots = 0;
+    if (tournamentId) {
+      const tourney = await prisma.tournament.findUnique({
+        where: { id: String(tournamentId) },
+        select: { totalTeams: true },
+      });
+      totalSlots = tourney?.totalTeams || 32;
+    } else {
+      const tourneys = await prisma.tournament.findMany({ select: { totalTeams: true } });
+      totalSlots = tourneys.reduce((sum: any, t: any) => sum + (t.totalTeams || 32), 0);
+    }
+
+    const availableSlots = Math.max(0, totalSlots - confirmedTeams);
+
+    res.json({
+      success: true,
+      analytics: {
+        totalTeams,
+        confirmedTeams,
+        paymentPending,
+        paymentsUnderReview,
+        paymentsFailed,
+        rejectedRegistrations: paymentsFailed,
+        availableSlots,
+        totalSlots,
+        totalRevenue: verifiedPayments._sum.amount || 0,
+        pendingRevenue: pendingPayments._sum.amount || 0,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * PUT /api/tournaments/registrations/:id/status
  * Approve, reject, waitlist or disqualify registration
  */
@@ -1153,6 +1916,34 @@ export const updateRegistrationStatus = async (req: AuthenticatedRequest, res: R
   try {
     const { id } = req.params;
     const { status, slotNumber, adminNotes } = req.body;
+
+    if (dbConnected) {
+      try {
+        const updated = await prisma.tournamentRegistration.update({
+          where: { id },
+          data: {
+            status,
+            slotNumber: slotNumber !== undefined ? Number(slotNumber) : undefined,
+            adminNotes,
+            approvedAt: status === "CONFIRMED" || status === "APPROVED" ? new Date() : undefined,
+            rejectedAt: status === "REJECTED" ? new Date() : undefined,
+          },
+          include: { team: true, tournament: true },
+        });
+
+        if (updated.teamId && (status === "CONFIRMED" || status === "APPROVED")) {
+          await prisma.team.update({
+            where: { id: updated.teamId },
+            data: { status: "CONFIRMED" },
+          });
+        }
+
+        res.json({ success: true, message: `Registration status updated to ${status}`, data: updated });
+        return;
+      } catch (err) {
+        console.warn("Prisma updateRegistrationStatus failed:", err);
+      }
+    }
 
     const registration = memoryRegistrations.find((r) => r.id === id);
     if (!registration) {
@@ -1165,20 +1956,9 @@ export const updateRegistrationStatus = async (req: AuthenticatedRequest, res: R
     if (slotNumber !== undefined) registration.slotNumber = Number(slotNumber);
     if (adminNotes !== undefined) registration.adminNotes = adminNotes;
 
-    if (status === "APPROVED") registration.approvedAt = new Date();
+    if (status === "APPROVED" || status === "CONFIRMED") registration.approvedAt = new Date();
     if (status === "REJECTED") registration.rejectedAt = new Date();
     registration.updatedAt = new Date();
-
-    // Append activity log
-    const performer = req.user?.email || "Admin";
-    registration.activityLogs.push({
-      id: "log-" + Date.now(),
-      registrationId: id,
-      action: `STATUS_CHANGED_TO_${status}`,
-      performedBy: performer,
-      details: `Status changed from ${oldStatus} to ${status}${adminNotes ? ` (Notes: ${adminNotes})` : ""}`,
-      createdAt: new Date(),
-    });
 
     res.json({
       success: true,
@@ -1198,6 +1978,35 @@ export const updatePaymentStatus = async (req: AuthenticatedRequest, res: Respon
   try {
     const { id } = req.params;
     const { paymentStatus, adminNotes, autoApprove } = req.body;
+
+    if (paymentStatus === "VERIFIED") {
+      await verifyPayment(req, res, next);
+      return;
+    } else if (paymentStatus === "REJECTED") {
+      await rejectPayment(req, res, next);
+      return;
+    }
+
+    if (dbConnected) {
+      try {
+        await prisma.tournamentRegistration.update({
+          where: { id },
+          data: {
+            paymentStatus,
+            payment: {
+              update: {
+                status: paymentStatus,
+                adminNotes,
+              },
+            },
+          },
+        });
+        res.json({ success: true, message: `Payment status updated to ${paymentStatus}` });
+        return;
+      } catch (err) {
+        console.warn("Prisma updatePaymentStatus failed:", err);
+      }
+    }
 
     const registration = memoryRegistrations.find((r) => r.id === id);
     if (!registration) {
@@ -1235,25 +2044,14 @@ export const updatePaymentStatus = async (req: AuthenticatedRequest, res: Respon
 
     registration.paymentStatus = paymentStatus;
 
-    // If verified and autoApprove requested or standard approved
     if (paymentStatus === "VERIFIED" && autoApprove) {
       registration.status = "APPROVED";
       registration.approvedAt = new Date();
     }
 
-    const performer = req.user?.email || "Admin";
-    registration.activityLogs.push({
-      id: "log-" + Date.now(),
-      registrationId: id,
-      action: `PAYMENT_${paymentStatus}`,
-      performedBy: performer,
-      details: `Payment status updated to ${paymentStatus} by ${performer}`,
-      createdAt: new Date(),
-    });
-
     res.json({
       success: true,
-      message: `Payment status marked as ${paymentStatus}`,
+      message: `Payment status updated to ${paymentStatus}`,
       data: registration,
     });
   } catch (error) {

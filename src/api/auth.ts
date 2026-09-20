@@ -6,6 +6,7 @@ export interface PlayerUser {
   email: string;
   role: string;
   ign: string;
+  gameUid?: string | null;
   fullName?: string | null;
   avatarUrl?: string | null;
   phone?: string | null;

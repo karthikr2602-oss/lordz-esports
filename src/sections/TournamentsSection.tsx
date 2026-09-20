@@ -111,7 +111,6 @@ export const TournamentsSection = ({
             {filteredTournaments.length > 0 ? (
               filteredTournaments.map((t, index) => {
                 const isLive = t.status === "LIVE";
-                const isUpcoming = t.status === "UPCOMING";
 
                 return (
                   <motion.div
@@ -137,29 +136,57 @@ export const TournamentsSection = ({
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E] via-transparent to-black/60" />
 
                       {/* Top Badges */}
+                      {/* Top Badges */}
                       <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
                         <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-widest bg-black/80 border border-white/10 text-gray-300 backdrop-blur-md">
                           <Shield className="h-3 w-3 text-[#FFBE32]" />
                           {t.game}
                         </span>
 
-                        <span
-                          className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-wider backdrop-blur-md ${
-                            isLive
-                              ? "bg-red-950/80 text-red-400 border border-red-500/30 animate-pulse"
-                              : isUpcoming || t.status === "REGISTRATION_OPEN"
-                              ? "bg-amber-950/70 text-[#FFBE32] border border-[#FFBE32]/30"
-                              : "bg-neutral-800 text-gray-400"
-                          }`}
-                        >
-                          {isLive && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
-                          {t.status === "UPCOMING" || t.status === "REGISTRATION_OPEN" ? "REGISTRATION OPEN" : t.status}
-                        </span>
+                        {(() => {
+                          const isFull = t.status === "FULL" || (t.availableSlots !== undefined && t.availableSlots <= 0);
+                          const isClosingSoon = t.status === "CLOSING_SOON" || (!isFull && t.availableSlots !== undefined && t.availableSlots <= 5);
+
+                          if (isLive) {
+                            return (
+                              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-wider backdrop-blur-md bg-red-950/80 text-red-400 border border-red-500/30 animate-pulse">
+                                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                                LIVE NOW
+                              </span>
+                            );
+                          }
+                          if (isFull) {
+                            return (
+                              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-wider backdrop-blur-md bg-red-950/90 text-red-400 border border-red-500/40">
+                                SLOTS FULL
+                              </span>
+                            );
+                          }
+                          if (isClosingSoon) {
+                            return (
+                              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-wider backdrop-blur-md bg-amber-500/20 text-[#FFBE32] border border-[#FFBE32]/50 animate-pulse">
+                                CLOSING SOON
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-wider backdrop-blur-md bg-emerald-950/70 text-emerald-400 border border-emerald-500/30">
+                              REGISTRATION OPEN
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       {/* Live Dynamic Registration Count Banner */}
-                      <div className="absolute bottom-2 left-3 px-2.5 py-1 rounded bg-black/80 border border-[#FFBE32]/40 text-[#FFBE32] font-heading font-extrabold text-[10px] uppercase tracking-wider backdrop-blur-md">
-                        {t.registeredTeams || 0} / {t.totalTeams || 32} TEAMS REGISTERED
+                      <div className="absolute bottom-2 left-3 px-2.5 py-1 rounded bg-black/80 border border-[#FFBE32]/40 text-[#FFBE32] font-heading font-extrabold text-[10px] uppercase tracking-wider backdrop-blur-md flex items-center gap-1.5">
+                        <span>
+                          {t.confirmedTeams ?? t.registeredTeams ?? 0} / {t.totalTeams || 32} TEAMS CONFIRMED
+                        </span>
+                        {t.availableSlots !== undefined && (
+                          <span className="text-gray-400 font-mono text-[9px]">
+                            ({t.availableSlots} SLOTS LEFT)
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -171,7 +198,7 @@ export const TournamentsSection = ({
                         </h3>
                       </a>
                       <p className="mt-1.5 text-xs text-gray-400 font-body line-clamp-2">
-                        {t.tagline}
+                        {t.tagline || t.shortDescription}
                       </p>
 
                       {/* Prize Pool Spotlight */}
@@ -195,7 +222,7 @@ export const TournamentsSection = ({
                         </div>
                         <div className="flex items-center gap-1.5 justify-end">
                           <span className="text-[#FFBE32] font-bold">
-                            {t.feeAmount && t.feeAmount > 0 ? `₹${t.feeAmount} ENTRY` : t.entryFee}
+                            {t.feeAmount && t.feeAmount > 0 ? `₹${t.feeAmount} ENTRY` : t.entryFee || "FREE"}
                           </span>
                         </div>
                       </div>
@@ -203,12 +230,27 @@ export const TournamentsSection = ({
 
                     {/* Card Footer Actions */}
                     <div className="p-6 pt-0 flex gap-2">
-                      <button
-                        onClick={() => onSelectTournament(t)}
-                        className="flex-1 py-2.5 px-3 rounded font-heading text-xs font-bold uppercase tracking-wider bg-[#FFBE32] hover:bg-[#FFA000] text-black text-center transition-all duration-200 cursor-pointer shadow-[0_0_12px_rgba(255,190,50,0.25)]"
-                      >
-                        Register Now
-                      </button>
+                      {(() => {
+                        const isFull = t.status === "FULL" || (t.availableSlots !== undefined && t.availableSlots <= 0);
+                        if (isFull) {
+                          return (
+                            <a
+                              href={`/tournaments/${t.slug || t.id}`}
+                              className="flex-1 py-2.5 px-3 rounded font-heading text-xs font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-gray-400 hover:text-white text-center transition-all duration-200"
+                            >
+                              SLOTS FULL • VIEW ARENA
+                            </a>
+                          );
+                        }
+                        return (
+                          <button
+                            onClick={() => onSelectTournament(t)}
+                            className="flex-1 py-2.5 px-3 rounded font-heading text-xs font-bold uppercase tracking-wider bg-[#FFBE32] hover:bg-[#FFA000] text-black text-center transition-all duration-200 cursor-pointer shadow-[0_0_12px_rgba(255,190,50,0.25)]"
+                          >
+                            Register Squad Now
+                          </button>
+                        );
+                      })()}
 
                       <a
                         href={`/tournaments/${t.slug || t.id}`}
