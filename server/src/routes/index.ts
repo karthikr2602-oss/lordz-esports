@@ -42,6 +42,79 @@ router.put(
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
   tournamentCtrl.updateRegistrationStatus
 );
+router.put(
+  "/tournaments/registrations/:id/payment",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.updatePaymentStatus
+);
+router.post(
+  "/tournaments/registrations/bulk",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.bulkActionRegistrations
+);
+router.get(
+  "/tournaments/:id/export",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.exportRegistrationsCsv
+);
+router.post(
+  "/tournaments/:id/duplicate",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.duplicateTournament
+);
+
+// Stages & Team Progression
+router.get("/tournaments/:id/stages", tournamentCtrl.getStages);
+router.post(
+  "/tournaments/:id/stages",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.createStage
+);
+router.put(
+  "/tournaments/stages/:stageId",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.updateStage
+);
+router.delete(
+  "/tournaments/stages/:stageId",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.deleteStage
+);
+router.post(
+  "/tournaments/:id/stages/move-teams",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.moveTeamsToStage
+);
+
+// Tournament Leaderboard
+router.get("/tournaments/:id/leaderboard", tournamentCtrl.getLeaderboard);
+router.put(
+  "/tournaments/:id/leaderboard",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.updateLeaderboardBatch
+);
+router.post(
+  "/tournaments/:id/leaderboard/entry",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.addLeaderboardEntry
+);
+router.delete(
+  "/tournaments/:id/leaderboard/:entryId",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.deleteLeaderboardEntry
+);
+
 router.get("/tournaments/:id", tournamentCtrl.getTournamentById);
 router.post(
   "/tournaments",
