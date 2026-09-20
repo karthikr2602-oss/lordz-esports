@@ -651,10 +651,10 @@ export const getTournamentById = async (req: Request, res: Response, next: NextF
 
     if (dbConnected) {
       try {
-        const tournament = await prisma.tournament.findFirst({
+        const tournament: any = await prisma.tournament.findFirst({
           where: {
-            OR: [{ id }, { slug: id }],
-          },
+            id,
+          } as any,
           include: {
             registrations: {
               orderBy: { createdAt: "desc" },
@@ -665,12 +665,13 @@ export const getTournamentById = async (req: Request, res: Response, next: NextF
         });
 
         if (tournament) {
-          const total = tournament.registrations.length;
-          const approved = tournament.registrations.filter((r) => r.status === "APPROVED").length;
-          const pending = tournament.registrations.filter((r) => r.status === "PENDING" || r.status === "UNDER_REVIEW").length;
-          const paymentPending = tournament.registrations.filter((r) => r.status === "PAYMENT_PENDING" || r.paymentStatus === "PENDING").length;
-          const paymentVerified = tournament.registrations.filter((r) => r.paymentStatus === "VERIFIED").length;
-          const rejected = tournament.registrations.filter((r) => r.status === "REJECTED").length;
+          const regs: any[] = tournament.registrations || [];
+          const total = regs.length;
+          const approved = regs.filter((r: any) => r.status === "APPROVED").length;
+          const pending = regs.filter((r: any) => r.status === "PENDING" || r.status === "UNDER_REVIEW").length;
+          const paymentPending = regs.filter((r: any) => r.status === "PAYMENT_PENDING" || r.paymentStatus === "PENDING").length;
+          const paymentVerified = regs.filter((r: any) => r.paymentStatus === "VERIFIED").length;
+          const rejected = regs.filter((r: any) => r.status === "REJECTED").length;
 
           res.json({
             success: true,
@@ -743,12 +744,12 @@ export const createTournament = async (req: AuthenticatedRequest, res: Response,
 
     if (dbConnected) {
       try {
+        const { slug: _slug, ...createPayload } = data as any;
         const dbResult = await prisma.tournament.create({
           data: {
-            ...data,
-            slug: generatedSlug,
+            ...createPayload,
             registeredTeams: 0,
-          },
+          } as any,
         });
 
         if (req.user) {
