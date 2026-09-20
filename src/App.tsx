@@ -19,6 +19,8 @@ import { MediaPage } from "./pages/MediaPage";
 import { CommunityPage } from "./pages/CommunityPage";
 import { BrandPartnersPage } from "./pages/BrandPartnersPage";
 import { PartnersPage } from "./pages/PartnersPage";
+import { VotingPage } from "./pages/VotingPage";
+import { TeamsPage } from "./pages/TeamsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 /**
@@ -51,6 +53,8 @@ export function App() {
               <Route path="/tournaments" element={<TournamentsPage />} />
               <Route path="/tournaments/:slug" element={<TournamentDetailPage />} />
               <Route path="/players" element={<PlayersPage />} />
+              <Route path="/voting" element={<VotingPage />} />
+              <Route path="/teams" element={<TeamsPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/jersey" element={<Navigate to="/products" replace />} />
               <Route path="/about" element={<AboutPage />} />

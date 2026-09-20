@@ -28,6 +28,7 @@ model User {
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
   auditLogs        AuditLog[]
+  votes            Vote[]
 }
 
 model Tournament {
@@ -262,6 +263,7 @@ model Player {
   sortOrder     Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  votingNominees VotingNominee[]
 }
 
 model Legend {
@@ -441,5 +443,55 @@ model PartnerInquiry {
   notes         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model VotingEvent {
+  id            String          @id @default(uuid())
+  title         String
+  slug          String?         @unique
+  description   String?
+  bannerImage   String?
+  status        String          @default("DRAFT") // DRAFT, PUBLISHED, CLOSED, ARCHIVED
+  startDate     DateTime
+  endDate       DateTime
+  isLiveResults Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  nominees      VotingNominee[]
+  votes         Vote[]
+
+  @@index([status])
+  @@index([startDate, endDate])
+}
+
+model VotingNominee {
+  id            String        @id @default(uuid())
+  votingEventId String
+  votingEvent   VotingEvent   @relation(fields: [votingEventId], references: [id], onDelete: Cascade)
+  playerId      String
+  player        Player        @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  displayOrder  Int           @default(0)
+  createdAt     DateTime      @default(now())
+  votes         Vote[]
+
+  @@unique([votingEventId, playerId])
+  @@index([votingEventId])
+  @@index([playerId])
+}
+
+model Vote {
+  id            String        @id @default(uuid())
+  votingEventId String
+  votingEvent   VotingEvent   @relation(fields: [votingEventId], references: [id], onDelete: Cascade)
+  nomineeId     String
+  nominee       VotingNominee @relation(fields: [nomineeId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+
+  @@unique([votingEventId, userId])
+  @@index([votingEventId])
+  @@index([nomineeId])
+  @@index([userId])
 }
 
