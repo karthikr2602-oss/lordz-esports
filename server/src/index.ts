@@ -5,7 +5,7 @@
  */
 import app from "./server.js";
 
-const DEFAULT_PORT = Number(process.env.PORT) || 5001;
+const DEFAULT_PORT = Number(process.env.PORT) || 5000;
 
 function startServer(port: number) {
   const server = app.listen(port, () => {
