@@ -1,30 +1,40 @@
 import { apiRequest } from "./client";
-import { tournamentsData, type Tournament } from "../data/tournaments";
+import {
+  tournamentsData,
+  type Tournament,
+  type TournamentStage,
+  type RegistrationItem,
+  type LeaderboardEntry,
+} from "../data/tournaments";
 
 export interface SquadRegistrationInput {
   teamName: string;
+  teamLogo?: string;
   captainIgn: string;
+  captainName?: string;
+  captainPhone?: string;
+  captainEmail?: string;
   whatsapp: string;
   discordTag?: string;
   playerNames?: string;
-}
-
-export interface RegistrationItem {
-  id: string;
-  tournamentId: string;
-  teamName: string;
-  captainIgn: string;
-  whatsapp: string;
-  discordTag?: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
-  slotNumber?: number;
-  createdAt: string;
-  tournament?: {
-    id: string;
-    title: string;
-    game: string;
-    prizePool: string;
-    status: string;
+  players?: Array<{
+    name: string;
+    ign: string;
+    playerId?: string;
+    role: string;
+    phone?: string;
+    email?: string;
+    discordId?: string;
+    isCaptain?: boolean;
+    isSubstitute?: boolean;
+  }>;
+  payment?: {
+    amount?: number;
+    method?: string;
+    utr?: string;
+    payerName?: string;
+    screenshot?: string;
+    remarks?: string;
   };
 }
 
@@ -40,28 +50,8 @@ export const tournamentsApi = {
   },
 
   getById: async (id: string): Promise<Tournament | null> => {
-    const fallback = tournamentsData.find((t) => t.id === id) || null;
+    const fallback = tournamentsData.find((t) => t.id === id || t.slug === id) || null;
     return apiRequest<Tournament | null>(`/tournaments/${id}`, { method: "GET" }, fallback);
-  },
-
-  create: async (data: Partial<Tournament>): Promise<Tournament> => {
-    return apiRequest<Tournament>("/tournaments", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  },
-
-  update: async (id: string, data: Partial<Tournament>): Promise<Tournament> => {
-    return apiRequest<Tournament>(`/tournaments/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
-  },
-
-  delete: async (id: string): Promise<{ success: boolean }> => {
-    return apiRequest<{ success: boolean }>(`/tournaments/${id}`, {
-      method: "DELETE",
-    });
   },
 
   registerSquad: async (tournamentId: string, squad: SquadRegistrationInput): Promise<any> => {
@@ -81,14 +71,26 @@ export const tournamentsApi = {
     return apiRequest<RegistrationItem[]>(`/tournaments/registrations${qs}`, { method: "GET" }, []);
   },
 
-  updateRegistrationStatus: async (
-    id: string,
-    status: "APPROVED" | "REJECTED" | "PENDING",
-    slotNumber?: number
-  ): Promise<any> => {
-    return apiRequest(`/tournaments/registrations/${id}/status`, {
-      method: "PUT",
-      body: JSON.stringify({ status, slotNumber }),
+  getStages: async (tournamentId: string): Promise<TournamentStage[]> => {
+    return apiRequest<TournamentStage[]>(`/tournaments/${tournamentId}/stages`, { method: "GET" }, []);
+  },
+
+  getLeaderboard: async (tournamentId: string): Promise<LeaderboardEntry[]> => {
+    return apiRequest<LeaderboardEntry[]>(`/tournaments/${tournamentId}/leaderboard`, { method: "GET" }, []);
+  },
+
+  uploadImage: async (file: File): Promise<{ success: boolean; url: string; filename: string }> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
     });
+
+    if (!res.ok) {
+      throw new Error("Failed to upload screenshot");
+    }
+    return res.json();
   },
 };

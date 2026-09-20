@@ -10,6 +10,7 @@ import { AuthProvider } from "./context/AuthContext";
 // Public Pages
 import { HomePage } from "./pages/HomePage";
 import { TournamentsPage } from "./pages/TournamentsPage";
+import { TournamentDetailPage } from "./pages/TournamentDetailPage";
 import { PlayersPage } from "./pages/PlayersPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { AboutPage } from "./pages/AboutPage";
@@ -48,6 +49,7 @@ export function App() {
             <Route element={<PublicLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/tournaments" element={<TournamentsPage />} />
+              <Route path="/tournaments/:slug" element={<TournamentDetailPage />} />
               <Route path="/players" element={<PlayersPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/jersey" element={<Navigate to="/products" replace />} />

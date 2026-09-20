@@ -22,6 +22,8 @@ import { AdminMediaPage } from "./pages/AdminMediaPage";
 import { AdminSettingsPage } from "./pages/AdminSettingsPage";
 import { AdminUsersPage } from "./pages/AdminUsersPage";
 
+import { AdminTournamentDetailPage } from "./pages/AdminTournamentDetailPage";
+
 export const App: React.FC = () => {
   const basename = window.location.pathname.startsWith("/admin") ? "/admin" : "/";
 
@@ -45,6 +47,7 @@ export const App: React.FC = () => {
             <Route index element={<AdminDashboardPage />} />
             <Route path="analytics" element={<AdminAnalyticsPage />} />
             <Route path="tournaments" element={<AdminTournamentsPage />} />
+            <Route path="tournaments/:tournamentId" element={<AdminTournamentDetailPage />} />
             <Route path="registrations" element={<AdminRegistrationsPage />} />
             <Route path="matches" element={<AdminMatchesPage />} />
             <Route path="standings" element={<AdminStandingsPage />} />
@@ -63,6 +66,7 @@ export const App: React.FC = () => {
               <Route index element={<AdminDashboardPage />} />
               <Route path="analytics" element={<AdminAnalyticsPage />} />
               <Route path="tournaments" element={<AdminTournamentsPage />} />
+              <Route path="tournaments/:tournamentId" element={<AdminTournamentDetailPage />} />
               <Route path="registrations" element={<AdminRegistrationsPage />} />
               <Route path="matches" element={<AdminMatchesPage />} />
               <Route path="standings" element={<AdminStandingsPage />} />

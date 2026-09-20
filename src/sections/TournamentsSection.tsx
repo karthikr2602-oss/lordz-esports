@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { tournamentsData, type Tournament } from "../data/tournaments";
 import { tournamentsApi } from "../api/tournaments";
-import { Trophy, Calendar, Users, Shield, ArrowRight } from "lucide-react";
+import { Trophy, Calendar, Shield, ArrowRight } from "lucide-react";
 
 interface TournamentsSectionProps {
   onSelectTournament: (tournament: Tournament) => void;
@@ -123,49 +123,59 @@ export const TournamentsSection = ({
                     transition={{ duration: 0.4, delay: index * 0.05 }}
                     className="group relative flex flex-col justify-between rounded-xl bg-[#0C0C0E] border border-white/10 hover:border-[#FFBE32]/60 hover:-translate-y-1.5 transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:shadow-[0_15px_35px_rgba(255,190,50,0.15)] overflow-hidden"
                   >
-                    {/* Top Accent Line */}
-                    <div
-                      className={`h-[3px] w-full ${
-                        isLive
-                          ? "bg-red-500 shadow-[0_0_10px_red]"
-                          : isUpcoming
-                          ? "bg-[#FFBE32]"
-                          : "bg-gray-600"
-                      }`}
-                    />
+                    {/* Top Banner Image / Accent */}
+                    <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-black via-[#141419] to-black">
+                      {t.bannerImage ? (
+                        <img
+                          src={t.bannerImage}
+                          alt={t.title}
+                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60 filter saturate-150"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-[radial-gradient(ellipse_at_top,#FFBE32_0%,transparent_70%)] opacity-20" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E] via-transparent to-black/60" />
 
-                    <div className="p-6">
-                      {/* Status and Game Header */}
-                      <div className="flex items-center justify-between gap-2 mb-4">
-                        <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-gray-300">
+                      {/* Top Badges */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-widest bg-black/80 border border-white/10 text-gray-300 backdrop-blur-md">
                           <Shield className="h-3 w-3 text-[#FFBE32]" />
                           {t.game}
                         </span>
 
                         <span
-                          className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-wider ${
+                          className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-wider backdrop-blur-md ${
                             isLive
                               ? "bg-red-950/80 text-red-400 border border-red-500/30 animate-pulse"
-                              : isUpcoming
-                              ? "bg-amber-950/50 text-[#FFBE32] border border-[#FFBE32]/30"
+                              : isUpcoming || t.status === "REGISTRATION_OPEN"
+                              ? "bg-amber-950/70 text-[#FFBE32] border border-[#FFBE32]/30"
                               : "bg-neutral-800 text-gray-400"
                           }`}
                         >
                           {isLive && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
-                          {t.status === "UPCOMING" ? "REGISTRATION OPEN" : t.status}
+                          {t.status === "UPCOMING" || t.status === "REGISTRATION_OPEN" ? "REGISTRATION OPEN" : t.status}
                         </span>
                       </div>
 
+                      {/* Live Dynamic Registration Count Banner */}
+                      <div className="absolute bottom-2 left-3 px-2.5 py-1 rounded bg-black/80 border border-[#FFBE32]/40 text-[#FFBE32] font-heading font-extrabold text-[10px] uppercase tracking-wider backdrop-blur-md">
+                        {t.registeredTeams || 0} / {t.totalTeams || 32} TEAMS REGISTERED
+                      </div>
+                    </div>
+
+                    <div className="p-6 pt-4">
                       {/* Title */}
-                      <h3 className="font-display text-2xl tracking-wide uppercase text-white group-hover:text-[#FFBE32] transition-colors leading-tight">
-                        {t.title}
-                      </h3>
+                      <a href={`/tournaments/${t.slug || t.id}`}>
+                        <h3 className="font-display text-2xl tracking-wide uppercase text-white group-hover:text-[#FFBE32] transition-colors leading-tight">
+                          {t.title}
+                        </h3>
+                      </a>
                       <p className="mt-1.5 text-xs text-gray-400 font-body line-clamp-2">
                         {t.tagline}
                       </p>
 
                       {/* Prize Pool Spotlight */}
-                      <div className="mt-5 p-3 rounded-lg bg-black/50 border border-white/5 flex items-center justify-between">
+                      <div className="mt-4 p-3 rounded-lg bg-black/50 border border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Trophy className="h-5 w-5 text-[#FFBE32]" />
                           <span className="text-xs text-gray-400 font-heading uppercase tracking-wider">
@@ -178,27 +188,35 @@ export const TournamentsSection = ({
                       </div>
 
                       {/* Metadata Grid */}
-                      <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-300">
+                      <div className="mt-3.5 grid grid-cols-2 gap-2 text-xs text-gray-300">
                         <div className="flex items-center gap-1.5">
                           <Calendar className="h-3.5 w-3.5 text-gray-500" />
                           <span className="truncate">{t.date}</span>
                         </div>
                         <div className="flex items-center gap-1.5 justify-end">
-                          <Users className="h-3.5 w-3.5 text-gray-500" />
-                          <span>{t.slots}</span>
+                          <span className="text-[#FFBE32] font-bold">
+                            {t.feeAmount && t.feeAmount > 0 ? `₹${t.feeAmount} ENTRY` : t.entryFee}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Card Footer Button */}
-                    <div className="p-6 pt-0">
+                    {/* Card Footer Actions */}
+                    <div className="p-6 pt-0 flex gap-2">
                       <button
                         onClick={() => onSelectTournament(t)}
-                        className="w-full py-2.5 px-4 rounded font-heading text-xs font-bold uppercase tracking-wider bg-[#141417] hover:bg-[#FFBE32] text-[#FFBE32] hover:text-black border border-[#FFBE32]/40 hover:border-[#FFBE32] flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer group-hover:shadow-[0_0_15px_rgba(255,190,50,0.2)]"
+                        className="flex-1 py-2.5 px-3 rounded font-heading text-xs font-bold uppercase tracking-wider bg-[#FFBE32] hover:bg-[#FFA000] text-black text-center transition-all duration-200 cursor-pointer shadow-[0_0_12px_rgba(255,190,50,0.25)]"
                       >
-                        <span>VIEW TOURNAMENT</span>
-                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                        Register Now
                       </button>
+
+                      <a
+                        href={`/tournaments/${t.slug || t.id}`}
+                        className="py-2.5 px-3.5 rounded font-heading text-xs font-bold uppercase tracking-wider bg-[#141417] hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 flex items-center justify-center transition-all duration-200"
+                        title="View Tournament Arena"
+                      >
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </a>
                     </div>
                   </motion.div>
                 );
