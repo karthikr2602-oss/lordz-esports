@@ -76,30 +76,16 @@ export const getMyOrders = async (
       select: { id: true, email: true, phone: true, ign: true, fullName: true, username: true },
     });
 
-    const email = user?.email || req.user.email;
-    const conditions: any[] = [
-      { customerEmail: { equals: email, mode: "insensitive" } },
-    ];
-
-    if (user?.phone) {
-      const cleanPhone = user.phone.replace(/[^0-9]/g, "");
-      if (cleanPhone.length >= 6) {
-        conditions.push({ customerPhone: { contains: cleanPhone } });
-        if (cleanPhone.length >= 10) {
-          const last10 = cleanPhone.slice(-10);
-          conditions.push({ customerPhone: { contains: `${last10.slice(0, 5)} ${last10.slice(5)}` } });
-        }
-        conditions.push({ customerPhone: { contains: cleanPhone.slice(-5) } });
-      }
+    const email = (user?.email || req.user.email)?.trim();
+    if (!email) {
+      res.json({ success: true, data: [] });
+      return;
     }
 
-    if (user?.ign && user.ign.trim().length > 1) {
-      conditions.push({ customIgn: { equals: user.ign.trim(), mode: "insensitive" } });
-    }
-
+    // Strictly fetch individual orders belonging to this user's verified account email
     const orders = await prisma.order.findMany({
       where: {
-        OR: conditions,
+        customerEmail: { equals: email, mode: "insensitive" },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -167,17 +153,11 @@ export const trackOrder = async (req: Request, res: Response, next: NextFunction
     const conditions: any[] = [
       { orderNumber: { contains: cleanQuery, mode: "insensitive" } },
       { customerEmail: { equals: cleanQuery, mode: "insensitive" } },
-      { customerName: { contains: cleanQuery, mode: "insensitive" } },
-      { customIgn: { contains: cleanQuery, mode: "insensitive" } },
     ];
 
-    if (cleanPhone.length >= 6) {
-      conditions.push({ customerPhone: { contains: cleanPhone } });
-      if (cleanPhone.length >= 10) {
-        const last10 = cleanPhone.slice(-10);
-        conditions.push({ customerPhone: { contains: `${last10.slice(0, 5)} ${last10.slice(5)}` } });
-      }
-      conditions.push({ customerPhone: { contains: cleanPhone.slice(-5) } });
+    if (cleanPhone.length >= 10) {
+      const last10 = cleanPhone.slice(-10);
+      conditions.push({ customerPhone: { contains: last10 } });
     }
 
     const orders = await prisma.order.findMany({
