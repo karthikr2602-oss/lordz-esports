@@ -19,6 +19,7 @@ import { MediaPage } from "./pages/MediaPage";
 import { CommunityPage } from "./pages/CommunityPage";
 import { BrandPartnersPage } from "./pages/BrandPartnersPage";
 import { PartnersPage } from "./pages/PartnersPage";
+import { MyTournamentsPage } from "./pages/MyTournamentsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 /**
@@ -50,6 +51,7 @@ export function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/tournaments" element={<TournamentsPage />} />
               <Route path="/tournaments/:slug" element={<TournamentDetailPage />} />
+              <Route path="/my-tournaments" element={<MyTournamentsPage />} />
               <Route path="/players" element={<PlayersPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/jersey" element={<Navigate to="/products" replace />} />

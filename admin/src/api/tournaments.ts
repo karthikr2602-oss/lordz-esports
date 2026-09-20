@@ -131,6 +131,35 @@ export const tournamentsApi = {
     });
   },
 
+  verifyPayment: async (registrationId: string): Promise<any> => {
+    return apiRequest(`/tournaments/registrations/${registrationId}/payment-verify`, {
+      method: "PUT",
+    });
+  },
+
+  rejectPayment: async (registrationId: string, reason?: string): Promise<any> => {
+    return apiRequest(`/tournaments/registrations/${registrationId}/payment-reject`, {
+      method: "PUT",
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  adminOverrideRoster: async (teamId: string, members: any[]): Promise<any> => {
+    return apiRequest(`/teams/${teamId}/override-roster`, {
+      method: "POST",
+      body: JSON.stringify({ members }),
+    });
+  },
+
+  getTournamentTeams: async (tournamentId: string): Promise<any[]> => {
+    return apiRequest(`/tournaments/${tournamentId}/teams`, { method: "GET" }, []);
+  },
+
+  getAnalytics: async (tournamentId?: string): Promise<any> => {
+    const qs = tournamentId ? `?tournamentId=${tournamentId}` : "";
+    return apiRequest(`/tournaments/admin/analytics${qs}`, { method: "GET" });
+  },
+
   bulkActionRegistrations: async (
     registrationIds: string[],
     action: "APPROVE" | "REJECT" | "VERIFY_PAYMENT" | "MOVE_STAGE",

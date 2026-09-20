@@ -199,14 +199,23 @@ export const AdminTournamentDetailPage: React.FC = () => {
 
   const handleUpdatePayment = async (regId: string, paymentStatus: string, autoApprove = false) => {
     try {
-      await tournamentsApi.updatePaymentStatus(regId, paymentStatus, undefined, autoApprove);
+      if (paymentStatus === "VERIFIED") {
+        await tournamentsApi.verifyPayment(regId);
+      } else if (paymentStatus === "REJECTED") {
+        const reason = window.prompt("Enter rejection reason for player (e.g. Invalid UTR, transaction mismatch):", "Invalid UTR reference code");
+        if (reason === null) return; // cancelled prompt
+        await tournamentsApi.rejectPayment(regId, reason || "Payment verification failed");
+      } else {
+        await tournamentsApi.updatePaymentStatus(regId, paymentStatus, undefined, autoApprove);
+      }
+
       setRegistrations((prev) =>
         prev.map((r) => {
           if (r.id === regId) {
             return {
               ...r,
               paymentStatus,
-              status: autoApprove ? "APPROVED" : r.status,
+              status: paymentStatus === "VERIFIED" ? "CONFIRMED" : paymentStatus === "REJECTED" ? "PAYMENT_FAILED" : r.status,
               payment: r.payment ? { ...r.payment, status: paymentStatus } : null,
             };
           }
@@ -219,7 +228,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
             ? {
                 ...prev,
                 paymentStatus,
-                status: autoApprove ? "APPROVED" : prev.status,
+                status: paymentStatus === "VERIFIED" ? "CONFIRMED" : paymentStatus === "REJECTED" ? "PAYMENT_FAILED" : prev.status,
                 payment: prev.payment ? { ...prev.payment, status: paymentStatus } : null,
               }
             : null

@@ -61,6 +61,65 @@ export const tournamentsApi = {
     });
   },
 
+  submitPayment: async (
+    registrationId: string,
+    data: { utr: string; screenshot?: string; payerName?: string; amount?: number; method?: string; remarks?: string }
+  ): Promise<any> => {
+    return apiRequest(`/tournaments/registrations/${registrationId}/payment`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  getMyTournaments: async (): Promise<any[]> => {
+    const res = await apiRequest<{ success: boolean; tournaments: any[] }>("/my-tournaments", { method: "GET" }, { success: true, tournaments: [] });
+    return res.tournaments || [];
+  },
+
+  searchPlayers: async (query: string, tournamentId?: string): Promise<any[]> => {
+    const qs = new URLSearchParams({ q: query });
+    if (tournamentId) qs.set("tournamentId", tournamentId);
+    const res = await apiRequest<{ success: boolean; players: any[] }>(`/players/search?${qs.toString()}`, { method: "GET" }, { success: true, players: [] });
+    return res.players || [];
+  },
+
+  invitePlayer: async (teamId: string, userId: string, role?: string): Promise<any> => {
+    return apiRequest(`/teams/${teamId}/invite`, {
+      method: "POST",
+      body: JSON.stringify({ userId, role: role || "STARTER" }),
+    });
+  },
+
+  removePlayer: async (teamId: string, memberId: string): Promise<any> => {
+    return apiRequest(`/teams/${teamId}/members/${memberId}`, {
+      method: "DELETE",
+    });
+  },
+
+  getNotifications: async (): Promise<{ notifications: any[]; unreadCount: number; pendingInvitations: any[] }> => {
+    return apiRequest("/notifications", { method: "GET" }, { notifications: [], unreadCount: 0, pendingInvitations: [] });
+  },
+
+  markNotificationRead: async (id: string): Promise<any> => {
+    return apiRequest(`/notifications/${id}/read`, { method: "PUT" });
+  },
+
+  markAllNotificationsRead: async (): Promise<any> => {
+    return apiRequest("/notifications/read-all", { method: "PUT" });
+  },
+
+  respondToInvitation: async (invitationId: string, action: "ACCEPT" | "REJECT"): Promise<any> => {
+    return apiRequest(`/invitations/${invitationId}/respond`, {
+      method: "POST",
+      body: JSON.stringify({ action }),
+    });
+  },
+
+  getTournamentTeams: async (tournamentId: string): Promise<any[]> => {
+    const res = await apiRequest<{ success: boolean; teams: any[] }>(`/tournaments/${tournamentId}/teams`, { method: "GET" }, { success: true, teams: [] });
+    return res.teams || [];
+  },
+
   getRegistrations: async (params?: { tournamentId?: string; status?: string; search?: string }): Promise<RegistrationItem[]> => {
     const query = new URLSearchParams();
     if (params?.tournamentId) query.set("tournamentId", params.tournamentId);
@@ -94,3 +153,14 @@ export const tournamentsApi = {
     return res.json();
   },
 };
+
+export const getMyTournaments = tournamentsApi.getMyTournaments;
+export const submitPayment = tournamentsApi.submitPayment;
+export const searchPlayers = tournamentsApi.searchPlayers;
+export const invitePlayer = tournamentsApi.invitePlayer;
+export const removePlayer = tournamentsApi.removePlayer;
+export const getNotifications = tournamentsApi.getNotifications;
+export const markNotificationRead = tournamentsApi.markNotificationRead;
+export const markAllNotificationsRead = tournamentsApi.markAllNotificationsRead;
+export const respondToInvitation = tournamentsApi.respondToInvitation;
+export const getTournamentTeams = tournamentsApi.getTournamentTeams;
