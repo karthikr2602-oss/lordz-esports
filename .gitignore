@@ -40,3 +40,7 @@ dist-ssr
 uploads/
 **/uploads/
 server/uploads/lordz-*
+
+# Generated Prisma Client
+server/src/generated/
+**/src/generated/
