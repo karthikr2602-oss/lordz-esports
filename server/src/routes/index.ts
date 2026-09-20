@@ -332,6 +332,6 @@ router.delete(
 );
 
 // ================= UPLOAD ROUTE =================
-router.post("/upload", authenticate, uploadCtrl.handleUpload);
+router.post("/upload", optionalAuth, uploadCtrl.handleUpload);
 
 export default router;

@@ -58,6 +58,9 @@ const uploadDir = process.env.VERCEL
   : path.join(process.cwd(), "uploads");
 app.use("/uploads", express.static(uploadDir));
 
+const playersDir = path.join(process.cwd(), "..", "public", "players");
+app.use("/players", express.static(playersDir));
+
 // Health check endpoint
 app.get("/health", (_req, res) => {
   res.json({
