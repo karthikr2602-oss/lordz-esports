@@ -12,6 +12,7 @@ import {
   Award,
   Info,
   Home,
+  Vote,
 } from "lucide-react";
 import logoImg from "../../assets/lordz-logo.png";
 import { GoldButton } from "../common/GoldButton";
@@ -30,6 +31,8 @@ const navLinks = [
   { name: "HOME", path: "/", icon: Home },
   { name: "TOURNAMENTS", path: "/tournaments", icon: Trophy },
   { name: "PLAYERS", path: "/players", icon: Users },
+  { name: "VOTING", path: "/voting", icon: Vote },
+  { name: "TEAMS", path: "/teams", icon: Users },
   { name: "PRODUCTS", path: "/products", icon: Shirt },
   { name: "BRAND PARTNERS", path: "/partners", icon: Handshake },
   { name: "PARTNER WITH US", path: "/partner-with-us", icon: Award },

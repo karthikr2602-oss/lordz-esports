@@ -6,7 +6,6 @@ import {
   Users,
   PackageCheck,
   TrendingUp,
-  Sparkles,
   ArrowUpRight,
   Plus,
   Radio,

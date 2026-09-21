@@ -20,6 +20,7 @@ import * as analyticsCtrl from "../controllers/analyticsController.js";
 import * as userCtrl from "../controllers/userController.js";
 import * as uploadCtrl from "../controllers/uploadController.js";
 import * as planCtrl from "../controllers/partnerPlanController.js";
+import * as votingCtrl from "../controllers/votingController.js";
 
 const router = Router();
 
@@ -450,5 +451,55 @@ router.delete(
 
 // ================= UPLOAD ROUTE =================
 router.post("/upload", optionalAuth, uploadCtrl.handleUpload);
+
+// ================= VOTING ROUTES =================
+// Public
+router.get("/voting/active", optionalAuth, votingCtrl.getActiveVotingEvent);
+router.get("/voting/events/:id", optionalAuth, votingCtrl.getVotingEventById);
+router.post("/voting/events/:id/vote", authenticate, votingCtrl.submitVote);
+
+// Admin
+router.get(
+  "/admin/voting/events",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR", "TOURNAMENT_ADMIN"),
+  votingCtrl.getAllVotingEventsAdmin
+);
+router.post(
+  "/admin/voting/events",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR", "TOURNAMENT_ADMIN"),
+  votingCtrl.createVotingEventAdmin
+);
+router.get(
+  "/admin/voting/events/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR", "TOURNAMENT_ADMIN"),
+  votingCtrl.getVotingEventAdminById
+);
+router.put(
+  "/admin/voting/events/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR", "TOURNAMENT_ADMIN"),
+  votingCtrl.updateVotingEventAdmin
+);
+router.put(
+  "/admin/voting/events/:id/status",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR", "TOURNAMENT_ADMIN"),
+  votingCtrl.updateVotingEventStatusAdmin
+);
+router.get(
+  "/admin/voting/events/:id/results",
+  authenticate,
+  requireRole("SUPER_ADMIN", "CONTENT_EDITOR", "TOURNAMENT_ADMIN"),
+  votingCtrl.getVotingEventResultsAdmin
+);
+router.delete(
+  "/admin/voting/events/:id",
+  authenticate,
+  requireRole("SUPER_ADMIN"),
+  votingCtrl.deleteVotingEventAdmin
+);
 
 export default router;

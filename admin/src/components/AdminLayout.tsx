@@ -20,7 +20,8 @@ import {
   X,
   Radio,
   Clock,
-  ChevronRight
+  ChevronRight,
+  Vote
 } from "lucide-react";
 
 interface NavGroup {
@@ -52,6 +53,7 @@ const navGroups: NavGroup[] = [
     group: "ROSTERS & TALENT",
     items: [
       { name: "Pro Athletes", path: "/players", icon: Users },
+      { name: "Player Voting", path: "/voting", icon: Vote, badge: "New" },
     ],
   },
   {

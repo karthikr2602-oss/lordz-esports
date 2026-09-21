@@ -20,6 +20,8 @@ import { AdminSettingsPage } from "./pages/AdminSettingsPage";
 import { AdminUsersPage } from "./pages/AdminUsersPage";
 
 import { AdminTournamentDetailPage } from "./pages/AdminTournamentDetailPage";
+import { AdminVotingPage } from "./pages/AdminVotingPage";
+import { AdminVotingDetailPage } from "./pages/AdminVotingDetailPage";
 
 export const App: React.FC = () => {
   const basename = window.location.pathname.startsWith("/admin") ? "/admin" : "/";
@@ -47,6 +49,8 @@ export const App: React.FC = () => {
             <Route path="tournaments/:tournamentId" element={<AdminTournamentDetailPage />} />
             <Route path="registrations" element={<AdminRegistrationsPage />} />
             <Route path="players" element={<AdminPlayersPage />} />
+            <Route path="voting" element={<AdminVotingPage />} />
+            <Route path="voting/:id" element={<AdminVotingDetailPage />} />
             <Route path="merchandise" element={<AdminMerchandisePage />} />
             <Route path="orders" element={<AdminOrdersPage />} />
             <Route path="news" element={<AdminNewsPage />} />
@@ -63,6 +67,8 @@ export const App: React.FC = () => {
               <Route path="tournaments/:tournamentId" element={<AdminTournamentDetailPage />} />
               <Route path="registrations" element={<AdminRegistrationsPage />} />
               <Route path="players" element={<AdminPlayersPage />} />
+              <Route path="voting" element={<AdminVotingPage />} />
+              <Route path="voting/:id" element={<AdminVotingDetailPage />} />
               <Route path="merchandise" element={<AdminMerchandisePage />} />
               <Route path="orders" element={<AdminOrdersPage />} />
               <Route path="news" element={<AdminNewsPage />} />
