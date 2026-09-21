@@ -325,7 +325,7 @@ export const VotingPage = () => {
                       </span>
                     </div>
                     <h3 className="font-display font-black text-lg sm:text-xl text-white uppercase tracking-wider">
-                      You voted for {votedNominee.player.ign}
+                      You voted for {votedNominee.name || votedNominee.player?.ign}
                     </h3>
                     <p className="text-xs text-gray-400 font-body">
                       One verified vote per athlete account is strictly enforced. Thank you for making your voice heard!
@@ -338,7 +338,7 @@ export const VotingPage = () => {
                     Athlete Choice
                   </span>
                   <span className="font-heading font-black text-sm text-[#FFBE32] uppercase">
-                    {votedNominee.player.realName}
+                    {votedNominee.team || votedNominee.name || votedNominee.player?.realName}
                   </span>
                 </div>
               </motion.div>
@@ -364,11 +364,15 @@ export const VotingPage = () => {
               {event.nominees.map((nominee, index) => {
                 const isSelected = selectedNomineeId === nominee.id;
                 const isUserVotedThis = event.userVotingStatus?.votedNomineeId === nominee.id;
-                const player = nominee.player;
+                const candidateName = nominee.name || nominee.player?.ign || "Candidate";
+                const candidateRole = nominee.role || nominee.player?.role || "ATHLETE";
+                const candidateTeam = nominee.team || nominee.player?.team || "LORDZ ESPORTS";
+                const candidateBio = nominee.bio || nominee.player?.featuredQuote || nominee.player?.about || "";
                 const imgUrl =
-                  player.avatarUrl ||
-                  player.image ||
-                  (player.ign === "BEAST" ? "/players/player-beast.jpg" : "/players/player-shadow.jpg");
+                  nominee.imageUrl ||
+                  nominee.player?.avatarUrl ||
+                  nominee.player?.image ||
+                  "/players/player-beast.jpg";
 
                 return (
                   <motion.div
@@ -411,8 +415,8 @@ export const VotingPage = () => {
                       {/* Card Header: Role & Radio Selector */}
                       <div className="flex items-center justify-between mb-3 z-10">
                         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-black/70 border border-white/10 text-[10px] font-heading font-bold uppercase tracking-wider text-gray-300">
-                          {getRoleIcon(player.role)}
-                          <span>{player.role}</span>
+                          {getRoleIcon(candidateRole)}
+                          <span>{candidateRole}</span>
                         </div>
 
                         {/* Radio Checkmark Circle */}
@@ -431,20 +435,13 @@ export const VotingPage = () => {
                       <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-black/70 border border-white/5 mb-4 group-hover:border-[#FFBE32]/40 transition-all shadow-inner">
                         <img
                           src={imgUrl}
-                          alt={`${player.ign} - Lordz Esports Nominee`}
+                          alt={`${candidateName} - Nominee`}
                           className="h-full w-full object-cover object-top filter contrast-105 group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
                             (e.target as HTMLElement).style.display = "none";
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E] via-black/25 to-transparent opacity-90" />
-
-                        {/* Jersey Number Anchor */}
-                        {player.jerseyNumber && (
-                          <div className="absolute top-2.5 left-2.5 font-display text-xl font-black text-white/30 tracking-tighter pointer-events-none">
-                            #{player.jerseyNumber}
-                          </div>
-                        )}
 
                         {/* Selected or Voted Label */}
                         {isUserVotedThis ? (
@@ -462,19 +459,19 @@ export const VotingPage = () => {
                       <div className="space-y-1">
                         <div className="flex items-baseline justify-between gap-2">
                           <h4 className="font-display font-black text-xl text-white uppercase tracking-wider group-hover:text-[#FFBE32] transition-colors">
-                            {player.ign}
+                            {candidateName}
                           </h4>
                           <span className="text-[10px] font-mono text-[#FFBE32] uppercase">
-                            {player.game || "FF MAX"}
+                            {candidateTeam}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-400 font-body">{player.realName}</p>
+                        <p className="text-xs text-gray-400 font-body">{candidateRole}</p>
                       </div>
 
                       {/* Player Quote / Bio */}
-                      {(player.featuredQuote || player.about) && (
+                      {candidateBio && (
                         <p className="mt-3 text-[11px] text-gray-400 font-body line-clamp-2 leading-relaxed italic border-l border-[#FFBE32]/40 pl-2">
-                          "{player.featuredQuote || player.about}"
+                          "{candidateBio}"
                         </p>
                       )}
                     </div>
@@ -508,11 +505,12 @@ export const VotingPage = () => {
                     {selectedNominee ? (
                       <img
                         src={
-                          selectedNominee.player.avatarUrl ||
-                          selectedNominee.player.image ||
+                          selectedNominee.imageUrl ||
+                          selectedNominee.player?.avatarUrl ||
+                          selectedNominee.player?.image ||
                           "/players/player-beast.jpg"
                         }
-                        alt={selectedNominee.player.ign}
+                        alt={selectedNominee.name || selectedNominee.player?.ign || "Candidate"}
                         className="h-full w-full object-cover object-top"
                       />
                     ) : (
@@ -526,11 +524,13 @@ export const VotingPage = () => {
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="font-display font-black text-lg text-white uppercase tracking-wider">
-                        {selectedNominee ? selectedNominee.player.ign : "NO ATHLETE SELECTED"}
+                        {selectedNominee
+                          ? selectedNominee.name || selectedNominee.player?.ign
+                          : "NO ATHLETE SELECTED"}
                       </span>
                       {selectedNominee && (
                         <span className="text-xs font-mono text-[#FFBE32]">
-                          ({selectedNominee.player.role})
+                          ({selectedNominee.role || selectedNominee.player?.role || "ATHLETE"})
                         </span>
                       )}
                     </div>

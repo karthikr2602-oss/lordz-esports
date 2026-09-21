@@ -1,14 +1,36 @@
 import { apiRequest } from "./client";
-import type { Player } from "../data/players";
+
+export interface VotingCandidateInput {
+  id?: string;
+  name: string;
+  role?: string;
+  team?: string;
+  imageUrl?: string | null;
+  bio?: string | null;
+}
 
 export interface VotingNominee {
   id: string;
   votingEventId: string;
-  playerId: string;
+  playerId?: string;
+  name: string;
+  role?: string;
+  team?: string;
+  imageUrl?: string | null;
+  bio?: string | null;
   displayOrder: number;
   voteCount?: number;
   percentage?: number;
-  player: Player;
+  player?: {
+    id: string;
+    ign: string;
+    realName: string;
+    role: string;
+    team: string;
+    image?: string;
+    avatarUrl?: string;
+    bio?: string;
+  };
 }
 
 export interface VotingEvent {
@@ -36,9 +58,22 @@ export interface LeaderboardEntry {
   rank: number;
   nomineeId: string;
   playerId: string;
+  name: string;
+  role?: string;
+  team?: string;
+  imageUrl?: string | null;
   votes: number;
   percentage: number;
-  player: Player;
+  player: {
+    id: string;
+    ign: string;
+    realName: string;
+    role: string;
+    team: string;
+    image?: string;
+    avatarUrl?: string;
+    bio?: string;
+  };
 }
 
 export interface VotingResultsData {
@@ -61,7 +96,8 @@ export interface CreateVotingEventPayload {
   endDate: string;
   status?: "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED";
   isLiveResults?: boolean;
-  playerIds: string[];
+  nominees: VotingCandidateInput[];
+  playerIds?: string[];
 }
 
 export const votingApi = {

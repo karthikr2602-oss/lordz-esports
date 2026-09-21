@@ -3,20 +3,40 @@ import { z } from "zod";
 import { prisma } from "../config/prisma.js";
 import { AuthenticatedRequest } from "../middleware/auth.js";
 
-function formatPlayerOutput(p: any) {
-  if (!p) return null;
-  let instagram = "";
-  if (p.avatarBg?.startsWith("insta:")) {
-    instagram = p.avatarBg.replace("insta:", "");
-  } else if (p.instagram) {
-    instagram = p.instagram;
-  }
+function formatNomineeHelper(n: any, canExposeResults: boolean, totalVotes: number) {
+  const voteCount = canExposeResults ? n._count.votes : undefined;
+  const percentage =
+    canExposeResults && totalVotes > 0
+      ? Math.round((n._count.votes / totalVotes) * 1000) / 10
+      : canExposeResults
+      ? 0
+      : undefined;
+
+  const playerObj = {
+    id: n.id,
+    ign: n.name,
+    realName: n.name,
+    role: n.role || "ATHLETE",
+    team: n.team || "LORDZ ESPORTS",
+    image: n.imageUrl || "",
+    avatarUrl: n.imageUrl || "",
+    bio: n.bio || "",
+    about: n.bio || "",
+  };
 
   return {
-    ...p,
-    about: p.about || p.featuredQuote || "",
-    instagram: instagram || "",
-    image: p.avatarUrl || "",
+    id: n.id,
+    votingEventId: n.votingEventId,
+    playerId: n.playerId || n.id,
+    name: n.name,
+    role: n.role || "ATHLETE",
+    team: n.team || "LORDZ ESPORTS",
+    imageUrl: n.imageUrl || "",
+    bio: n.bio || "",
+    displayOrder: n.displayOrder,
+    voteCount,
+    percentage,
+    player: playerObj,
   };
 }
 
@@ -49,7 +69,6 @@ export const getActiveVotingEvent = async (
         nominees: {
           orderBy: { displayOrder: "asc" },
           include: {
-            player: true,
             _count: {
               select: { votes: true },
             },
@@ -96,25 +115,10 @@ export const getActiveVotingEvent = async (
     const canExposeResults = event.isLiveResults || isClosedOrExpired;
     const totalVotes = event._count.votes;
 
-    // Map nominees with clean player profile info
-    const formattedNominees = event.nominees.map((n: any) => {
-      const voteCount = canExposeResults ? n._count.votes : undefined;
-      const percentage = canExposeResults && totalVotes > 0
-        ? Math.round((n._count.votes / totalVotes) * 1000) / 10
-        : canExposeResults
-        ? 0
-        : undefined;
-
-      return {
-        id: n.id,
-        votingEventId: n.votingEventId,
-        playerId: n.playerId,
-        displayOrder: n.displayOrder,
-        voteCount,
-        percentage,
-        player: formatPlayerOutput(n.player),
-      };
-    });
+    // Map nominees with manual candidate info
+    const formattedNominees = event.nominees.map((n: any) =>
+      formatNomineeHelper(n, canExposeResults, totalVotes)
+    );
 
     res.json({
       success: true,
@@ -164,7 +168,6 @@ export const getVotingEventById = async (
         nominees: {
           orderBy: { displayOrder: "asc" },
           include: {
-            player: true,
             _count: { select: { votes: true } },
           },
         },
@@ -178,7 +181,8 @@ export const getVotingEventById = async (
     }
 
     // Public users can only see PUBLISHED, CLOSED, or ARCHIVED events
-    const isAdmin = req.user && ["ADMIN", "SUPER_ADMIN", "TOURNAMENT_ADMIN", "CONTENT_EDITOR"].includes(req.user.role);
+    const isAdmin =
+      req.user && ["ADMIN", "SUPER_ADMIN", "TOURNAMENT_ADMIN", "CONTENT_EDITOR"].includes(req.user.role);
     if (event.status === "DRAFT" && !isAdmin) {
       res.status(403).json({ success: false, message: "Event not available for public viewing" });
       return;
@@ -208,19 +212,9 @@ export const getVotingEventById = async (
     const canExposeResults = event.isLiveResults || isClosedOrExpired || isAdmin;
     const totalVotes = event._count.votes;
 
-    const formattedNominees = event.nominees.map((n: any) => ({
-      id: n.id,
-      votingEventId: n.votingEventId,
-      playerId: n.playerId,
-      displayOrder: n.displayOrder,
-      voteCount: canExposeResults ? n._count.votes : undefined,
-      percentage: canExposeResults && totalVotes > 0
-        ? Math.round((n._count.votes / totalVotes) * 1000) / 10
-        : canExposeResults
-        ? 0
-        : undefined,
-      player: formatPlayerOutput(n.player),
-    }));
+    const formattedNominees = event.nominees.map((n: any) =>
+      formatNomineeHelper(n, Boolean(canExposeResults), totalVotes)
+    );
 
     res.json({
       success: true,
@@ -253,7 +247,7 @@ export const getVotingEventById = async (
 
 /**
  * POST /api/voting/events/:id/vote
- * Submits an authenticated user's vote for a nominated player.
+ * Submits an authenticated user's vote for a nominated candidate.
  * Strictly enforces 1 vote per user per event via backend validation & database constraint.
  */
 export const submitVote = async (
@@ -312,13 +306,10 @@ export const submitVote = async (
         id: nomineeId,
         votingEventId: event.id,
       },
-      include: {
-        player: true,
-      },
     });
 
     if (!nominee) {
-      res.status(400).json({ success: false, message: "Nominated player was not found in this event." });
+      res.status(400).json({ success: false, message: "Nominated candidate was not found in this event." });
       return;
     }
 
@@ -351,17 +342,16 @@ export const submitVote = async (
 
     res.status(201).json({
       success: true,
-      message: `Vote successfully cast for ${nominee.player.ign}!`,
+      message: `Vote successfully cast for ${nominee.name}!`,
       data: {
         voteId: newVote.id,
         nomineeId: nominee.id,
-        playerIgn: nominee.player.ign,
+        playerIgn: nominee.name,
         votedAt: newVote.createdAt,
       },
     });
   } catch (error: any) {
     if (error.code === "P2002") {
-      // Prisma unique constraint violation (votingEventId_userId)
       res.status(409).json({
         success: false,
         message: "Duplicate vote prevented: You have already voted in this event.",
@@ -376,17 +366,32 @@ export const submitVote = async (
 // ADMIN ENDPOINTS
 // ==========================================
 
-const createEventSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  slug: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  bannerImage: z.string().optional().nullable(),
-  startDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid start date"),
-  endDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid end date"),
-  status: z.enum(["DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"]).default("DRAFT"),
-  isLiveResults: z.boolean().default(false),
-  playerIds: z.array(z.string()).min(1, "At least one player must be nominated"),
+const nomineeInputSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Candidate name is required"),
+  role: z.string().optional().default("ATHLETE"),
+  team: z.string().optional().default("LORDZ ESPORTS"),
+  imageUrl: z.string().optional().nullable(),
+  bio: z.string().optional().nullable(),
 });
+
+const createEventSchema = z
+  .object({
+    title: z.string().min(3, "Title must be at least 3 characters"),
+    slug: z.string().optional().nullable(),
+    description: z.string().optional().nullable(),
+    bannerImage: z.string().optional().nullable(),
+    startDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid start date"),
+    endDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid end date"),
+    status: z.enum(["DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"]).default("DRAFT"),
+    isLiveResults: z.boolean().default(false),
+    nominees: z.array(nomineeInputSchema).optional(),
+    playerIds: z.array(z.string()).optional(),
+  })
+  .refine(
+    (data) => (data.nominees && data.nominees.length > 0) || (data.playerIds && data.playerIds.length > 0),
+    { message: "Please add at least one candidate for this event.", path: ["nominees"] }
+  );
 
 const updateEventSchema = z.object({
   title: z.string().min(3).optional(),
@@ -397,6 +402,7 @@ const updateEventSchema = z.object({
   endDate: z.string().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"]).optional(),
   isLiveResults: z.boolean().optional(),
+  nominees: z.array(nomineeInputSchema).optional(),
   playerIds: z.array(z.string()).optional(),
 });
 
@@ -415,7 +421,6 @@ export const getAllVotingEventsAdmin = async (
       include: {
         nominees: {
           include: {
-            player: true,
             _count: { select: { votes: true } },
           },
         },
@@ -426,13 +431,12 @@ export const getAllVotingEventsAdmin = async (
     });
 
     const formatted = events.map((e: any) => {
-      // Find leading nominee if any votes exist
       let leadingNominee = null;
       if (e._count.votes > 0) {
-        const sorted = [...e.nominees].sort((a, b) => b._count.votes - a._count.votes);
+        const sorted = [...e.nominees].sort((a: any, b: any) => b._count.votes - a._count.votes);
         if (sorted.length > 0 && sorted[0]._count.votes > 0) {
           leadingNominee = {
-            ign: sorted[0].player.ign,
+            ign: sorted[0].name,
             votes: sorted[0]._count.votes,
           };
         }
@@ -456,7 +460,10 @@ export const getAllVotingEventsAdmin = async (
       };
     });
 
-    res.json({ success: true, data: formatted });
+    res.json({
+      success: true,
+      data: formatted,
+    });
   } catch (error) {
     next(error);
   }
@@ -464,7 +471,7 @@ export const getAllVotingEventsAdmin = async (
 
 /**
  * GET /api/admin/voting/events/:id
- * Admin detail view for a specific event.
+ * Admin detail view for a specific event with its candidates.
  */
 export const getVotingEventAdminById = async (
   req: AuthenticatedRequest,
@@ -480,7 +487,6 @@ export const getVotingEventAdminById = async (
         nominees: {
           orderBy: { displayOrder: "asc" },
           include: {
-            player: true,
             _count: { select: { votes: true } },
           },
         },
@@ -494,15 +500,9 @@ export const getVotingEventAdminById = async (
     }
 
     const totalVotes = event._count.votes;
-    const formattedNominees = event.nominees.map((n: any) => ({
-      id: n.id,
-      votingEventId: n.votingEventId,
-      playerId: n.playerId,
-      displayOrder: n.displayOrder,
-      voteCount: n._count.votes,
-      percentage: totalVotes > 0 ? Math.round((n._count.votes / totalVotes) * 1000) / 10 : 0,
-      player: formatPlayerOutput(n.player),
-    }));
+    const formattedNominees = event.nominees.map((n: any) =>
+      formatNomineeHelper(n, true, totalVotes)
+    );
 
     res.json({
       success: true,
@@ -519,7 +519,7 @@ export const getVotingEventAdminById = async (
 
 /**
  * POST /api/admin/voting/events
- * Admin creates a new voting event with nominees.
+ * Admin creates a new voting event with manually entered candidate players.
  */
 export const createVotingEventAdmin = async (
   req: AuthenticatedRequest,
@@ -537,13 +537,23 @@ export const createVotingEventAdmin = async (
       return;
     }
 
-    // Ensure all player IDs exist
-    const validPlayers = await prisma.player.findMany({
-      where: { id: { in: parsed.playerIds } },
-    });
+    // Determine candidates list
+    let candidateList = parsed.nominees || [];
+    if (candidateList.length === 0 && parsed.playerIds && parsed.playerIds.length > 0) {
+      const showcasePlayers = await prisma.player.findMany({
+        where: { id: { in: parsed.playerIds } },
+      });
+      candidateList = showcasePlayers.map((p: any) => ({
+        name: p.ign,
+        role: p.role,
+        team: p.team,
+        imageUrl: p.avatarUrl || null,
+        bio: p.featuredQuote || null,
+      }));
+    }
 
-    if (validPlayers.length !== parsed.playerIds.length) {
-      res.status(400).json({ success: false, message: "One or more selected players could not be found." });
+    if (candidateList.length === 0) {
+      res.status(400).json({ success: false, message: "At least one candidate player is required." });
       return;
     }
 
@@ -569,12 +579,17 @@ export const createVotingEventAdmin = async (
         },
       });
 
-      // Insert nominees
-      for (let i = 0; i < parsed.playerIds.length; i++) {
+      // Insert candidates
+      for (let i = 0; i < candidateList.length; i++) {
+        const nom = candidateList[i];
         await tx.votingNominee.create({
           data: {
             votingEventId: event.id,
-            playerId: parsed.playerIds[i],
+            name: nom.name.trim(),
+            role: nom.role?.trim() || "ATHLETE",
+            team: nom.team?.trim() || "LORDZ ESPORTS",
+            imageUrl: nom.imageUrl?.trim() || null,
+            bio: nom.bio?.trim() || null,
             displayOrder: i,
           },
         });
@@ -585,7 +600,7 @@ export const createVotingEventAdmin = async (
 
     res.status(201).json({
       success: true,
-      message: "Voting event created successfully",
+      message: "Voting event successfully created with candidates!",
       data: newEvent,
     });
   } catch (error) {
@@ -595,7 +610,7 @@ export const createVotingEventAdmin = async (
 
 /**
  * PUT /api/admin/voting/events/:id
- * Admin updates voting event details and nominees.
+ * Admin updates an existing voting event and its candidate nominees.
  */
 export const updateVotingEventAdmin = async (
   req: AuthenticatedRequest,
@@ -612,7 +627,7 @@ export const updateVotingEventAdmin = async (
     });
 
     if (!event) {
-      res.status(404).json({ success: false, message: "Voting event not found" });
+      res.status(404).json({ success: false, message: "Voting event not found." });
       return;
     }
 
@@ -645,38 +660,46 @@ export const updateVotingEventAdmin = async (
         data: updateData,
       });
 
-      // Update nominees if provided
-      if (parsed.playerIds && Array.isArray(parsed.playerIds)) {
-        const existingPlayerIds = event.nominees.map((n: any) => n.playerId);
-        
-        // Remove nominees that were deselected (if no votes recorded for them)
+      // Update candidates if provided
+      if (parsed.nominees && Array.isArray(parsed.nominees)) {
+        const submittedNomineeIds = parsed.nominees
+          .map((n) => n.id)
+          .filter((nId): nId is string => Boolean(nId));
+
+        // Delete nominees removed by admin
         for (const existingNominee of event.nominees) {
-          if (!parsed.playerIds.includes(existingNominee.playerId)) {
-            const votesCount = await tx.vote.count({
-              where: { nomineeId: existingNominee.id },
-            });
-            if (votesCount === 0) {
-              await tx.votingNominee.delete({ where: { id: existingNominee.id } });
-            }
+          if (!submittedNomineeIds.includes(existingNominee.id)) {
+            await tx.vote.deleteMany({ where: { nomineeId: existingNominee.id } });
+            await tx.votingNominee.delete({ where: { id: existingNominee.id } });
           }
         }
 
-        // Add newly selected nominees
-        for (let i = 0; i < parsed.playerIds.length; i++) {
-          const pId = parsed.playerIds[i];
-          if (!existingPlayerIds.includes(pId)) {
-            await tx.votingNominee.create({
+        // Upsert nominees
+        for (let i = 0; i < parsed.nominees.length; i++) {
+          const nom = parsed.nominees[i];
+          if (nom.id && event.nominees.some((e: any) => e.id === nom.id)) {
+            await tx.votingNominee.update({
+              where: { id: nom.id },
               data: {
-                votingEventId: id,
-                playerId: pId,
+                name: nom.name.trim(),
+                role: nom.role?.trim() || "ATHLETE",
+                team: nom.team?.trim() || "LORDZ ESPORTS",
+                imageUrl: nom.imageUrl?.trim() || null,
+                bio: nom.bio?.trim() || null,
                 displayOrder: i,
               },
             });
           } else {
-            // Update order
-            await tx.votingNominee.updateMany({
-              where: { votingEventId: id, playerId: pId },
-              data: { displayOrder: i },
+            await tx.votingNominee.create({
+              data: {
+                votingEventId: id,
+                name: nom.name.trim(),
+                role: nom.role?.trim() || "ATHLETE",
+                team: nom.team?.trim() || "LORDZ ESPORTS",
+                imageUrl: nom.imageUrl?.trim() || null,
+                bio: nom.bio?.trim() || null,
+                displayOrder: i,
+              },
             });
           }
         }
@@ -727,7 +750,7 @@ export const updateVotingEventStatusAdmin = async (
     if (status === "PUBLISHED" && event._count.nominees === 0) {
       res.status(400).json({
         success: false,
-        message: "Cannot publish an event without any nominated players.",
+        message: "Cannot publish an event without any candidates.",
       });
       return;
     }
@@ -764,7 +787,6 @@ export const getVotingEventResultsAdmin = async (
       include: {
         nominees: {
           include: {
-            player: true,
             _count: { select: { votes: true } },
           },
         },
@@ -780,13 +802,13 @@ export const getVotingEventResultsAdmin = async (
     const totalVotes = event._count.votes;
 
     // Sort by vote count descending
-    const sortedNominees = [...event.nominees].sort((a, b) => b._count.votes - a._count.votes);
+    const sortedNominees = [...event.nominees].sort((a: any, b: any) => b._count.votes - a._count.votes);
 
     // Assign rank with deterministic tie handling
     let currentRank = 1;
     let prevVotes: number | null = null;
 
-    const leaderboard = sortedNominees.map((n, idx) => {
+    const leaderboard = sortedNominees.map((n: any, idx: number) => {
       const votes = n._count.votes;
       if (prevVotes !== null && votes < prevVotes) {
         currentRank = idx + 1;
@@ -794,14 +816,36 @@ export const getVotingEventResultsAdmin = async (
       prevVotes = votes;
 
       const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 1000) / 10 : 0;
+      const playerObj = {
+        id: n.id,
+        ign: n.name,
+        realName: n.name,
+        role: n.role || "ATHLETE",
+        team: n.team || "LORDZ ESPORTS",
+        image: n.imageUrl || "",
+        avatarUrl: n.imageUrl || "",
+        bio: n.bio || "",
+      };
 
       return {
         rank: currentRank,
         nomineeId: n.id,
-        playerId: n.playerId,
+        playerId: n.playerId || n.id,
+        name: n.name,
+        role: n.role || "ATHLETE",
+        team: n.team || "LORDZ ESPORTS",
+        imageUrl: n.imageUrl || "",
         votes,
         percentage,
-        player: formatPlayerOutput(n.player),
+        nominee: {
+          id: n.id,
+          name: n.name,
+          role: n.role || "ATHLETE",
+          team: n.team || "LORDZ ESPORTS",
+          imageUrl: n.imageUrl || "",
+          bio: n.bio || "",
+        },
+        player: playerObj,
       };
     });
 

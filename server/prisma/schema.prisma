@@ -383,7 +383,6 @@ model Player {
   sortOrder     Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  votingNominees VotingNominee[]
 }
 
 model Legend {
@@ -588,15 +587,17 @@ model VotingNominee {
   id            String        @id @default(uuid())
   votingEventId String
   votingEvent   VotingEvent   @relation(fields: [votingEventId], references: [id], onDelete: Cascade)
-  playerId      String
-  player        Player        @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId      String?
+  name          String        @default("")
+  role          String?       @default("ATHLETE")
+  team          String?       @default("LORDZ ESPORTS")
+  imageUrl      String?
+  bio           String?
   displayOrder  Int           @default(0)
   createdAt     DateTime      @default(now())
   votes         Vote[]
 
-  @@unique([votingEventId, playerId])
   @@index([votingEventId])
-  @@index([playerId])
 }
 
 model Vote {

@@ -4,7 +4,12 @@ import type { Player } from "../data/players";
 export interface VotingNominee {
   id: string;
   votingEventId: string;
-  playerId: string;
+  playerId?: string;
+  name: string;
+  role?: string;
+  team?: string;
+  imageUrl?: string | null;
+  bio?: string | null;
   displayOrder: number;
   voteCount?: number;
   percentage?: number;

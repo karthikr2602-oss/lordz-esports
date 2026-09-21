@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { votingApi, type VotingEvent } from "../api/voting";
-import { playersApi } from "../api/players";
-import { type Player, playersData } from "../data/players";
+import { adminApi } from "../api/admin";
 import {
   Vote,
   Plus,
@@ -19,8 +18,19 @@ import {
   Flame,
   AlertTriangle,
   Loader2,
-  TrendingUp,
+  Upload,
+  Image as ImageIcon,
+  UserPlus,
 } from "lucide-react";
+
+interface CandidateDraft {
+  id?: string;
+  name: string;
+  role: string;
+  team: string;
+  imageUrl: string;
+  bio: string;
+}
 
 export const AdminVotingPage: React.FC = () => {
   const [events, setEvents] = useState<VotingEvent[]>([]);
@@ -34,40 +44,46 @@ export const AdminVotingPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Available Players for Nominee Picker
-  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
-  const [playerSearch, setPlayerSearch] = useState("");
+  // Upload states
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadingCandidateIdx, setUploadingCandidateIdx] = useState<number | null>(null);
+  const candidateFileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
   // Form State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    slug: string;
+    description: string;
+    bannerImage: string;
+    startDate: string;
+    endDate: string;
+    status: "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED";
+    isLiveResults: boolean;
+    nominees: CandidateDraft[];
+  }>({
     title: "",
     slug: "",
     description: "",
     bannerImage: "",
     startDate: "",
     endDate: "",
-    status: "DRAFT" as "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED",
+    status: "DRAFT",
     isLiveResults: false,
-    playerIds: [] as string[],
+    nominees: [],
   });
 
   // Delete Dialog State
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Load Events & Players
+  // Load Events
   const loadData = async () => {
     setLoading(true);
     try {
-      const [eventsRes, playersRes] = await Promise.all([
-        votingApi.getAll(),
-        playersApi.getAll().catch(() => playersData),
-      ]);
+      const eventsRes = await votingApi.getAll();
       setEvents(eventsRes || []);
-      setAllPlayers(playersRes && playersRes.length > 0 ? playersRes : playersData);
     } catch {
       setEvents([]);
-      setAllPlayers(playersData);
     } finally {
       setLoading(false);
     }
@@ -100,10 +116,24 @@ export const AdminVotingPage: React.FC = () => {
       startDate: toDatetimeLocal(now.toISOString()),
       endDate: toDatetimeLocal(nextWeek.toISOString()),
       status: "DRAFT",
-      isLiveResults: false,
-      playerIds: [],
+      isLiveResults: true,
+      nominees: [
+        {
+          name: "",
+          role: "IGL",
+          team: "LORDZ ESPORTS",
+          imageUrl: "",
+          bio: "",
+        },
+        {
+          name: "",
+          role: "RUSHER",
+          team: "LORDZ ESPORTS",
+          imageUrl: "",
+          bio: "",
+        },
+      ],
     });
-    setPlayerSearch("");
     setModalOpen(true);
   };
 
@@ -111,10 +141,27 @@ export const AdminVotingPage: React.FC = () => {
     setEditingEventId(event.id);
     setErrorMsg(null);
 
-    // Fetch complete event details to populate selected nominees
     try {
       const full = await votingApi.getById(event.id);
-      const existingPlayerIds = full.nominees?.map((n) => n.playerId) || [];
+      const candidates: CandidateDraft[] =
+        full.nominees && full.nominees.length > 0
+          ? full.nominees.map((n) => ({
+              id: n.id,
+              name: n.name || n.player?.ign || "",
+              role: n.role || n.player?.role || "ATHLETE",
+              team: n.team || n.player?.team || "LORDZ ESPORTS",
+              imageUrl: n.imageUrl || n.player?.avatarUrl || n.player?.image || "",
+              bio: n.bio || n.player?.bio || "",
+            }))
+          : [
+              {
+                name: "",
+                role: "IGL",
+                team: "LORDZ ESPORTS",
+                imageUrl: "",
+                bio: "",
+              },
+            ];
 
       setFormData({
         title: full.title,
@@ -125,7 +172,7 @@ export const AdminVotingPage: React.FC = () => {
         endDate: toDatetimeLocal(full.endDate),
         status: full.status,
         isLiveResults: full.isLiveResults,
-        playerIds: existingPlayerIds,
+        nominees: candidates,
       });
     } catch {
       setFormData({
@@ -137,24 +184,89 @@ export const AdminVotingPage: React.FC = () => {
         endDate: toDatetimeLocal(event.endDate),
         status: event.status,
         isLiveResults: event.isLiveResults,
-        playerIds: [],
+        nominees: [
+          {
+            name: "",
+            role: "ATHLETE",
+            team: "LORDZ ESPORTS",
+            imageUrl: "",
+            bio: "",
+          },
+        ],
       });
     }
 
-    setPlayerSearch("");
     setModalOpen(true);
   };
 
-  const handleTogglePlayer = (playerId: string) => {
+  // Candidate management helpers
+  const handleAddCandidate = () => {
+    setFormData((prev) => ({
+      ...prev,
+      nominees: [
+        ...prev.nominees,
+        {
+          name: "",
+          role: "RUSHER",
+          team: "LORDZ ESPORTS",
+          imageUrl: "",
+          bio: "",
+        },
+      ],
+    }));
+  };
+
+  const handleRemoveCandidate = (index: number) => {
     setFormData((prev) => {
-      const exists = prev.playerIds.includes(playerId);
+      if (prev.nominees.length <= 1) {
+        alert("A voting event must have at least one nominated candidate.");
+        return prev;
+      }
       return {
         ...prev,
-        playerIds: exists
-          ? prev.playerIds.filter((id) => id !== playerId)
-          : [...prev.playerIds, playerId],
+        nominees: prev.nominees.filter((_, idx) => idx !== index),
       };
     });
+  };
+
+  const handleCandidateChange = (
+    index: number,
+    field: keyof CandidateDraft,
+    value: string
+  ) => {
+    setFormData((prev) => {
+      const updated = [...prev.nominees];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, nominees: updated };
+    });
+  };
+
+  const handleCandidateUpload = async (index: number, file: File) => {
+    setUploadingCandidateIdx(index);
+    try {
+      const res = await adminApi.uploadImage(file);
+      setFormData((prev) => {
+        const updated = [...prev.nominees];
+        updated[index] = { ...updated[index], imageUrl: res.url };
+        return { ...prev, nominees: updated };
+      });
+    } catch (err: any) {
+      alert(err?.message || "Failed to upload image. You can also paste an image URL.");
+    } finally {
+      setUploadingCandidateIdx(null);
+    }
+  };
+
+  const handleBannerUpload = async (file: File) => {
+    setUploadingBanner(true);
+    try {
+      const res = await adminApi.uploadImage(file);
+      setFormData((prev) => ({ ...prev, bannerImage: res.url }));
+    } catch (err: any) {
+      alert(err?.message || "Failed to upload banner image.");
+    } finally {
+      setUploadingBanner(false);
+    }
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -173,8 +285,16 @@ export const AdminVotingPage: React.FC = () => {
       setErrorMsg("End date must be after the start date.");
       return;
     }
-    if (formData.playerIds.length === 0) {
-      setErrorMsg("Please select at least one nominated player.");
+
+    // Validate candidates
+    if (formData.nominees.length === 0) {
+      setErrorMsg("Please add at least one candidate for this voting event.");
+      return;
+    }
+
+    const hasEmptyName = formData.nominees.some((c) => !c.name.trim());
+    if (hasEmptyName) {
+      setErrorMsg("All candidates must have a Player / Candidate Name entered.");
       return;
     }
 
@@ -189,7 +309,14 @@ export const AdminVotingPage: React.FC = () => {
         endDate: new Date(formData.endDate).toISOString(),
         status: formData.status,
         isLiveResults: formData.isLiveResults,
-        playerIds: formData.playerIds,
+        nominees: formData.nominees.map((c) => ({
+          id: c.id,
+          name: c.name.trim(),
+          role: c.role.trim() || "ATHLETE",
+          team: c.team.trim() || "LORDZ ESPORTS",
+          imageUrl: c.imageUrl.trim() || null,
+          bio: c.bio.trim() || null,
+        })),
       };
 
       if (editingEventId) {
@@ -248,340 +375,293 @@ export const AdminVotingPage: React.FC = () => {
   // KPI Calculations
   const totalEventsCount = events.length;
   const publishedCount = events.filter((e) => e.status === "PUBLISHED").length;
-  const totalVotesCast = events.reduce((acc, curr) => acc + (curr.totalVotes || 0), 0);
-  const activeEvent = events.find((e) => e.status === "PUBLISHED");
-
-  // Filtered players for selector
-  const filteredPlayers = useMemo(() => {
-    if (!playerSearch.trim()) return allPlayers;
-    const q = playerSearch.toLowerCase();
-    return allPlayers.filter(
-      (p) =>
-        p.ign.toLowerCase().includes(q) ||
-        p.realName.toLowerCase().includes(q) ||
-        p.role.toLowerCase().includes(q)
-    );
-  }, [allPlayers, playerSearch]);
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "PUBLISHED":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-heading font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            PUBLISHED (LIVE)
-          </span>
-        );
-      case "DRAFT":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-heading font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-            <Clock className="h-3 w-3" />
-            DRAFT
-          </span>
-        );
-      case "CLOSED":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-heading font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
-            <CheckCircle2 className="h-3 w-3" />
-            CLOSED
-          </span>
-        );
-      case "ARCHIVED":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-heading font-bold bg-gray-500/10 text-gray-400 border border-gray-500/30">
-            <Archive className="h-3 w-3" />
-            ARCHIVED
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
+  const totalVotesAcrossAll = events.reduce((acc, curr) => acc + (curr.totalVotes || 0), 0);
 
   return (
     <div className="space-y-8 pb-16">
-      {/* Top Banner Header */}
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <div className="p-2 rounded-lg bg-[#FFBE32]/10 border border-[#FFBE32]/25 text-[#FFBE32]">
-              <Vote className="h-5 w-5" />
+          <div className="flex items-center gap-3 mb-1">
+            <div className="p-2 rounded-xl bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-[#FFBE32]">
+              <Vote className="h-6 w-6" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-display font-black text-white uppercase tracking-wider">
-              Player Voting <span className="text-[#FFBE32]">Management</span>
+              Community Voting Management
             </h1>
           </div>
-          <p className="text-sm text-gray-400 font-body">
-            Publish community voting polls, manage nominated pro athletes, and monitor live voting results.
+          <p className="text-xs sm:text-sm text-gray-400 font-body">
+            Publish community voting polls, manually add and manage candidate players, and track live fan voting.
           </p>
         </div>
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FFBE32] to-[#FFA000] text-black font-heading font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(255,190,50,0.4)] transition-all cursor-pointer shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FFBE32] to-[#FFA000] text-black font-heading font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(255,190,50,0.4)] transition-all cursor-pointer"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
-          Create Voting Event
+          <span>Create Voting Event</span>
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Events */}
-        <div className="bg-[#0D0D12] rounded-2xl border border-white/10 p-5 relative overflow-hidden group hover:border-[#FFBE32]/40 transition-all">
-          <div className="flex items-center justify-between mb-2">
+      {/* KPI Overview Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="bg-[#0C0C10] border border-white/10 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+          <div className="flex items-center justify-between">
             <span className="text-xs font-mono uppercase tracking-wider text-gray-400">Total Polls</span>
-            <Vote className="h-4 w-4 text-[#FFBE32]" />
+            <Vote className="h-5 w-5 text-gray-400" />
           </div>
-          <p className="text-3xl font-display font-black text-white">{totalEventsCount}</p>
-          <span className="text-[11px] text-gray-500 font-body">All-time community events</span>
+          <p className="text-3xl font-display font-black text-white mt-2">{totalEventsCount}</p>
+          <span className="text-[11px] text-gray-500 font-body">Configured voting events</span>
         </div>
 
-        {/* Live Event */}
-        <div className="bg-[#0D0D12] rounded-2xl border border-white/10 p-5 relative overflow-hidden group hover:border-emerald-500/40 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-mono uppercase tracking-wider text-gray-400">Active Live Poll</span>
-            <div className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+        <div className="bg-[#0C0C10] border border-white/10 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono uppercase tracking-wider text-emerald-400">Active / Published</span>
+            <Flame className="h-5 w-5 text-emerald-400" />
           </div>
-          <p className="text-3xl font-display font-black text-emerald-400">{publishedCount}</p>
-          <span className="text-[11px] text-gray-500 font-body truncate block">
-            {activeEvent ? activeEvent.title : "No live event currently"}
-          </span>
+          <p className="text-3xl font-display font-black text-emerald-400 mt-2">{publishedCount}</p>
+          <span className="text-[11px] text-gray-500 font-body">Currently live and accepting votes</span>
         </div>
 
-        {/* Total Votes Cast */}
-        <div className="bg-[#0D0D12] rounded-2xl border border-white/10 p-5 relative overflow-hidden group hover:border-[#FFBE32]/40 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-mono uppercase tracking-wider text-gray-400">Total Votes Cast</span>
-            <TrendingUp className="h-4 w-4 text-[#FFBE32]" />
+        <div className="bg-[#0C0C10] border border-white/10 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono uppercase tracking-wider text-[#FFBE32]">Total Fan Votes</span>
+            <Users className="h-5 w-5 text-[#FFBE32]" />
           </div>
-          <p className="text-3xl font-display font-black text-[#FFBE32]">{totalVotesCast.toLocaleString()}</p>
-          <span className="text-[11px] text-gray-500 font-body">Verified athlete fan votes</span>
-        </div>
-
-        {/* Leading Nominee */}
-        <div className="bg-[#0D0D12] rounded-2xl border border-white/10 p-5 relative overflow-hidden group hover:border-amber-400/40 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-mono uppercase tracking-wider text-gray-400">Leading Athlete</span>
-            <Flame className="h-4 w-4 text-[#FFBE32]" />
-          </div>
-          <p className="text-2xl font-display font-black text-white truncate">
-            {activeEvent?.leadingNominee?.ign || "Pending Votes"}
+          <p className="text-3xl font-display font-black text-[#FFBE32] mt-2">
+            {totalVotesAcrossAll.toLocaleString()}
           </p>
-          <span className="text-[11px] text-gray-500 font-body">
-            {activeEvent?.leadingNominee ? `${activeEvent.leadingNominee.votes} votes in current poll` : "Awaiting fan submissions"}
-          </span>
+          <span className="text-[11px] text-gray-500 font-body">Verified fan submissions recorded</span>
         </div>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-        {/* Status Pills */}
-        <div className="flex items-center gap-1.5 p-1 bg-[#0D0D12] rounded-xl border border-white/10 overflow-x-auto">
-          {["ALL", "PUBLISHED", "DRAFT", "CLOSED", "ARCHIVED"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setStatusFilter(tab)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-heading font-black tracking-wider uppercase transition-all whitespace-nowrap cursor-pointer ${
-                statusFilter === tab
-                  ? "bg-[#FFBE32] text-black shadow-[0_0_15px_rgba(255,190,50,0.3)]"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Search */}
-        <div className="relative min-w-[260px]">
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0A0A0D] p-4 rounded-2xl border border-white/10">
+        <div className="relative w-full sm:w-80">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search events by title..."
+            placeholder="Search events by title or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#0D0D12] border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32] transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-[#121217] border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
           />
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+          {(["ALL", "PUBLISHED", "DRAFT", "CLOSED", "ARCHIVED"] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                statusFilter === status
+                  ? "bg-[#FFBE32] text-black shadow-[0_0_15px_rgba(255,190,50,0.3)]"
+                  : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              {status}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Events Table / Cards */}
+      {/* Events Table / Card List */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-[#0D0D12] rounded-2xl border border-white/10">
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
           <Loader2 className="h-8 w-8 text-[#FFBE32] animate-spin mb-3" />
-          <span className="text-xs font-mono uppercase tracking-widest text-gray-400">Loading voting events...</span>
+          <span className="text-xs font-mono uppercase tracking-widest">Loading voting events...</span>
         </div>
       ) : filteredEvents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-[#0D0D12] rounded-2xl border border-white/10 text-center px-4">
-          <div className="p-4 rounded-full bg-white/5 border border-white/10 mb-4 text-gray-500">
-            <Vote className="h-10 w-10 text-gray-400" />
+        <div className="flex flex-col items-center justify-center py-20 bg-[#0C0C10] border border-white/10 rounded-2xl text-center p-6 space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#FFBE32]/10 border border-[#FFBE32]/25 flex items-center justify-center text-[#FFBE32]">
+            <Vote className="h-8 w-8" />
           </div>
-          <h3 className="font-display text-lg text-white uppercase tracking-wider mb-1">
-            No Voting Events Found
-          </h3>
-          <p className="text-xs text-gray-400 max-w-sm font-body mb-5">
-            {searchQuery || statusFilter !== "ALL"
-              ? "No events match the selected filter criteria. Try adjusting your search query."
-              : "Get started by creating your first community player voting event."}
-          </p>
-          <button
-            onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FFBE32] text-black text-xs font-heading font-black uppercase tracking-wider hover:bg-[#FFA000] cursor-pointer"
-          >
-            <Plus className="h-4 w-4 stroke-[3]" />
-            Create Event
-          </button>
+          <div className="space-y-1">
+            <h3 className="font-display font-black text-lg text-white uppercase tracking-wider">
+              No Voting Events Found
+            </h3>
+            <p className="text-xs text-gray-400 max-w-sm">
+              {searchQuery || statusFilter !== "ALL"
+                ? "No voting events matched your filter criteria."
+                : "Create your first community voting event with custom candidates!"}
+            </p>
+          </div>
+          {!searchQuery && statusFilter === "ALL" && (
+            <button
+              onClick={handleOpenCreate}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#FFBE32] text-black font-heading font-black text-xs uppercase tracking-wider"
+            >
+              <Plus className="h-4 w-4 stroke-[3]" />
+              <span>Create Event Now</span>
+            </button>
+          )}
         </div>
       ) : (
-        <div className="bg-[#0D0D12] rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/10 bg-black/40 text-[11px] font-mono text-gray-400 uppercase tracking-widest">
-                  <th className="py-3.5 px-4 font-semibold">Event Details</th>
-                  <th className="py-3.5 px-4 font-semibold">Status</th>
-                  <th className="py-3.5 px-4 font-semibold">Schedule Window</th>
-                  <th className="py-3.5 px-4 font-semibold text-center">Nominees</th>
-                  <th className="py-3.5 px-4 font-semibold text-center">Total Votes</th>
-                  <th className="py-3.5 px-4 font-semibold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-xs font-body">
-                {filteredEvents.map((event) => {
-                  const startStr = new Date(event.startDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  });
-                  const endStr = new Date(event.endDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  });
+        <div className="grid grid-cols-1 gap-4">
+          {filteredEvents.map((event) => {
+            const isLive = event.status === "PUBLISHED";
+            const isDraft = event.status === "DRAFT";
+            const isClosed = event.status === "CLOSED";
+            const isArchived = event.status === "ARCHIVED";
 
-                  return (
-                    <tr key={event.id} className="hover:bg-white/[0.02] transition-colors group">
-                      {/* Title & Description */}
-                      <td className="py-4 px-4">
-                        <div className="flex flex-col">
-                          <span className="font-heading font-black text-sm text-white uppercase tracking-wider group-hover:text-[#FFBE32] transition-colors">
-                            {event.title}
-                          </span>
-                          {event.description && (
-                            <span className="text-[11px] text-gray-400 line-clamp-1 max-w-md mt-0.5">
-                              {event.description}
-                            </span>
-                          )}
-                          <span className="text-[10px] font-mono text-gray-500 mt-1">ID: {event.id}</span>
-                        </div>
-                      </td>
+            const startStr = new Date(event.startDate).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            });
+            const endStr = new Date(event.endDate).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            });
 
-                      {/* Status */}
-                      <td className="py-4 px-4 whitespace-nowrap">{getStatusBadge(event.status)}</td>
+            return (
+              <div
+                key={event.id}
+                className={`group p-5 rounded-2xl border transition-all duration-300 ${
+                  isLive
+                    ? "bg-gradient-to-r from-[#FFBE32]/5 via-[#0D0D12] to-[#0A0A0D] border-[#FFBE32]/40 hover:border-[#FFBE32] shadow-[0_0_20px_rgba(255,190,50,0.08)]"
+                    : "bg-[#0C0C10] border-white/10 hover:border-white/20"
+                }`}
+              >
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                  {/* Left Column: Status Badge & Event Identity */}
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      {isLive && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                          LIVE POLL
+                        </span>
+                      )}
+                      {isDraft && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40 uppercase tracking-wider">
+                          <Clock className="h-3 w-3" />
+                          DRAFT
+                        </span>
+                      )}
+                      {isClosed && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40 uppercase tracking-wider">
+                          <CheckCircle2 className="h-3 w-3" />
+                          CONCLUDED
+                        </span>
+                      )}
+                      {isArchived && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-bold bg-gray-500/20 text-gray-400 border border-gray-500/40 uppercase tracking-wider">
+                          <Archive className="h-3 w-3" />
+                          ARCHIVED
+                        </span>
+                      )}
 
-                      {/* Schedule */}
-                      <td className="py-4 px-4 whitespace-nowrap font-mono text-[11px] text-gray-300">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-[#FFBE32]" />
+                      {event.isLiveResults && (
+                        <span className="px-2 py-0.5 rounded bg-blue-500/15 text-blue-300 text-[10px] font-mono border border-blue-500/30">
+                          LIVE RESULTS VISIBLE
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="font-display font-black text-lg sm:text-xl text-white uppercase tracking-wider group-hover:text-[#FFBE32] transition-colors">
+                      {event.title}
+                    </h3>
+
+                    {event.description && (
+                      <p className="text-xs text-gray-400 font-body line-clamp-1 max-w-2xl">
+                        {event.description}
+                      </p>
+                    )}
+
+                    {/* Timeline & Candidates Summary */}
+                    <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400 pt-1">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5 text-gray-500" />
+                        <span>
+                          {startStr} — {endStr}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Users className="h-3.5 w-3.5 text-gray-500" />
+                        <span>
+                          <strong className="text-white">{event.nomineesCount || 0}</strong> Candidates
+                        </span>
+                      </div>
+                      {event.leadingNominee && (
+                        <div className="flex items-center gap-1.5 text-amber-400">
+                          <Flame className="h-3.5 w-3.5" />
                           <span>
-                            {startStr} — {endStr}
+                            Leader: <strong>{event.leadingNominee.ign}</strong> ({event.leadingNominee.votes} votes)
                           </span>
                         </div>
-                      </td>
+                      )}
+                    </div>
+                  </div>
 
-                      {/* Nominees Count */}
-                      <td className="py-4 px-4 text-center whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 font-mono text-xs text-white">
-                          <Users className="h-3 w-3 text-[#FFBE32]" />
-                          {event.nomineesCount || 0}
-                        </span>
-                      </td>
+                  {/* Middle Column: Vote Metric */}
+                  <div className="flex items-center gap-4 lg:border-l lg:border-r border-white/10 lg:px-6 shrink-0">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-gray-500 block">
+                        TOTAL VOTES
+                      </span>
+                      <span className="font-display font-black text-2xl text-[#FFBE32]">
+                        {(event.totalVotes || 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
 
-                      {/* Total Votes */}
-                      <td className="py-4 px-4 text-center whitespace-nowrap font-mono">
-                        <span className="font-bold text-sm text-[#FFBE32]">
-                          {(event.totalVotes || 0).toLocaleString()}
-                        </span>
-                      </td>
+                  {/* Right Column: Actions */}
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <Link
+                      to={`/voting/${event.id}`}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white font-heading font-bold text-xs uppercase tracking-wider transition-colors"
+                      title="View Live Standings & Vote Analytics"
+                    >
+                      <BarChart3 className="h-3.5 w-3.5 text-[#FFBE32]" />
+                      <span>Analytics</span>
+                    </Link>
 
-                      {/* Actions */}
-                      <td className="py-4 px-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* Results Link */}
-                          <Link
-                            to={`/voting/${event.id}`}
-                            className="p-1.5 rounded-lg bg-[#FFBE32]/10 hover:bg-[#FFBE32] text-[#FFBE32] hover:text-black transition-all"
-                            title="View Results & Analytics"
-                          >
-                            <BarChart3 className="h-4 w-4" />
-                          </Link>
+                    <button
+                      onClick={() => handleOpenEdit(event)}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                      title="Edit Event & Candidates"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
 
-                          {/* Edit */}
-                          <button
-                            onClick={() => handleOpenEdit(event)}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-all cursor-pointer"
-                            title="Edit Event"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
+                    {/* Status Dropdown */}
+                    <select
+                      value={event.status}
+                      onChange={(e) => handleStatusChange(event.id, e.target.value as any)}
+                      className="px-3 py-1.5 bg-[#14141A] border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-[#FFBE32] cursor-pointer"
+                    >
+                      <option value="DRAFT">DRAFT</option>
+                      <option value="PUBLISHED">PUBLISH</option>
+                      <option value="CLOSED">CLOSE</option>
+                      <option value="ARCHIVED">ARCHIVE</option>
+                    </select>
 
-                          {/* Status Transitions */}
-                          {event.status === "DRAFT" && (
-                            <button
-                              onClick={() => handleStatusChange(event.id, "PUBLISHED")}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-black font-heading font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer"
-                              title="Publish this event"
-                            >
-                              Publish
-                            </button>
-                          )}
-                          {event.status === "PUBLISHED" && (
-                            <button
-                              onClick={() => handleStatusChange(event.id, "CLOSED")}
-                              className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-black font-heading font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer"
-                              title="Close voting"
-                            >
-                              Close
-                            </button>
-                          )}
-                          {event.status === "CLOSED" && (
-                            <button
-                              onClick={() => handleStatusChange(event.id, "ARCHIVED")}
-                              className="px-2.5 py-1 rounded-lg bg-gray-500/20 hover:bg-gray-500 text-gray-300 hover:text-white font-heading font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer"
-                              title="Archive event"
-                            >
-                              Archive
-                            </button>
-                          )}
-
-                          {/* Delete */}
-                          <button
-                            onClick={() => setDeleteConfirmId(event.id)}
-                            className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white transition-all cursor-pointer"
-                            title="Delete Event"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    <button
+                      onClick={() => setDeleteConfirmId(event.id)}
+                      className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/20 text-gray-400 hover:text-rose-400 transition-colors cursor-pointer"
+                      title="Delete Event"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* CREATE / EDIT MODAL */}
+      {/* CREATE / EDIT VOTING EVENT MODAL */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-[#0C0C10] border border-white/15 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="bg-[#0E0E14] border border-white/15 rounded-2xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#09090D]">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-[#FFBE32]/10 border border-[#FFBE32]/20 text-[#FFBE32]">
+            <div className="flex items-center justify-between p-5 border-b border-white/10 bg-[#121218]">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-[#FFBE32]">
                   <Vote className="h-5 w-5" />
                 </div>
                 <h3 className="font-display font-black text-lg text-white uppercase tracking-wider">
@@ -590,14 +670,14 @@ export const AdminVotingPage: React.FC = () => {
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+            {/* Modal Form Content */}
+            <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
               {errorMsg && (
                 <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-body">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -605,7 +685,7 @@ export const AdminVotingPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Title */}
+              {/* Event Title */}
               <div>
                 <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 mb-1.5">
                   Event Title <span className="text-[#FFBE32]">*</span>
@@ -632,6 +712,39 @@ export const AdminVotingPage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3.5 py-2 bg-[#14141A] border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
                 />
+              </div>
+
+              {/* Banner Image URL / Upload */}
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 mb-1.5">
+                  Banner Image (Optional)
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    placeholder="https://... or upload banner image"
+                    value={formData.bannerImage}
+                    onChange={(e) => setFormData({ ...formData, bannerImage: e.target.value })}
+                    className="flex-1 px-3.5 py-2 bg-[#14141A] border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
+                  />
+                  <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-heading font-bold uppercase cursor-pointer shrink-0 transition-colors">
+                    {uploadingBanner ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-3.5 w-3.5 text-[#FFBE32]" />
+                    )}
+                    <span>{uploadingBanner ? "Uploading..." : "Upload Banner"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleBannerUpload(file);
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
 
               {/* Date Schedule */}
@@ -663,7 +776,7 @@ export const AdminVotingPage: React.FC = () => {
               </div>
 
               {/* Status & Live Results Toggle */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 mb-1.5">
                     Lifecycle Status
@@ -692,89 +805,202 @@ export const AdminVotingPage: React.FC = () => {
                       <span className="text-xs font-heading font-bold text-white uppercase tracking-wider">
                         Live Public Results
                       </span>
-                      <span className="text-[10px] text-gray-400">Show percentage bars to public while voting</span>
+                      <span className="text-[10px] text-gray-400">Show percentage bars to fans while voting</span>
                     </div>
                   </label>
                 </div>
               </div>
 
-              {/* Nominee Selection Area */}
-              <div className="border-t border-white/10 pt-4">
-                <div className="flex items-center justify-between mb-2">
+              {/* ======================================================== */}
+              {/* MANUAL CANDIDATE PLAYERS SECTION (NO SHOWCASE DEPENDENCY) */}
+              {/* ======================================================== */}
+              <div className="border-t border-white/10 pt-5 space-y-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-mono uppercase tracking-wider text-gray-200 block">
-                      Select Nominated Players <span className="text-[#FFBE32]">*</span>
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono uppercase tracking-wider text-white font-bold block">
+                        Candidate Players / Nominees <span className="text-[#FFBE32]">*</span>
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-[#FFBE32]/10 text-[#FFBE32] text-[10px] font-mono border border-[#FFBE32]/30">
+                        Manual Entry
+                      </span>
+                    </div>
                     <span className="text-[11px] text-gray-400">
-                      Selected: <strong className="text-[#FFBE32]">{formData.playerIds.length}</strong> athletes
+                      Enter athlete names, roles, and images manually for this poll.
                     </span>
                   </div>
 
-                  {/* Player Search Input */}
-                  <div className="relative w-48 sm:w-64">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search roster..."
-                      value={playerSearch}
-                      onChange={(e) => setPlayerSearch(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 bg-[#14141A] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddCandidate}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFBE32]/15 hover:bg-[#FFBE32] text-[#FFBE32] hover:text-black font-heading font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border border-[#FFBE32]/30"
+                  >
+                    <UserPlus className="h-3.5 w-3.5" />
+                    <span>+ Add Player</span>
+                  </button>
                 </div>
 
-                {/* Nominee Chips / Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto p-1 border border-white/5 rounded-xl bg-black/40">
-                  {filteredPlayers.map((player) => {
-                    const isSelected = formData.playerIds.includes(player.id);
-                    const imgUrl = player.avatarUrl || player.image || "/players/player-beast.jpg";
+                {/* Candidate List Cards */}
+                <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
+                  {formData.nominees.map((candidate, idx) => {
+                    const isUploadingThis = uploadingCandidateIdx === idx;
 
                     return (
                       <div
-                        key={player.id}
-                        onClick={() => handleTogglePlayer(player.id)}
-                        className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${
-                          isSelected
-                            ? "bg-[#FFBE32]/10 border-[#FFBE32] shadow-[0_0_15px_rgba(255,190,50,0.15)]"
-                            : "bg-[#121217] border-white/5 hover:border-white/20"
-                        }`}
+                        key={idx}
+                        className="p-4 rounded-xl bg-[#121218] border border-white/10 hover:border-white/20 transition-all space-y-3 relative group/cand"
                       >
-                        {/* Checkbox indicator */}
-                        <div
-                          className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-all ${
-                            isSelected
-                              ? "bg-[#FFBE32] border-[#FFBE32] text-black"
-                              : "border-gray-500 bg-black/50"
-                          }`}
-                        >
-                          {isSelected && <CheckCircle2 className="h-3 w-3 stroke-[3]" />}
+                        {/* Header: Candidate Index & Delete Button */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-lg bg-[#FFBE32] text-black font-display font-black text-xs flex items-center justify-center">
+                              #{idx + 1}
+                            </span>
+                            <span className="text-xs font-heading font-bold text-white uppercase tracking-wider">
+                              Candidate #{idx + 1}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCandidate(idx)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            title="Remove candidate"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
 
-                        {/* Player Thumbnail */}
-                        <div className="h-9 w-9 rounded-lg overflow-hidden bg-black border border-white/10 shrink-0">
-                          <img
-                            src={imgUrl}
-                            alt={player.ign}
-                            className="h-full w-full object-cover object-top"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = "none";
-                            }}
-                          />
+                        {/* Candidate Details Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                          {/* Photo Avatar Preview & Upload */}
+                          <div className="md:col-span-3 flex items-center gap-3">
+                            <div className="w-16 h-16 rounded-xl bg-black border border-white/15 overflow-hidden shrink-0 flex items-center justify-center relative group">
+                              {candidate.imageUrl ? (
+                                <img
+                                  src={candidate.imageUrl}
+                                  alt={candidate.name || "Candidate"}
+                                  className="w-full h-full object-cover object-top"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <ImageIcon className="h-6 w-6 text-gray-500" />
+                              )}
+
+                              {isUploadingThis && (
+                                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                  <Loader2 className="h-5 w-5 text-[#FFBE32] animate-spin" />
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                              <button
+                                type="button"
+                                onClick={() => candidateFileInputRefs.current[idx]?.click()}
+                                disabled={isUploadingThis}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-gray-200 text-[11px] font-heading font-bold uppercase transition-colors cursor-pointer border border-white/10"
+                              >
+                                <Upload className="h-3 w-3 text-[#FFBE32]" />
+                                <span>Upload</span>
+                              </button>
+                              <input
+                                ref={(el) => {
+                                  candidateFileInputRefs.current[idx] = el;
+                                }}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleCandidateUpload(idx, file);
+                                }}
+                              />
+                              <span className="text-[9px] text-gray-500 font-mono">JPG/PNG</span>
+                            </div>
+                          </div>
+
+                          {/* Candidate Name & Role & Team */}
+                          <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div>
+                              <label className="block text-[10px] font-mono uppercase text-gray-400 mb-1">
+                                Player Name / IGN <span className="text-[#FFBE32]">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. LORD ZORO"
+                                value={candidate.name}
+                                onChange={(e) => handleCandidateChange(idx, "name", e.target.value)}
+                                className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-mono uppercase text-gray-400 mb-1">
+                                Role / Subtitle
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. IGL / RUSHER"
+                                value={candidate.role}
+                                onChange={(e) => handleCandidateChange(idx, "role", e.target.value)}
+                                className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-mono uppercase text-gray-400 mb-1">
+                                Team / Club
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="e.g. LORDZ ESPORTS"
+                                value={candidate.team}
+                                onChange={(e) => handleCandidateChange(idx, "team", e.target.value)}
+                                className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
+                              />
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Player Info */}
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-heading font-black text-xs text-white uppercase tracking-wider truncate">
-                            {player.ign}
-                          </span>
-                          <span className="text-[10px] text-gray-400 font-mono truncate">
-                            {player.realName} • <span className="text-[#FFBE32]">{player.role}</span>
-                          </span>
+                        {/* Image URL & Optional Bio Row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="Or paste Image URL (https://...)"
+                              value={candidate.imageUrl}
+                              onChange={(e) => handleCandidateChange(idx, "imageUrl", e.target.value)}
+                              className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-[11px] text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="Athlete quote / achievement note (optional)"
+                              value={candidate.bio}
+                              onChange={(e) => handleCandidateChange(idx, "bio", e.target.value)}
+                              className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-[11px] text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
+                            />
+                          </div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
+
+                {/* Quick Add Button at bottom of candidates list */}
+                <button
+                  type="button"
+                  onClick={handleAddCandidate}
+                  className="w-full py-2.5 rounded-xl border border-dashed border-white/20 hover:border-[#FFBE32]/60 bg-white/5 hover:bg-[#FFBE32]/5 text-gray-300 hover:text-[#FFBE32] text-xs font-heading font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add Another Candidate Player</span>
+                </button>
               </div>
 
               {/* Modal Footer */}

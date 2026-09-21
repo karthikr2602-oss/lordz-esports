@@ -278,7 +278,14 @@ export const AdminVotingDetailPage: React.FC = () => {
           <div className="space-y-4">
             {leaderboard.map((entry) => {
               const isWinner = entry.rank === 1 && entry.votes > 0;
-              const imgUrl = entry.player.avatarUrl || entry.player.image || "/players/player-beast.jpg";
+              const displayName = entry.name || entry.player?.ign || "Candidate";
+              const roleName = entry.role || entry.player?.role || "ATHLETE";
+              const teamName = entry.team || entry.player?.team || "LORDZ ESPORTS";
+              const imgUrl =
+                entry.imageUrl ||
+                entry.player?.avatarUrl ||
+                entry.player?.image ||
+                "/players/player-beast.jpg";
 
               return (
                 <div
@@ -311,7 +318,7 @@ export const AdminVotingDetailPage: React.FC = () => {
                       <div className="w-12 h-12 rounded-xl overflow-hidden bg-black border border-white/10 shrink-0">
                         <img
                           src={imgUrl}
-                          alt={entry.player.ign}
+                          alt={displayName}
                           className="h-full w-full object-cover object-top"
                           onError={(e) => {
                             (e.target as HTMLElement).style.display = "none";
@@ -323,7 +330,7 @@ export const AdminVotingDetailPage: React.FC = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="font-heading font-black text-sm text-white uppercase tracking-wider">
-                            {entry.player.ign}
+                            {displayName}
                           </h4>
                           {isWinner && (
                             <span className="px-2 py-0.5 rounded-full text-[9px] font-heading font-black bg-[#FFBE32] text-black uppercase tracking-wider flex items-center gap-1">
@@ -333,7 +340,7 @@ export const AdminVotingDetailPage: React.FC = () => {
                           )}
                         </div>
                         <p className="text-[11px] text-gray-400 font-mono">
-                          {entry.player.realName} • <span className="text-[#FFBE32]">{entry.player.role}</span>
+                          {teamName} • <span className="text-[#FFBE32]">{roleName}</span>
                         </p>
                       </div>
                     </div>

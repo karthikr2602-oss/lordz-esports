@@ -34,15 +34,17 @@ async function seedVoting() {
       isLiveResults: true,
       nominees: {
         create: players.map((p: any, idx: number) => ({
-          playerId: p.id,
+          name: p.ign,
+          role: p.role,
+          team: p.team,
+          imageUrl: p.avatarUrl,
+          bio: p.featuredQuote || null,
           displayOrder: idx,
         })),
       },
     },
     include: {
-      nominees: {
-        include: { player: true },
-      },
+      nominees: true,
     },
   });
 
