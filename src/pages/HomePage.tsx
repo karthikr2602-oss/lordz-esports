@@ -30,7 +30,7 @@ export const HomePage = () => {
       {/* 1. Cinematic Parallax Hero */}
       <HeroSection
         onExploreTournaments={() => navigate("/tournaments")}
-        onJoinLordz={() => openJoinTournament()}
+        onJoinLordz={() => navigate("/community")}
       />
 
       {/* 2. Forge Your Legacy / Pro Jersey Showcase Preview (Wear the Lordz) */}
