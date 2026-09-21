@@ -10,10 +10,10 @@ import type { MediaItem } from "../data/media";
 
 export const HomePage = () => {
   const navigate = useNavigate();
-  const { openJoinTournament, openJersey, openVideo, openPartner } = useModals();
+  const { openJersey, openVideo, openPartner } = useModals();
 
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — Compete. Conquer. Build Legacy.";
+    document.title = "LORD ESPORTS — Compete. Conquer. Build Legacy.";
   }, []);
 
   const handlePlayHighlight = (item: MediaItem) => {

@@ -27,7 +27,7 @@ export const AdminUsersPage: React.FC = () => {
     {
       id: "admin-1",
       email: "admin@lordz.gg",
-      fullName: "Lordz Administrator",
+      fullName: "Lord Administrator",
       role: "ADMIN",
       status: "ACTIVE",
       phone: "+91 98765 00001",

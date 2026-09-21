@@ -1417,7 +1417,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
             </span>
             <input
               type="text"
-              placeholder="Team Name (e.g. LORDZ ESPORTS)"
+              placeholder="Team Name (e.g. LORD ESPORTS)"
               value={newTeamName}
               onChange={(e) => setNewTeamName(e.target.value)}
               className="px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs text-white"

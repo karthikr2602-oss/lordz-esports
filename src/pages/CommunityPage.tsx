@@ -4,7 +4,7 @@ import { CommunitySection } from "../sections/CommunitySection";
 
 export const CommunityPage = () => {
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — Community, Discord & Channels";
+    document.title = "LORD ESPORTS — Community, Discord & Channels";
   }, []);
 
   return (

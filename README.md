@@ -1,15 +1,15 @@
-# 🏆 LORDZ ESPORTS — Official Platform Frontend
+# 🏆 LORD ESPORTS — Official Platform Frontend
 
-A premium, modern, and cinematic frontend website built for **LORDZ ESPORTS** — an Indian competitive esports organization and gaming platform.
+A premium, modern, and cinematic frontend website built for **LORD ESPORTS** — an Indian competitive esports organization and gaming platform.
 
-![Lordz Esports Banner](src/assets/jersey-promo.jpg)
+![Lord Esports Banner](src/assets/jersey-promo.jpg)
 
 ---
 
 ## ⚡ Overview
 
-Lordz Esports is designed around high-stakes gaming culture, Indian cultural heritage, and sports broadcast UI:
-- **Color Identity**: Deep Black (`#050505`), Dark Charcoal (`#111111`), and Official Lordz Gold (`#FFBE32`).
+Lord Esports is designed around high-stakes gaming culture, Indian cultural heritage, and sports broadcast UI:
+- **Color Identity**: Deep Black (`#050505`), Dark Charcoal (`#111111`), and Official Lord Gold (`#FFBE32`).
 - **Typography**: Unified modern geometric typography using **Poppins** across all headings, display titles, and body copy.
 - **Cultural Identity**: Subtle Dravidian South Indian temple gopuram line art and flame motifs drawn directly from the official team jersey.
 
@@ -95,4 +95,4 @@ npm run build
 
 ## 📄 License
 
-© 2026 Lordz Esports. All rights reserved. Made for Indian Esports.
+© 2026 Lord Esports. All rights reserved. Made for Indian Esports.

@@ -65,7 +65,7 @@ app.use("/players", express.static(playersDir));
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
-    service: "Lordz Esports Shared REST API",
+    service: "Lord Esports Shared REST API",
     timestamp: new Date().toISOString(),
   });
 });
@@ -78,7 +78,7 @@ app.get("/", (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lordz Esports — REST API Gateway</title>
+  <title>Lord Esports — REST API Gateway</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -280,7 +280,7 @@ app.get("/", (req, res) => {
   res.json({
     success: true,
     status: "online",
-    service: "Lordz Esports Shared REST API",
+    service: "Lord Esports Shared REST API",
     version: "1.0.0",
     database: "Neon PostgreSQL Connected",
     endpoints: {
@@ -305,7 +305,7 @@ app.use("/api", routes);
 app.get(["/api", "/api/v1"], (_req, res) => {
   res.json({
     success: true,
-    service: "Lordz Esports REST API",
+    service: "Lord Esports REST API",
     version: "1.0.0",
     status: "healthy",
     documentation: "Visit http://localhost:5000/ for available endpoints",

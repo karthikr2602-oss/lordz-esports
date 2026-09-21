@@ -10,7 +10,7 @@ const DEFAULT_PORT = Number(process.env.PORT) || 5000;
 function startServer(port: number) {
   const server = app.listen(port, () => {
     console.log(`=========================================`);
-    console.log(`⚡ LORDZ ESPORTS REST API SERVER RUNNING`);
+    console.log(`⚡ LORD ESPORTS REST API SERVER RUNNING`);
     console.log(`📡 URL: http://localhost:${port}`);
     console.log(`🛡️  Health check: http://localhost:${port}/health`);
     console.log(`📂 Environment: ${process.env.NODE_ENV || "development"}`);

@@ -306,7 +306,7 @@ export const AdminTournamentsPage: React.FC = () => {
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-black via-[#141419] to-black p-4 text-center">
                       <Shield className="h-8 w-8 text-gray-600 mb-1" />
-                      <span className="text-[10px] text-gray-500 font-mono">LORDZ ARENA</span>
+                      <span className="text-[10px] text-gray-500 font-mono">LORD ARENA</span>
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-black/80 via-transparent to-transparent" />

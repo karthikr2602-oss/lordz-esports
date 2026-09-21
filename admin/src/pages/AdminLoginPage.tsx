@@ -50,8 +50,8 @@ export const AdminLoginPage: React.FC = () => {
           id: "4a8879b4-c0a4-40c4-bce6-181b496bec6f",
           email: "admin@lordz.gg",
           role: "ADMIN",
-          fullName: "Lordz Administrator",
-          ign: "LORDZ_OVERLORD",
+          fullName: "Lord Administrator",
+          ign: "LORD_OVERLORD",
         });
         navigate(from, { replace: true });
         return;
@@ -79,12 +79,12 @@ export const AdminLoginPage: React.FC = () => {
         <Link to="/" className="inline-flex items-center gap-3 mb-4 group cursor-pointer">
           <img
             src={logoImg}
-            alt="Lordz Esports"
+            alt="Lord Esports"
             className="h-16 w-16 object-contain group-hover:scale-105 transition-transform drop-shadow-[0_0_15px_rgba(255,190,50,0.4)]"
           />
         </Link>
         <h2 className="font-display text-3xl sm:text-4xl uppercase tracking-wider text-white">
-          LORDZ <span className="text-[#FFBE32]">ADMIN PORTAL</span>
+          LORD <span className="text-[#FFBE32]">ADMIN PORTAL</span>
         </h2>
         <p className="mt-2 text-xs sm:text-sm text-gray-400 font-heading uppercase tracking-widest">
           Authorized Esports Management Console

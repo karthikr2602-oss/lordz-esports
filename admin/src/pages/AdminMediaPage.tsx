@@ -468,7 +468,7 @@ export const AdminMediaPage: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-[11px] text-gray-400 font-body mt-0.5">
-                    Showcase this video in the Video Highlights section on the Lordz Esports homepage.
+                    Showcase this video in the Video Highlights section on the Lord Esports homepage.
                   </p>
                 </div>
 

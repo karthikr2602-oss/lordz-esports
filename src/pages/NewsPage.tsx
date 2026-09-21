@@ -7,7 +7,7 @@ export const NewsPage = () => {
   const { openArticle } = useModals();
 
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — News, Reports & Dispatches";
+    document.title = "LORD ESPORTS — News, Reports & Dispatches";
   }, []);
 
   return (
@@ -15,7 +15,7 @@ export const NewsPage = () => {
       <PageHero
         badge="EDITORIAL & MEDIA DISPATCHES"
         title="LATEST FROM"
-        titleHighlight="LORDZ"
+        titleHighlight="LORD"
         subtitle="Roster movements, official tournament briefings, tier-1 scrim announcements, and competitive post-match debriefs."
       />
 

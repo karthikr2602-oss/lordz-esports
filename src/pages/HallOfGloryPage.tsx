@@ -4,7 +4,7 @@ import { HallOfGlorySection } from "../sections/HallOfGlorySection";
 
 export const HallOfGloryPage = () => {
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — Hall of Glory & Trophies";
+    document.title = "LORD ESPORTS — Hall of Glory & Trophies";
   }, []);
 
   return (
@@ -13,7 +13,7 @@ export const HallOfGloryPage = () => {
         badge="TROPHY ROOM & ACHIEVEMENTS"
         title="HALL OF"
         titleHighlight="GLORY"
-        subtitle="Honoring the landmark championship victories, event MVPs, and historic milestones in Lordz Esports history."
+        subtitle="Honoring the landmark championship victories, event MVPs, and historic milestones in Lord Esports history."
       />
 
       <HallOfGlorySection showHeader={false} />

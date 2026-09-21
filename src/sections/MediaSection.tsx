@@ -73,7 +73,7 @@ export const MediaSection = ({
         {showHeader && (
           <SectionHeading
             badge="CINEMATICS & CLUTCHES"
-            title="LORDZ MEDIA"
+            title="LORD MEDIA"
             subtitle="Match replays, clutch compilations, athlete shorts, and broadcast documentaries."
           />
         )}

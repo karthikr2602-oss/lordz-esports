@@ -70,7 +70,7 @@ export const AdminMerchandisePage: React.FC = () => {
     setFormData({
       name: "",
       slug: "",
-      subtitle: "Official Lordz Esports Merchandise",
+      subtitle: "Official Lord Esports Merchandise",
       description: "Tournament-grade competition gear engineered with Dravidian battle flame aesthetics.",
       tag: "OFFICIAL ATHLETE SPEC",
       price: 1299,
@@ -224,7 +224,7 @@ export const AdminMerchandisePage: React.FC = () => {
     (formData.upiId
       ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${encodeURIComponent(
           formData.upiId
-        )}%26pn=Lordz%20Esports%26am=${formData.price || 1299}%26cu=INR`
+        )}%26pn=Lord%20Esports%26am=${formData.price || 1299}%26cu=INR`
       : null);
 
   return (
@@ -446,7 +446,7 @@ export const AdminMerchandisePage: React.FC = () => {
                   required
                   value={formData.name || ""}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="LORDZ PRO COMBAT JERSEY 2026"
+                  placeholder="LORD PRO COMBAT JERSEY 2026"
                   className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2.5 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
                 />
               </div>

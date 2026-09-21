@@ -75,16 +75,16 @@ export const hallOfGloryData: HallOfGloryItem[] = [
     mvp: "FALCON",
     event: "NATIONAL TIER-1 LEAGUE",
     prize: "₹75,000 SHOWDOWN",
-    description: "Secured second place in a 64-team national bracket, establishing the Lordz legacy.",
+    description: "Secured second place in a 64-team national bracket, establishing the Lord legacy.",
   },
   {
     year: "2025",
-    title: "LORDZ INVITATIONAL S1",
+    title: "LORD INVITATIONAL S1",
     achievement: "FLAGSHIP LAUNCH VICTORY",
     mvp: "BEAST",
     event: "ORGANIZATION DEBUT CUP",
     prize: "₹25,000 PRIZE POOL",
-    description: "The inauguration tournament that launched the Lordz competitive journey.",
+    description: "The inauguration tournament that launched the Lord competitive journey.",
   },
 ];
 

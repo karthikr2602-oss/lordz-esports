@@ -55,14 +55,14 @@ export interface LocalProductItem {
 const fallbackCatalog: LocalProductItem[] = [
   {
     id: "lordz-pro-jersey-2026",
-    name: "LORDZ PRO COMBAT JERSEY 2026",
+    name: "LORD PRO COMBAT JERSEY 2026",
     category: "JERSEYS",
     tag: "OFFICIAL ATHLETE SPEC",
     price: 1299,
     originalPrice: 1999,
     image: jerseyFrontImg,
     description:
-      "The official uniform worn by Lordz Esports athletes in national tournaments. Crafted with Dravidian temple art motifs, moisture-wicking micro-poly, and customized athlete IGN print.",
+      "The official uniform worn by Lord Esports athletes in national tournaments. Crafted with Dravidian temple art motifs, moisture-wicking micro-poly, and customized athlete IGN print.",
     specs: [
       "100% Breathable Micro-Poly Waffle Knit",
       "Official Clan Squad IGN & Number Print",
@@ -75,14 +75,14 @@ const fallbackCatalog: LocalProductItem[] = [
   },
   {
     id: "lordz-stealth-hoodie",
-    name: "LORDZ STEALTH PRO FLEECE HOODIE",
+    name: "LORD STEALTH PRO FLEECE HOODIE",
     category: "APPAREL",
     tag: "LIMITED WINTER DROP",
     price: 2199,
     originalPrice: 2999,
     image: hoodieImg,
     description:
-      "Heavyweight 420 GSM French Terry fleece hoodie featuring high-density 3D metallic gold embroidered Lordz clan crest, double-layered drawstring hood, and ribbed cuffs.",
+      "Heavyweight 420 GSM French Terry fleece hoodie featuring high-density 3D metallic gold embroidered Lord clan crest, double-layered drawstring hood, and ribbed cuffs.",
     specs: [
       "420 GSM Heavy French Terry Cotton",
       "Metallic Gold Embroidered Crest",
@@ -95,7 +95,7 @@ const fallbackCatalog: LocalProductItem[] = [
   },
   {
     id: "lordz-speed-mousepad-xxl",
-    name: "LORDZ SPEED XXL GAMING MOUSEPAD (900x400MM)",
+    name: "LORD SPEED XXL GAMING MOUSEPAD (900x400MM)",
     category: "GEAR",
     tag: "BESTSELLER",
     price: 899,
@@ -115,7 +115,7 @@ const fallbackCatalog: LocalProductItem[] = [
   },
   {
     id: "lordz-tactical-cap",
-    name: "LORDZ TACTICAL SNAPBACK PRO CAP",
+    name: "LORD TACTICAL SNAPBACK PRO CAP",
     category: "GEAR",
     tag: "CLAN CREST",
     price: 649,
@@ -135,7 +135,7 @@ const fallbackCatalog: LocalProductItem[] = [
   },
   {
     id: "lordz-compression-sleeves",
-    name: "LORDZ ARM COMPRESSION GAMING SLEEVES (PAIR)",
+    name: "LORD ARM COMPRESSION GAMING SLEEVES (PAIR)",
     category: "GEAR",
     tag: "COMPETITION SPEC",
     price: 499,
@@ -167,7 +167,7 @@ function resolveProductImage(p: ApiProductItem): string {
 }
 
 function parseSpecs(specsString?: string | null): string[] {
-  if (!specsString) return ["Official Tournament Certified Spec", "Official Lordz Clan Merchandise"];
+  if (!specsString) return ["Official Tournament Certified Spec", "Official Lord Clan Merchandise"];
   try {
     const parsed = JSON.parse(specsString);
     if (Array.isArray(parsed)) return parsed;
@@ -322,7 +322,7 @@ export const ProductsPage = () => {
   };
 
   useEffect(() => {
-    document.title = "Official Clan Gear & Products — LORDZ ESPORTS";
+    document.title = "Official Clan Gear & Products — LORD ESPORTS";
     loadProducts();
 
     // Re-fetch on tab focus so additions in admin portal reflect immediately
@@ -655,7 +655,7 @@ export const ProductsPage = () => {
     selectedProduct?.upiQrImage ||
     `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${encodeURIComponent(
       activeUpiId
-    )}%26pn=Lordz%20Esports%26am=${selectedProduct?.price || 1299}%26cu=INR`;
+    )}%26pn=Lord%20Esports%26am=${selectedProduct?.price || 1299}%26cu=INR`;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-28 pb-24">
@@ -701,7 +701,7 @@ export const ProductsPage = () => {
             </div>
 
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-wide text-white leading-[1.1]">
-              Lordz Esports <span className="text-gold-gradient">Products</span>
+              Lord Esports <span className="text-gold-gradient">Products</span>
             </h1>
 
             <p className="mt-4 text-sm sm:text-base text-gray-400 font-body leading-relaxed max-w-2xl mx-auto">

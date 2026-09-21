@@ -43,7 +43,7 @@ export const mediaData: MediaItem[] = [
   {
     id: "media-hl-2",
     type: "HIGHLIGHTS",
-    title: "LORDZ SQUAD WIPE VS EYEGLACIERS • FINAL CIRCLE",
+    title: "LORD SQUAD WIPE VS EYEGLACIERS • FINAL CIRCLE",
     duration: "00:54",
     views: "21K VIEWS",
     date: "3 DAYS AGO",
@@ -85,7 +85,7 @@ export const mediaData: MediaItem[] = [
     title: "BEHIND THE SCENES: 2026 PRO JERSEY SHOOT",
     views: "15K VIEWS",
     date: "5 DAYS AGO",
-    game: "LORDZ TEAM",
+    game: "LORD TEAM",
     tag: "LIFESTYLE",
   },
   {

@@ -122,13 +122,13 @@ export const AdminLayout: React.FC = () => {
           <Link to="/" className="flex items-center gap-2.5 group">
             <img
               src={logoImg}
-              alt="Lordz Esports"
+              alt="Lord Esports"
               className="h-9 w-9 object-contain group-hover:scale-105 transition-transform drop-shadow-[0_0_8px_rgba(255,190,50,0.3)]"
             />
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="font-display text-lg tracking-wider text-white uppercase leading-none">
-                  LORDZ <span className="text-[#FFBE32]">ADMIN</span>
+                  LORD <span className="text-[#FFBE32]">ADMIN</span>
                 </span>
                 <span className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-[9px] font-heading font-bold uppercase tracking-wider text-[#FFBE32]">
                   PORTAL

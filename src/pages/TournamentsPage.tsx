@@ -7,7 +7,7 @@ export const TournamentsPage = () => {
   const { openJoinTournament } = useModals();
 
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — Tournament Arena & Scrims";
+    document.title = "LORD ESPORTS — Tournament Arena & Scrims";
   }, []);
 
   return (

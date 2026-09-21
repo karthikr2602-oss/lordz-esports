@@ -132,7 +132,7 @@ export const AdminSettingsPage: React.FC = () => {
             type="text"
             value={settings.emergencyBanner || ""}
             onChange={(e) => handleChange("emergencyBanner", e.target.value)}
-            placeholder="OFFICIAL REGISTRATIONS OPEN FOR LORDZ CLUTCH CUP S1 (₹1,00,000 PRIZE POOL)"
+            placeholder="OFFICIAL REGISTRATIONS OPEN FOR LORD CLUTCH CUP S1 (₹1,00,000 PRIZE POOL)"
             className="w-full rounded-xl border border-white/15 bg-black/60 px-4 py-3 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
           />
         </div>

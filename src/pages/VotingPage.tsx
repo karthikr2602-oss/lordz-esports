@@ -58,7 +58,7 @@ export const VotingPage = () => {
   };
 
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — Community Player Voting";
+    document.title = "LORD ESPORTS — Community Player Voting";
     loadActiveEvent();
   }, [isAuthenticated, user?.id]);
 
@@ -144,10 +144,10 @@ export const VotingPage = () => {
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FFBE32] selection:text-black">
       {/* Hero Section */}
       <PageHero
-        badge="LORDZ COMMUNITY"
+        badge="LORD COMMUNITY"
         title="VOTE FOR YOUR"
         titleHighlight="CHAMPION"
-        subtitle="Your voice. Your choice. Recognize the players who represent the LORDZ legacy."
+        subtitle="Your voice. Your choice. Recognize the players who represent the LORD legacy."
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -181,7 +181,7 @@ export const VotingPage = () => {
               NO ACTIVE VOTING EVENTS
             </h2>
             <p className="text-sm text-gray-400 font-body leading-relaxed max-w-md mb-8">
-              Stay tuned for the next LORDZ community vote. Official tournament MVP awards, player of the month, and hall of glory nominations will open soon.
+              Stay tuned for the next LORD community vote. Official tournament MVP awards, player of the month, and hall of glory nominations will open soon.
             </p>
 
             <a
@@ -366,7 +366,7 @@ export const VotingPage = () => {
                 const isUserVotedThis = event.userVotingStatus?.votedNomineeId === nominee.id;
                 const candidateName = nominee.name || nominee.player?.ign || "Candidate";
                 const candidateRole = nominee.role || nominee.player?.role || "ATHLETE";
-                const candidateTeam = nominee.team || nominee.player?.team || "LORDZ ESPORTS";
+                const candidateTeam = nominee.team || nominee.player?.team || "LORD ESPORTS";
                 const candidateBio = nominee.bio || nominee.player?.featuredQuote || nominee.player?.about || "";
                 const imgUrl =
                   nominee.imageUrl ||

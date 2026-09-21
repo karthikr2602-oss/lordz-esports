@@ -121,14 +121,14 @@ export const AdminVotingPage: React.FC = () => {
         {
           name: "",
           role: "IGL",
-          team: "LORDZ ESPORTS",
+          team: "LORD ESPORTS",
           imageUrl: "",
           bio: "",
         },
         {
           name: "",
           role: "RUSHER",
-          team: "LORDZ ESPORTS",
+          team: "LORD ESPORTS",
           imageUrl: "",
           bio: "",
         },
@@ -149,7 +149,7 @@ export const AdminVotingPage: React.FC = () => {
               id: n.id,
               name: n.name || n.player?.ign || "",
               role: n.role || n.player?.role || "ATHLETE",
-              team: n.team || n.player?.team || "LORDZ ESPORTS",
+              team: n.team || n.player?.team || "LORD ESPORTS",
               imageUrl: n.imageUrl || n.player?.avatarUrl || n.player?.image || "",
               bio: n.bio || n.player?.bio || "",
             }))
@@ -157,7 +157,7 @@ export const AdminVotingPage: React.FC = () => {
               {
                 name: "",
                 role: "IGL",
-                team: "LORDZ ESPORTS",
+                team: "LORD ESPORTS",
                 imageUrl: "",
                 bio: "",
               },
@@ -188,7 +188,7 @@ export const AdminVotingPage: React.FC = () => {
           {
             name: "",
             role: "ATHLETE",
-            team: "LORDZ ESPORTS",
+            team: "LORD ESPORTS",
             imageUrl: "",
             bio: "",
           },
@@ -208,7 +208,7 @@ export const AdminVotingPage: React.FC = () => {
         {
           name: "",
           role: "RUSHER",
-          team: "LORDZ ESPORTS",
+          team: "LORD ESPORTS",
           imageUrl: "",
           bio: "",
         },
@@ -313,7 +313,7 @@ export const AdminVotingPage: React.FC = () => {
           id: c.id,
           name: c.name.trim(),
           role: c.role.trim() || "ATHLETE",
-          team: c.team.trim() || "LORDZ ESPORTS",
+          team: c.team.trim() || "LORD ESPORTS",
           imageUrl: c.imageUrl.trim() || null,
           bio: c.bio.trim() || null,
         })),
@@ -694,7 +694,7 @@ export const AdminVotingPage: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. LORDZ MVP OF THE SEASON 2026"
+                  placeholder="e.g. LORD MVP OF THE SEASON 2026"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-[#14141A] border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
@@ -958,7 +958,7 @@ export const AdminVotingPage: React.FC = () => {
                               </label>
                               <input
                                 type="text"
-                                placeholder="e.g. LORDZ ESPORTS"
+                                placeholder="e.g. LORD ESPORTS"
                                 value={candidate.team}
                                 onChange={(e) => handleCandidateChange(idx, "team", e.target.value)}
                                 className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"

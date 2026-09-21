@@ -58,7 +58,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
           <SectionHeading
             badge="PRO ROSTER"
             title="MEET THE PLAYERS"
-            subtitle="The championship athletes representing Lordz Esports across premier national mobile stages."
+            subtitle="The championship athletes representing Lord Esports across premier national mobile stages."
           />
         )}
 
@@ -109,7 +109,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                       <div className="relative h-full w-full">
                         <img
                           src={athleteImg}
-                          alt={`${player.ign} - Lordz Esports`}
+                          alt={`${player.ign} - Lord Esports`}
                           onError={() => setFailedImages((prev) => ({ ...prev, [player.id]: true }))}
                           className="h-full w-full object-cover object-top filter contrast-105 group-hover:scale-105 transition-transform duration-500"
                         />
@@ -126,7 +126,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                               {player.role}
                             </span>
                           )}
-                          <img src={logoImg} alt="Lordz" className="h-5 w-5 object-contain drop-shadow" />
+                          <img src={logoImg} alt="Lord Esports" className="h-5 w-5 object-contain drop-shadow" />
                         </div>
                       </div>
                     ) : (
@@ -163,7 +163,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                         ABOUT ATHLETE
                       </span>
                       <p className="text-[12px] text-gray-300 font-body leading-snug line-clamp-3">
-                        {player.about || player.featuredQuote || "Pro athlete competing under the banner of Lordz Esports."}
+                        {player.about || player.featuredQuote || "Pro athlete competing under the banner of Lord Esports."}
                       </p>
                     </div>
                   </div>
@@ -187,7 +187,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                   ) : (
                     <div className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl bg-white/5 border border-white/5 text-gray-500 text-xs font-mono">
                       <InstagramIcon className="h-4 w-4 text-gray-500" />
-                      <span>@lordzesports</span>
+                      <span>@lordesports</span>
                     </div>
                   )}
                 </div>

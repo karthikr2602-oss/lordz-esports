@@ -7,7 +7,7 @@ export const JerseyPage = () => {
   const { openJersey } = useModals();
 
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — Official Combat Merchandise & Jersey";
+    document.title = "LORD ESPORTS — Official Combat Merchandise & Jersey";
   }, []);
 
   return (
@@ -15,7 +15,7 @@ export const JerseyPage = () => {
       <PageHero
         badge="OFFICIAL MERCHANDISE"
         title="WEAR THE"
-        titleHighlight="LORDZ"
+        titleHighlight="LORD"
         subtitle="Engineered for high-pressure competition. Crafted with Dravidian temple heritage, athlete IGN sublimation, and battle flame aesthetics."
       />
 

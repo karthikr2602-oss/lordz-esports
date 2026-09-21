@@ -52,7 +52,7 @@ export interface OrderItem {
 export const fallbackProducts: ProductItem[] = [
   {
     id: "lordz-pro-jersey-2026",
-    name: "LORDZ PRO COMBAT JERSEY 2026",
+    name: "LORD PRO COMBAT JERSEY 2026",
     slug: "lordz-pro-jersey-2026",
     subtitle: "Official 2026-27 Athlete Edition • Black & Gold Temple Dravidian Edition",
     description: "Engineered for high-pressure competition. Crafted with breathable micro-poly, Dravidian temple gopuram architectural line art, and battle flame aesthetics.",
@@ -66,10 +66,10 @@ export const fallbackProducts: ProductItem[] = [
   },
   {
     id: "lordz-stealth-hoodie",
-    name: "LORDZ STEALTH CLAN HOODIE",
+    name: "LORD STEALTH CLAN HOODIE",
     slug: "lordz-stealth-hoodie",
     subtitle: "Heavyweight 380 GSM Fleece with Metallic Gold Crest",
-    description: "Premium fleece pullover with gold-embroidered Lordz crest, kangaroo pocket, and thumbhole cuffs.",
+    description: "Premium fleece pullover with gold-embroidered Lord crest, kangaroo pocket, and thumbhole cuffs.",
     price: 2499,
     originalPrice: 3299,
     stock: 75,

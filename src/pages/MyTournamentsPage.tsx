@@ -157,7 +157,7 @@ export const MyTournamentsPage: React.FC = () => {
           MY <span className="text-[#FFBE32]">TOURNAMENTS</span>
         </h1>
         <p className="text-gray-400 max-w-md mb-8 text-sm sm:text-base">
-          Sign in with your Lordz Athlete profile to view your registered tournaments, manage team rosters, track payment verifications, and view match schedules.
+          Sign in with your Lord Athlete profile to view your registered tournaments, manage team rosters, track payment verifications, and view match schedules.
         </p>
         <button
           onClick={openLogin}

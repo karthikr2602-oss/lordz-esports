@@ -280,7 +280,7 @@ export const AdminVotingDetailPage: React.FC = () => {
               const isWinner = entry.rank === 1 && entry.votes > 0;
               const displayName = entry.name || entry.player?.ign || "Candidate";
               const roleName = entry.role || entry.player?.role || "ATHLETE";
-              const teamName = entry.team || entry.player?.team || "LORDZ ESPORTS";
+              const teamName = entry.team || entry.player?.team || "LORD ESPORTS";
               const imgUrl =
                 entry.imageUrl ||
                 entry.player?.avatarUrl ||

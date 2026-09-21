@@ -452,7 +452,7 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
                   <input
                     type="text"
                     required
-                    placeholder="e.g. LORDZ WARRIORS"
+                    placeholder="e.g. LORD WARRIORS"
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     className="w-full bg-[#0D0D10] border border-white/15 rounded-xl px-4 py-2.5 text-xs text-white uppercase font-heading font-bold focus:outline-none focus:border-[#FFBE32] transition-colors"

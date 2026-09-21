@@ -37,7 +37,7 @@ export const PartnersPage = () => {
   });
 
   useEffect(() => {
-    document.title = "Partner with Us — Find the Perfect Plan | LORDZ ESPORTS";
+    document.title = "Partner with Us — Find the Perfect Plan | LORD ESPORTS";
     partnerPlansApi
       .getAll()
       .then((data) => {
@@ -120,7 +120,7 @@ export const PartnersPage = () => {
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFBE32]/10 border border-[#FFBE32]/30 mb-5">
               <Sparkles className="h-3.5 w-3.5 text-[#FFBE32]" />
               <span className="font-heading text-xs font-bold uppercase tracking-widest text-[#FFBE32]">
-                PARTNER WITH LORDZ ESPORTS
+                PARTNER WITH LORD ESPORTS
               </span>
             </div>
 
@@ -410,7 +410,7 @@ export const PartnersPage = () => {
                     Application Received!
                   </h4>
                   <p className="text-sm text-gray-400 font-body max-w-md mx-auto leading-relaxed">
-                    Thank you for applying to join the Lordz Esports Partner Network. Our partnerships team will contact you within 24 hours on WhatsApp and email with your invoice, Discord onboarding, and partnership perks.
+                    Thank you for applying to join the Lord Esports Partner Network. Our partnerships team will contact you within 24 hours on WhatsApp and email with your invoice, Discord onboarding, and partnership perks.
                   </p>
                   <div className="pt-4">
                     <button

@@ -54,7 +54,7 @@ export const AdminNewsPage: React.FC = () => {
     coverImage: "",
     date: "TODAY",
     readTime: "3 MIN READ",
-    author: "Lordz Editorial",
+    author: "Lord Editorial",
     badgeColor: "bg-amber-500/20 text-amber-400 border-amber-500/30",
   });
 
@@ -84,7 +84,7 @@ export const AdminNewsPage: React.FC = () => {
       coverImage: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase(),
       readTime: "3 MIN READ",
-      author: "Lordz Editorial",
+      author: "Lord Editorial",
       badgeColor: "bg-amber-500/20 text-amber-400 border-amber-500/30",
     });
     setModalOpen(true);
@@ -167,7 +167,7 @@ export const AdminNewsPage: React.FC = () => {
           bannerImage: banner,
           date: formData.date || "SEP 2026",
           readTime: formData.readTime || "3 MIN READ",
-          author: formData.author || "Lordz Editorial",
+          author: formData.author || "Lord Editorial",
           badgeColor: formData.badgeColor || "bg-amber-500/20 text-amber-400 border-amber-500/30",
           featured: formData.featured || false,
         };
@@ -502,7 +502,7 @@ export const AdminNewsPage: React.FC = () => {
                     required
                     value={formData.author}
                     onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                    placeholder="Lordz Editorial"
+                    placeholder="Lord Editorial"
                     className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2.5 text-sm text-white focus:border-[#FFBE32] focus:outline-none"
                   />
                 </div>

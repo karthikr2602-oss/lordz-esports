@@ -5,7 +5,7 @@ import { StatsSection } from "../sections/StatsSection";
 
 export const AboutPage = () => {
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — About Organization & Manifesto";
+    document.title = "LORD ESPORTS — About Organization & Manifesto";
   }, []);
 
   return (
@@ -13,7 +13,7 @@ export const AboutPage = () => {
       <PageHero
         badge="ORGANIZATION PROFILE"
         title="ABOUT"
-        titleHighlight="LORDZ"
+        titleHighlight="LORD"
         subtitle="Born from the fierce competitive pulse of Indian mobile gaming, building legacy through discipline, culture, and dominance."
       />
 

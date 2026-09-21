@@ -8,7 +8,7 @@ import logoImg from "../assets/lordz-logo.png";
 
 export const NotFoundPage = () => {
   useEffect(() => {
-    document.title = "404 — Signal Lost | LORDZ ESPORTS";
+    document.title = "404 — Signal Lost | LORD ESPORTS";
   }, []);
 
   return (
@@ -30,7 +30,7 @@ export const NotFoundPage = () => {
         >
           <img
             src={logoImg}
-            alt="Lordz Esports"
+            alt="Lord Esports"
             className="h-full w-full object-contain drop-shadow-[0_0_10px_#FFBE32]"
           />
         </motion.div>

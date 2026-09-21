@@ -355,7 +355,7 @@ export const TournamentDetailPage: React.FC = () => {
                 <p className="text-sm text-gray-300 font-body leading-relaxed">
                   {tournament.description ||
                     tournament.shortDescription ||
-                    "Official competitive tournament organized by Lordz Esports. Squads battle across Bermuda, Purgatory, and Kalahari maps with real-time observer review and anti-cheat monitoring."}
+                    "Official competitive tournament organized by Lord Esports. Squads battle across Bermuda, Purgatory, and Kalahari maps with real-time observer review and anti-cheat monitoring."}
                 </p>
               </div>
 
@@ -736,7 +736,7 @@ export const TournamentDetailPage: React.FC = () => {
                   </div>
 
                   <p className="text-xs text-gray-300 font-body leading-relaxed">
-                    Tournament slots are strictly allocated on a first-come, first-served pre-entry basis. Once you submit your squad roster, your slot is instantly reserved and the LORDZ Admin team is directly notified.
+                    Tournament slots are strictly allocated on a first-come, first-served pre-entry basis. Once you submit your squad roster, your slot is instantly reserved and the LORD Admin team is directly notified.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">

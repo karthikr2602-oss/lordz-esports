@@ -18,11 +18,11 @@ export const HallOfGlorySection = ({ showHeader = true }: HallOfGlorySectionProp
 
       <div className="max-w-7xl mx-auto">
         {showHeader && (
-          <SectionHeading
-            badge="TROPHY ROOM"
-            title="HALL OF GLORY"
-            subtitle="Honoring the milestone victories, tournament championships, and historic MVPs in Lordz history."
-          />
+            <SectionHeading
+              badge="TROPHY ROOM"
+              title="HALL OF GLORY"
+              subtitle="Honoring the milestone victories, tournament championships, and historic MVPs in Lord history."
+            />
         )}
 
         {/* Timeline / Horizontal Cards */}

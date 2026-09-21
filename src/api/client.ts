@@ -1,5 +1,5 @@
 /**
- * Lordz Esports API Client
+ * Lord Esports API Client
  * Resilient API fetcher with token management and automatic fallback support.
  */
 

@@ -34,8 +34,8 @@ export const matchesData: Match[] = [
     game: "FREE FIRE MAX",
     map: "BERMUDA",
     teamA: {
-      name: "LORDZ ESPORTS",
-      tag: "LORDZ",
+      name: "LORD ESPORTS",
+      tag: "LORD",
       score: 38,
       points: 22,
     },
@@ -55,8 +55,8 @@ export const matchesData: Match[] = [
     game: "FREE FIRE MAX",
     map: "PURGATORY",
     teamA: {
-      name: "LORDZ ESPORTS",
-      tag: "LORDZ",
+      name: "LORD ESPORTS",
+      tag: "LORD",
     },
     teamB: {
       name: "TB ESPORTS",
@@ -68,13 +68,13 @@ export const matchesData: Match[] = [
   {
     id: "match-up-2",
     status: "UPCOMING",
-    tournament: "LORDZ CLUTCH CUP",
+    tournament: "LORD CLUTCH CUP",
     stage: "ROUND OF 16",
     game: "FREE FIRE MAX",
     map: "BERMUDA",
     teamA: {
-      name: "LORDZ ESPORTS",
-      tag: "LORDZ",
+      name: "LORD ESPORTS",
+      tag: "LORD",
     },
     teamB: {
       name: "GODLIKE INVINCIBLE",
@@ -91,8 +91,8 @@ export const matchesData: Match[] = [
     game: "FREE FIRE MAX",
     map: "KALAHARI",
     teamA: {
-      name: "LORDZ ESPORTS",
-      tag: "LORDZ",
+      name: "LORD ESPORTS",
+      tag: "LORD",
       score: 24,
       points: 12,
     },
@@ -102,7 +102,7 @@ export const matchesData: Match[] = [
       score: 14,
       points: 8,
     },
-    winner: "LORDZ ESPORTS",
+    winner: "LORD ESPORTS",
   },
   {
     id: "match-res-2",
@@ -112,8 +112,8 @@ export const matchesData: Match[] = [
     game: "FREE FIRE MAX",
     map: "BERMUDA",
     teamA: {
-      name: "LORDZ ESPORTS",
-      tag: "LORDZ",
+      name: "LORD ESPORTS",
+      tag: "LORD",
       score: 30,
       points: 18,
     },
@@ -123,6 +123,6 @@ export const matchesData: Match[] = [
       score: 18,
       points: 6,
     },
-    winner: "LORDZ ESPORTS",
+    winner: "LORD ESPORTS",
   },
 ];

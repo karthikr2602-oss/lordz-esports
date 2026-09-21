@@ -2,12 +2,12 @@ import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
-console.log("🚀 Building Lordz Esports Main Website...");
+console.log("🚀 Building Lord Esports Main Website...");
 execSync("npm run build:web", { stdio: "inherit" });
 
 const adminDir = path.resolve("admin");
 
-console.log("⚙️ Building Lordz Esports Admin Portal...");
+console.log("⚙️ Building Lord Esports Admin Portal...");
 execSync("npm install --include=dev", {
   cwd: adminDir,
   stdio: "inherit",

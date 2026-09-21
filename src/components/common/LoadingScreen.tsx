@@ -39,7 +39,7 @@ export const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           >
             <img
               src={logoImg}
-              alt="Lordz Esports Logo"
+              alt="Lord Esports Logo"
               className="h-28 w-28 object-contain drop-shadow-[0_0_25px_rgba(255,190,50,0.45)]"
             />
           </motion.div>
@@ -52,7 +52,7 @@ export const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
             className="mt-6 flex flex-col items-center gap-1"
           >
             <h1 className="font-display text-3xl md:text-4xl tracking-[0.25em] text-white">
-              LORDZ <span className="text-[#FFBE32]">ESPORTS</span>
+              LORD <span className="text-[#FFBE32]">ESPORTS</span>
             </h1>
             <div className="h-[2px] w-12 bg-gradient-to-r from-transparent via-[#FFBE32] to-transparent mt-1" />
             <span className="font-heading text-xs tracking-[0.3em] text-[#9CA3AF] mt-1">

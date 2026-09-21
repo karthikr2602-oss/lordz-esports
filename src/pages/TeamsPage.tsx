@@ -11,7 +11,7 @@ export const TeamsPage = () => {
   const [memberFilter, setMemberFilter] = useState<string>("all");
 
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — The People Behind The Play";
+    document.title = "LORD ESPORTS — The People Behind The Play";
     window.scrollTo(0, 0);
   }, []);
 
@@ -84,7 +84,7 @@ export const TeamsPage = () => {
           <div className="flex items-center gap-3 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FFBE32]" />
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-[#A0A0A0]">
-              LORDZ ESPORTS / THE COLLECTIVE
+              LORD ESPORTS / THE COLLECTIVE
             </span>
           </div>
 
@@ -102,7 +102,7 @@ export const TeamsPage = () => {
               <div className="w-12 h-px bg-[#FFBE32]/60 my-6" />
 
               <p className="text-base sm:text-lg text-[#A0A0A0] font-body leading-relaxed max-w-xl">
-                Real people. Distinct roles. One competitive organization. LORDZ ESPORTS is powered by individuals working across technology, tournament operations, management, creative media, player talent, and community.
+                Real people. Distinct roles. One competitive organization. LORD ESPORTS is powered by individuals working across technology, tournament operations, management, creative media, player talent, and community.
               </p>
 
               {/* Minimal Editorial Subtext */}
@@ -120,7 +120,7 @@ export const TeamsPage = () => {
               <div className="relative group overflow-hidden rounded-md border border-white/[0.08] bg-[#0A0A0A]">
                 <img
                   src={teamPhoto}
-                  alt="Lordz Esports Collective"
+                  alt="Lord Esports Collective"
                   className="w-full h-72 sm:h-80 object-cover grayscale contrast-110 brightness-90 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/20 to-transparent pointer-events-none" />
@@ -250,7 +250,7 @@ export const TeamsPage = () => {
           <div className="flex items-center justify-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-[#FFBE32]" />
             <span className="font-mono text-xs uppercase tracking-[0.25em] text-[#FFBE32]">
-              THE LORDZ PHILOSOPHY
+              THE LORD PHILOSOPHY
             </span>
           </div>
 

@@ -30,7 +30,7 @@ export const JerseyShowcaseSection = ({
         {showHeader && (
           <SectionHeading
             badge="OFFICIAL MERCHANDISE"
-            title="WEAR THE LORDZ"
+            title="WEAR THE LORD"
             subtitle="Engineered for high-pressure competition. Crafted with Dravidian temple heritage and battle flame aesthetics."
           />
         )}
@@ -81,7 +81,7 @@ export const JerseyShowcaseSection = ({
                     <motion.img
                       key="front"
                       src={jerseyFrontImg}
-                      alt="Lordz Esports Official Jersey - Front"
+                      alt="Lord Esports Official Jersey - Front"
                       initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.96 }}
@@ -92,7 +92,7 @@ export const JerseyShowcaseSection = ({
                     <motion.img
                       key="back"
                       src={jerseyBackImg}
-                      alt="Lordz Esports Official Jersey - Back"
+                      alt="Lord Esports Official Jersey - Back"
                       initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.96 }}
@@ -118,11 +118,11 @@ export const JerseyShowcaseSection = ({
 
             <h3 className="font-display text-4xl sm:text-5xl uppercase tracking-wider text-white leading-tight">
               BLACK. GOLD. <br />
-              <span className="text-gold-gradient">LORDZ.</span>
+              <span className="text-gold-gradient">LORD.</span>
             </h3>
 
             <p className="mt-4 text-base sm:text-lg text-gray-300 font-body leading-relaxed">
-              "Built for the ones who keep pushing." The Lordz 2026 Pro Jersey unites ancient Dravidian temple gopuram architectural line art with modern competitive esports aggression.
+              "Built for the ones who keep pushing." The Lord 2026 Pro Jersey unites ancient Dravidian temple gopuram architectural line art with modern competitive esports aggression.
             </p>
 
             {/* Feature Bullet Points */}

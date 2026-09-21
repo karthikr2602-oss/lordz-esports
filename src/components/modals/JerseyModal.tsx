@@ -31,9 +31,9 @@ export const JerseyModal = ({ isOpen, onClose }: JerseyModalProps) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          productName: "LORDZ PRO COMBAT JERSEY 2026",
+          productName: "LORD PRO COMBAT JERSEY 2026",
           customerName: customerName || "Esports Enthusiast",
-          customerEmail: "fan@lordz.gg",
+          customerEmail: "fan@lordesports.gg",
           customerPhone: customerPhone || "+91 98765 00000",
           address: "Official Shipping Dispatch",
           city: "Chennai",
@@ -75,7 +75,7 @@ export const JerseyModal = ({ isOpen, onClose }: JerseyModalProps) => {
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="WEAR THE LORDZ"
+      title="WEAR THE LORD"
       subtitle="Official 2026-27 Pro Combat Jersey • Custom Athlete Print"
       maxWidth="lg"
     >
@@ -88,7 +88,7 @@ export const JerseyModal = ({ isOpen, onClose }: JerseyModalProps) => {
             ORDER PRE-REGISTERED!
           </h4>
           <p className="mt-2 text-sm text-[#9CA3AF] max-w-sm">
-            Your customized Lordz Pro Jersey with IGN <strong className="text-[#FFBE32]">{customIgn.toUpperCase()} #{customNumber}</strong> (Size {selectedSize}) has been reserved for batch delivery.
+            Your customized Lord Pro Jersey with IGN <strong className="text-[#FFBE32]">{customIgn.toUpperCase()} #{customNumber}</strong> (Size {selectedSize}) has been reserved for batch delivery.
             {orderNumber && <span className="block mt-2 font-mono text-xs text-[#FFBE32]">Order Reference: {orderNumber}</span>}
           </p>
           <div className="mt-6 w-full">
@@ -129,7 +129,7 @@ export const JerseyModal = ({ isOpen, onClose }: JerseyModalProps) => {
             <div className="h-64 sm:h-72 w-full flex items-center justify-center overflow-hidden">
               <img
                 src={previewSide === "front" ? jerseyFrontImg : jerseyBackImg}
-                alt="Lordz Jersey Preview"
+                alt="Lord Jersey Preview"
                 className="max-h-full max-w-full object-contain filter drop-shadow-[0_10px_25px_rgba(255,190,50,0.15)] transition-all duration-300"
               />
             </div>

@@ -370,8 +370,8 @@ export interface Team {
 export const teamsData: Team[] = [
   {
     id: "lordz-ff-main",
-    name: "LORDZ ESPORTS",
-    tag: "LORDZ",
+    name: "LORD ESPORTS",
+    tag: "LORD",
     game: "FREE FIRE MAX",
     rank: "#03",
     points: "1,240 PTS",
@@ -422,7 +422,7 @@ export const teamsData: Team[] = [
   },
   {
     id: "lordz-bgmi",
-    name: "LORDZ BATTLEGROUNDS",
+    name: "LORD BATTLEGROUNDS",
     tag: "LZR",
     game: "BGMI",
     rank: "#08",
@@ -435,7 +435,7 @@ export const teamsData: Team[] = [
   },
   {
     id: "lordz-val",
-    name: "LORDZ PROTOCOL",
+    name: "LORD PROTOCOL",
     tag: "LZP",
     game: "VALORANT",
     rank: "#12",

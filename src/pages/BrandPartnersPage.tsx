@@ -41,7 +41,7 @@ const curatedPartners: PartnerRowData[] = [
     logo: logoInfinix,
     website: "https://infinixmobility.com",
     description:
-      "Supplying Lordz Esports competitive mobile rosters with high-performance Infinix GT series devices equipped with 120 FPS high refresh displays, bypass charging, and vapor chamber cooling for prolonged tournament supremacy.",
+      "Supplying Lord Esports competitive mobile rosters with high-performance Infinix GT series devices equipped with 120 FPS high refresh displays, bypass charging, and vapor chamber cooling for prolonged tournament supremacy.",
     highlights: [
       "Official Tournament Device",
       "120 FPS Refresh Rate Optimization",
@@ -75,12 +75,12 @@ const curatedPartners: PartnerRowData[] = [
     logo: logoFusionCrystals,
     website: "https://fusioncrystals.gg",
     description:
-      "Fueling the lightning reflex speeds, cognitive focus, and endurance of Lordz athletes during grueling multi-round scrims and tournament finals with zero-sugar gaming electrolyte formulas.",
+      "Fueling the lightning reflex speeds, cognitive focus, and endurance of Lord athletes during grueling multi-round scrims and tournament finals with zero-sugar gaming electrolyte formulas.",
     highlights: [
       "Athlete Hydration & Focus Spec",
       "Exclusive Clan Flavors",
       "Broadcast Product Placement",
-      "Community Code: LORDZ"
+      "Community Code: LORD"
     ],
     since: "2025"
   },
@@ -109,7 +109,7 @@ const curatedPartners: PartnerRowData[] = [
     logo: logoEsportsPro,
     website: "https://esportspro.gg",
     description:
-      "Automating bracket progressions, anti-cheat validation, player ID authentication, and real-time leaderboard statistics for thousands of teams competing across Lordz open community cups.",
+      "Automating bracket progressions, anti-cheat validation, player ID authentication, and real-time leaderboard statistics for thousands of teams competing across Lord open community cups.",
     highlights: [
       "Automated Scoring & Bracket Engine",
       "Real-Time K/D Tracking & Stats",
@@ -143,7 +143,7 @@ export const BrandPartnersPage = () => {
   const [dbPartners, setDbPartners] = useState<PartnerItem[]>([]);
 
   useEffect(() => {
-    document.title = "Official Brand Partners — Lordz Esports Collaborations";
+    document.title = "Official Brand Partners — Lord Esports Collaborations";
     partnersApi
       .getAll()
       .then((res) => {
@@ -186,7 +186,7 @@ export const BrandPartnersPage = () => {
         category: p.category || "Esports Partner",
         logo: p.logoImage || p.cardImage || logoInfinix,
         website: p.websiteUrl || "https://lordz.gg",
-        description: `Official brand partner collaborating with Lordz Esports to advance competitive gaming excellence and fan engagement across India.`,
+        description: `Official brand partner collaborating with Lord Esports to advance competitive gaming excellence and fan engagement across India.`,
         highlights: [
           "Official Partner Collaboration",
           "Brand Integration in Tournaments",

@@ -264,7 +264,7 @@ export const PartnersSection = ({
             </div>
             <div>
               <h4 className="font-display text-lg uppercase tracking-wider text-white">
-                Want to Sponsor Lordz Esports Tournaments?
+                Want to Sponsor Lord Esports Tournaments?
               </h4>
               <p className="text-xs text-gray-400 font-body mt-0.5">
                 Reach over 500,000+ passionate competitive battle royale esports fans across YouTube &amp; Discord.

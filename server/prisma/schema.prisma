@@ -75,7 +75,7 @@ model Tournament {
   format                  String                   @default("BATTLE ROYALE • 6 MATCHES")
   matchFormat             String?
   featured                Boolean                  @default(false)
-  tagline                 String                   @default("Official Lordz Esports Tournament")
+  tagline                 String                   @default("Official Lord Esports Tournament")
   shortDescription        String?
   description             String?
   streamUrl               String?
@@ -331,8 +331,8 @@ model Match {
   stage            String      @default("GRAND FINALS")
   game             String      @default("FREE FIRE MAX")
   map              String      @default("BERMUDA")
-  teamAName        String      @default("LORDZ ESPORTS")
-  teamATag         String      @default("LORDZ")
+  teamAName        String      @default("LORD ESPORTS")
+  teamATag         String      @default("LORD")
   teamAScore       Int?        @default(0)
   teamAPoints      Int?        @default(0)
   teamBName        String
@@ -371,7 +371,7 @@ model Player {
   jerseyNumber  String
   role          String   @default("RUSHER") // IGL, RUSHER, SNIPER, SUPPORT, FRAGGER
   game          String   @default("FREE FIRE MAX")
-  team          String   @default("LORDZ ESPORTS")
+  team          String   @default("LORD ESPORTS")
   kdRatio       String   @default("4.00")
   headshotRate  String   @default("65%")
   matchesPlayed Int      @default(100)
@@ -590,7 +590,7 @@ model VotingNominee {
   playerId      String?
   name          String        @default("")
   role          String?       @default("ATHLETE")
-  team          String?       @default("LORDZ ESPORTS")
+  team          String?       @default("LORD ESPORTS")
   imageUrl      String?
   bio           String?
   displayOrder  Int           @default(0)

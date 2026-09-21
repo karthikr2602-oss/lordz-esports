@@ -92,7 +92,7 @@ export const CommunitySection = ({ showHeader = true }: CommunitySectionProps) =
     },
     {
       name: "OFFICIAL DISCORD",
-      title: "Lordz Gaming Hub",
+      title: "Lord Gaming Hub",
       label: "Tier-1 scrim coordination, referee tickets, team voice lounges & gamer community",
       badge: "VOICE COMMS & SCRIMS",
       icon: MessageSquare,

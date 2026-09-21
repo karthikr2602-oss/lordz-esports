@@ -49,7 +49,7 @@ export const NewsSection = ({
           <div className="mb-10">
             <SectionHeading
               badge="DISPATCHES & REPORTS"
-              title="LATEST FROM LORDZ"
+              title="LATEST FROM LORD"
               subtitle="Roster movements, tournament announcements, operational updates, and competitive debriefs."
             />
           </div>
@@ -268,7 +268,7 @@ export const NewsSection = ({
                         {/* Footer & CTA */}
                         <div className="mt-5 pt-3.5 border-t border-white/5 flex items-center justify-between text-xs">
                           <span className="font-mono text-gray-500 text-[11px]">
-                            Official Lordz Esports Release
+                            Official Lord Esports Release
                           </span>
 
                           <span className="font-heading font-bold uppercase tracking-wider text-[#FFBE32] group-hover:translate-x-1.5 transition-transform inline-flex items-center gap-1.5">

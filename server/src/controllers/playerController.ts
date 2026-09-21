@@ -9,7 +9,7 @@ const playerSchema = z.object({
   jerseyNumber: z.string().optional().default(""),
   role: z.enum(["IGL", "RUSHER", "SNIPER", "SUPPORT", "FRAGGER"]).default("RUSHER"),
   game: z.string().default("FREE FIRE MAX"),
-  team: z.string().default("LORDZ ESPORTS"),
+  team: z.string().default("LORD ESPORTS"),
   about: z.string().optional().nullable(),
   instagram: z.string().optional().nullable(),
   kdRatio: z.string().default("4.00").optional(),

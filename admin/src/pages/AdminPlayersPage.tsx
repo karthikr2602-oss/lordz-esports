@@ -41,7 +41,7 @@ export const AdminPlayersPage: React.FC = () => {
     realName: "",
     role: "RUSHER",
     game: "FREE FIRE MAX",
-    team: "LORDZ ESPORTS",
+    team: "LORD ESPORTS",
     about: "",
     instagram: "",
     image: "",
@@ -127,7 +127,7 @@ export const AdminPlayersPage: React.FC = () => {
       realName: "",
       role: "RUSHER",
       game: "FREE FIRE MAX",
-      team: "LORDZ ESPORTS",
+      team: "LORD ESPORTS",
       about: "Aggressive entry player with sharp reflexes and great communication.",
       instagram: "@lordz_player",
       image: "",
@@ -172,9 +172,9 @@ export const AdminPlayersPage: React.FC = () => {
           realName: formData.realName || "Athlete",
           role: formData.role || "RUSHER",
           game: formData.game || "FREE FIRE MAX",
-          team: "LORDZ ESPORTS",
-          about: formData.about || "Pro athlete representing Lordz Esports.",
-          instagram: formData.instagram || "@lordzesports",
+          team: "LORD ESPORTS",
+          about: formData.about || "Pro athlete representing Lord Esports.",
+          instagram: formData.instagram || "@lordesports",
           image: formData.image || formData.avatarUrl || "",
           avatarUrl: formData.image || formData.avatarUrl || "",
           featuredQuote: formData.about || "Built for the ones who keep pushing.",
@@ -526,7 +526,7 @@ export const AdminPlayersPage: React.FC = () => {
                       featuredQuote: e.target.value,
                     })
                   }
-                  placeholder="Describe the player's playstyle, background, achievements, and impact on Lordz Esports..."
+                  placeholder="Describe the player's playstyle, background, achievements, and impact on Lord Esports..."
                   className="w-full rounded-xl border border-white/15 bg-black/60 px-3.5 py-2 text-sm text-white focus:border-[#FFBE32] focus:outline-none leading-relaxed"
                 />
               </div>

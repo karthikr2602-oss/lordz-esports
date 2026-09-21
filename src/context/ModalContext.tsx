@@ -166,13 +166,13 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
             </div>
           ) : (
             <p className="leading-relaxed text-gray-400">
-              As competitive esports across India enters an unprecedented era of professionalization, Lordz Esports continues to establish the gold standard for player development, scrim infrastructure, and fair play.
+              As competitive esports across India enters an unprecedented era of professionalization, Lord Esports continues to establish the gold standard for player development, scrim infrastructure, and fair play.
             </p>
           )}
 
           <div className="pt-4 border-t border-white/10 flex flex-wrap justify-between items-center text-xs text-gray-400 font-mono gap-2">
             <span>
-              Desk: <strong className="text-white">{selectedArticle?.author || "Lordz Editorial"}</strong>
+              Desk: <strong className="text-white">{selectedArticle?.author || "Lord Editorial"}</strong>
             </span>
             <span>
               Date: <strong className="text-[#FFBE32]">{selectedArticle?.date}</strong>
@@ -185,13 +185,13 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
       <Modal
         isOpen={partnerModalOpen}
         onClose={closePartner}
-        title="PARTNER WITH LORDZ"
+        title="PARTNER WITH LORD"
         subtitle="Sponsorship, Brand Integrations & Broadcast Rights"
         maxWidth="sm"
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-300 font-body">
-            Position your brand at the center of Indian youth culture and competitive gaming. Lordz Esports provides tailored tournament naming rights, jersey sleeve placements, and broadcast integrations.
+            Position your brand at the center of Indian youth culture and competitive gaming. Lord Esports provides tailored tournament naming rights, jersey sleeve placements, and broadcast integrations.
           </p>
           <div className="p-4 rounded-lg bg-black/60 border border-white/10 text-xs space-y-2 font-mono">
             <div className="flex justify-between">

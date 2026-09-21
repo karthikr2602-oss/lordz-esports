@@ -30,7 +30,7 @@ export const TeamsSection = ({
         {/* Teams Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {teamsData.map((team, index) => {
-            const isLordz = team.name.includes("LORDZ");
+            const isLord = team.name.toUpperCase().includes("LORD");
 
             return (
               <motion.div
@@ -40,7 +40,7 @@ export const TeamsSection = ({
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.06 }}
                 className={`group relative rounded-xl p-6 transition-all duration-300 bg-[#0C0C0F] border ${
-                  isLordz
+                  isLord
                     ? "border-[#FFBE32]/40 shadow-[0_10px_30px_rgba(255,190,50,0.1)]"
                     : "border-white/10 hover:border-[#FFBE32]/40"
                 } hover:-translate-y-1.5 hover:shadow-[0_15px_35px_rgba(255,190,50,0.18)]`}
@@ -48,14 +48,14 @@ export const TeamsSection = ({
                 {/* Gold rim accent on top */}
                 <div
                   className={`h-1 w-12 rounded-full mb-4 ${
-                    isLordz ? "bg-[#FFBE32]" : "bg-white/20 group-hover:bg-[#FFBE32]"
+                    isLord ? "bg-[#FFBE32]" : "bg-white/20 group-hover:bg-[#FFBE32]"
                   } transition-colors`}
                 />
 
                 <div className="flex items-start justify-between gap-4">
                   {/* Team Logo / Crest */}
                   <div className="h-16 w-16 rounded-xl bg-black/60 border border-white/10 group-hover:border-[#FFBE32]/50 p-2.5 flex items-center justify-center transition-all group-hover:scale-105 shadow-inner">
-                    {isLordz ? (
+                    {isLord ? (
                       <img
                         src={logoImg}
                         alt={team.name}

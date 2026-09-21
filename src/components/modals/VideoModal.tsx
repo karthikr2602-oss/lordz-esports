@@ -35,7 +35,7 @@ export const VideoModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="LORDZ STREAM BROADCAST"
+      title="LORD STREAM BROADCAST"
       subtitle={`${game} • ${category}`}
       maxWidth="xl"
     >

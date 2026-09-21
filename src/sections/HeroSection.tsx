@@ -66,11 +66,11 @@ export const HeroSection = ({
             >
               <img
                 src={logoImg}
-                alt="Lordz LE"
+                alt="Lord LE"
                 className="h-4 w-4 object-contain drop-shadow-[0_0_8px_#FFBE32]"
               />
               <span className="font-heading text-xs font-bold uppercase tracking-[0.25em] text-[#FFBE32]">
-                RISE WITH LORDZ
+                RISE WITH LORD
               </span>
               <span className="h-1 w-1 rounded-full bg-white/40" />
               <span className="font-heading text-[11px] text-gray-300 tracking-widest">
@@ -136,7 +136,7 @@ export const HeroSection = ({
                 className="w-full sm:w-auto"
                 showArrow
               >
-                JOIN LORDZ
+                JOIN LORD
               </OutlineButton>
             </motion.div>
           </div>
@@ -258,7 +258,7 @@ export const HeroSection = ({
               >
                 <motion.img
                   src={freeFireStandingImg}
-                  alt="Lordz Esports Free Fire Apex Character"
+                  alt="Lord Esports Free Fire Apex Character"
                   className="max-h-[460px] sm:max-h-[560px] lg:max-h-[640px] xl:max-h-[680px] w-auto object-contain select-none pointer-events-none filter contrast-[1.06] brightness-[1.04]"
                   animate={{
                     filter: [

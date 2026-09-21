@@ -74,13 +74,13 @@ export const Navbar = () => {
             <div className="relative">
               <img
                 src={logoImg}
-                alt="Lordz Esports"
+                alt="Lord Esports"
                 className="h-8 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(255,190,50,0.35)]"
               />
             </div>
             <div className="flex flex-col">
               <span className="font-display text-lg sm:text-xl xl:text-2xl leading-none uppercase tracking-widest text-white">
-                LORDZ <span className="text-[#FFBE32]">ESPORTS</span>
+                LORD <span className="text-[#FFBE32]">ESPORTS</span>
               </span>
               <span className="font-heading text-[8px] sm:text-[9px] tracking-[0.25em] text-[#9CA3AF] uppercase">
                 India's Elite Clan

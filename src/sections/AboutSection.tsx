@@ -46,7 +46,7 @@ export const AboutSection = ({ showHeader = true }: AboutSectionProps) => {
             >
               <img
                 src={logoImg}
-                alt="Lordz LE"
+                alt="Lord LE"
                 className="h-full w-full object-contain drop-shadow-[0_0_20px_rgba(255,190,50,0.35)]"
               />
             </motion.div>
@@ -63,7 +63,7 @@ export const AboutSection = ({ showHeader = true }: AboutSectionProps) => {
             </motion.div>
 
             <h2 className="font-display text-3xl sm:text-5xl uppercase tracking-wider text-white">
-              ABOUT <span className="text-gold-gradient">LORDZ ESPORTS</span>
+              ABOUT <span className="text-gold-gradient">LORD ESPORTS</span>
             </h2>
           </div>
         )}
@@ -87,7 +87,7 @@ export const AboutSection = ({ showHeader = true }: AboutSectionProps) => {
               <div className="aspect-[4/3] w-full overflow-hidden relative">
                 <motion.img
                   src={aboutTeamImg}
-                  alt="Lordz Esports Champions on Stage with Trophy"
+                  alt="Lord Esports Champions on Stage with Trophy"
                   className="w-full h-full object-cover object-center filter brightness-[1.02] contrast-[1.05] transition-transform duration-700 ease-out group-hover:scale-105"
                 />
 
@@ -145,7 +145,7 @@ export const AboutSection = ({ showHeader = true }: AboutSectionProps) => {
 
             {/* Story Paragraph */}
             <p className="mt-6 text-sm sm:text-base text-gray-300 font-body leading-relaxed">
-              Born from the intense competitive pulse of Indian gaming, <strong className="text-white font-semibold">Lordz Esports</strong> is an organization founded on discipline, raw skill, and cultural pride. From grassroots mobile scrims to national championship arenas, we elevate aspiring athletes into champions.
+              Born from the intense competitive pulse of Indian gaming, <strong className="text-white font-semibold">Lord Esports</strong> is an organization founded on discipline, raw skill, and cultural pride. From grassroots mobile scrims to national championship arenas, we elevate aspiring athletes into champions.
             </p>
 
             <p className="mt-3 text-xs sm:text-sm text-gray-400 font-body leading-relaxed">

@@ -23,12 +23,12 @@ export const FooterSection = () => {
             <Link to="/" className="inline-flex items-center gap-3">
               <img
                 src={logoImg}
-                alt="Lordz Esports"
+                alt="Lord Esports"
                 className="h-12 w-12 object-contain drop-shadow-[0_0_15px_rgba(255,190,50,0.35)]"
               />
               <div className="flex flex-col">
                 <span className="font-display text-3xl uppercase tracking-widest text-white">
-                  LORDZ <span className="text-[#FFBE32]">ESPORTS</span>
+                  LORD <span className="text-[#FFBE32]">ESPORTS</span>
                 </span>
                 <span className="font-heading text-[10px] tracking-[0.25em] text-[#9CA3AF] uppercase">
                   Indian Competitive Gaming
@@ -37,7 +37,7 @@ export const FooterSection = () => {
             </Link>
 
             <p className="mt-4 text-sm text-[#9CA3AF] font-body leading-relaxed max-w-sm">
-              "Compete. Improve. Build your legacy." Lordz Esports is a premier Indian esports organization and gaming platform empowering tournament rosters, daily scrims, and national championship athletes.
+              "Compete. Improve. Build your legacy." Lord Esports is a premier Indian esports organization and gaming platform empowering tournament rosters, daily scrims, and national championship athletes.
             </p>
 
             <div className="mt-6 flex items-center gap-2 text-xs text-gray-400 font-body">
@@ -147,7 +147,7 @@ export const FooterSection = () => {
             <ul className="space-y-2.5 text-xs font-heading tracking-wider uppercase text-gray-400">
               <li>
                 <Link to="/about" className="hover:text-[#FFBE32] transition-colors">
-                  About Lordz
+                  About Lord Esports
                 </Link>
               </li>
               <li>
@@ -215,7 +215,7 @@ export const FooterSection = () => {
         {/* Bottom Bar: Copyright & Legal */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 font-body">
           <div className="flex items-center gap-2">
-            <span>© 2026 LORDZ ESPORTS. ALL RIGHTS RESERVED.</span>
+            <span>© 2026 LORD ESPORTS. ALL RIGHTS RESERVED.</span>
             <span>•</span>
             <span className="text-gray-400">MADE FOR INDIAN ESPORTS</span>
           </div>

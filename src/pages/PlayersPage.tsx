@@ -6,7 +6,7 @@ import { Vote, ArrowRight } from "lucide-react";
 
 export const PlayersPage = () => {
   useEffect(() => {
-    document.title = "LORDZ ESPORTS — Pro Athlete Roster";
+    document.title = "LORD ESPORTS — Pro Athlete Roster";
   }, []);
 
   return (
@@ -15,7 +15,7 @@ export const PlayersPage = () => {
         badge="PRO ATHLETE ROSTER"
         title="MEET THE"
         titleHighlight="CHAMPIONS"
-        subtitle="The championship athletes representing Lordz Esports across premier national mobile stages."
+        subtitle="The championship athletes representing Lord Esports across premier national mobile stages."
       />
 
       {/* Community Voting CTA Banner */}
@@ -38,7 +38,7 @@ export const PlayersPage = () => {
                 </span>
               </div>
               <h3 className="font-heading font-black text-sm sm:text-base text-white uppercase tracking-wider group-hover:text-[#FFBE32] transition-colors">
-                Vote for your Lordz MVP of the Season
+                Vote for your Lord MVP of the Season
               </h3>
             </div>
           </div>

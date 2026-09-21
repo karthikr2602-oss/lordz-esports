@@ -53,7 +53,7 @@ export const AdminDashboardPage: React.FC = () => {
             captainIgn: "SOUL_VIPER",
             whatsapp: "+91 98765 43210",
             status: "APPROVED",
-            tournament: { title: "LORDZ CLUTCH CUP S1" },
+            tournament: { title: "LORD CLUTCH CUP S1" },
             createdAt: new Date().toISOString(),
           },
           {
@@ -71,7 +71,7 @@ export const AdminDashboardPage: React.FC = () => {
             captainIgn: "JONATHAN_X",
             whatsapp: "+91 98450 11223",
             status: "APPROVED",
-            tournament: { title: "LORDZ CLUTCH CUP S1" },
+            tournament: { title: "LORD CLUTCH CUP S1" },
             createdAt: new Date(Date.now() - 7200000).toISOString(),
           },
         ],
@@ -144,7 +144,7 @@ export const AdminDashboardPage: React.FC = () => {
             </span>
           </div>
           <h1 className="font-display text-3xl sm:text-4xl uppercase tracking-wider text-white">
-            LORDZ ESPORTS DASHBOARD
+            LORD ESPORTS DASHBOARD
           </h1>
           <p className="text-xs sm:text-sm text-gray-400 font-body">
             Real-time control over tournament brackets, athlete rosters, merchandise orders, and live public site sync.

@@ -1,7 +1,7 @@
 {
   "name": "lordz-esports-server",
   "version": "1.0.0",
-  "description": "Unified REST API backend for Lordz Esports and Admin Portal",
+  "description": "Unified REST API backend for Lord Esports and Admin Portal",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {

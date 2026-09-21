@@ -575,7 +575,7 @@ export const AdminPartnersPage: React.FC = () => {
 
                     {/* Quick WhatsApp Chat */}
                     <a
-                      href={`https://wa.me/${inq.phone.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(inq.contactName)},%20thank%20you%20for%20applying%20for%20the%20${encodeURIComponent(inq.planName)}%20with%20Lordz%20Esports!`}
+                      href={`https://wa.me/${inq.phone.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(inq.contactName)},%20thank%20you%20for%20applying%20for%20the%20${encodeURIComponent(inq.planName)}%20with%20Lord%20Esports!`}
                       target="_blank"
                       rel="noreferrer"
                       className="px-3.5 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-black font-heading text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-1.5"
