@@ -355,6 +355,7 @@ export const AdminVotingPage: React.FC = () => {
       await loadData();
     } catch (err: any) {
       alert(err?.message || "Failed to delete event");
+      setDeleteConfirmId(null);
     } finally {
       setDeleting(false);
     }
@@ -1047,7 +1048,7 @@ export const AdminVotingPage: React.FC = () => {
               </h4>
             </div>
             <p className="text-xs text-gray-400 font-body leading-relaxed">
-              Are you sure you want to permanently delete this event? Note: Events with recorded votes cannot be deleted to preserve voting integrity; archive them instead.
+              Are you sure you want to permanently delete this event? This will delete the voting event, its candidate nominees, and all recorded fan votes.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button

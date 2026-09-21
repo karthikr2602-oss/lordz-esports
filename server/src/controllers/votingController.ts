@@ -869,7 +869,7 @@ export const getVotingEventResultsAdmin = async (
 
 /**
  * DELETE /api/admin/voting/events/:id
- * Safe deletion: Rejects deletion if votes exist to prevent audit loss.
+ * Admin deletion: Removes voting event along with any recorded votes and nominees in a transaction.
  */
 export const deleteVotingEventAdmin = async (
   req: AuthenticatedRequest,
@@ -881,9 +881,6 @@ export const deleteVotingEventAdmin = async (
 
     const event = await prisma.votingEvent.findUnique({
       where: { id },
-      include: {
-        _count: { select: { votes: true } },
-      },
     });
 
     if (!event) {
@@ -891,20 +888,16 @@ export const deleteVotingEventAdmin = async (
       return;
     }
 
-    if (event._count.votes > 0) {
-      res.status(400).json({
-        success: false,
-        message:
-          "Cannot delete a voting event with recorded community votes. Please archive the event instead to preserve voting history.",
-      });
-      return;
-    }
-
-    await prisma.votingEvent.delete({ where: { id } });
+    // Safely delete all votes, nominees, and the event in a transaction
+    await prisma.$transaction(async (tx: any) => {
+      await tx.vote.deleteMany({ where: { votingEventId: id } });
+      await tx.votingNominee.deleteMany({ where: { votingEventId: id } });
+      await tx.votingEvent.delete({ where: { id } });
+    });
 
     res.json({
       success: true,
-      message: "Voting event deleted successfully",
+      message: "Voting event and all associated records deleted successfully",
     });
   } catch (error) {
     next(error);
