@@ -52,6 +52,8 @@ model Tournament {
   thirdPrize              String?
   entryFee                String                   @default("FREE ENTRY")
   feeAmount               Int                      @default(0)
+  entryFeeType            String                   @default("PER_TEAM") // PER_TEAM, PER_PLAYER
+  paymentMethod           String                   @default("BOTH") // ONLINE, UPI, BOTH
   currency                String                   @default("INR")
   slots                   String                   @default("32 TEAMS")
   totalTeams              Int                      @default(32)
@@ -86,16 +88,83 @@ model Tournament {
   upiId                   String?                  @default("lordzesports@upi")
   upiQrImage              String?
   bankDetails             String?
+  prizeDistributionType   String                   @default("CUSTOM") // CUSTOM, PERCENTAGE, FIXED, WINNER_TAKES_ALL
+  prizes                  String?                  // JSON: [{ position: 1, label: "1st Place", percentage: 50, amount: 5000 }, ...]
+  allowUnallocatedPrize   Boolean                  @default(true)
+  teamType                String                   @default("SQUAD") // SOLO, DUO, TRIO, SQUAD, CUSTOM
+  minPlayersPerTeam       Int                      @default(4)
+  allowSubstitutes        Boolean                  @default(true)
+  allowWaitlist           Boolean                  @default(true)
+  allowLateRegistration   Boolean                  @default(false)
+  minTeams                Int                      @default(2)
+  checkInEnabled          Boolean                  @default(false)
+  checkInStartTime        String?
+  checkInEndTime          String?
+  noShowTimeoutMinutes    Int                      @default(10)
+  tournamentFormat        String                   @default("BATTLE_ROYALE") // SINGLE_ELIMINATION, DOUBLE_ELIMINATION, ROUND_ROBIN, LEAGUE, SWISS, BATTLE_ROYALE, CUSTOM
+  scoringWin              Int                      @default(12)
+  scoringKill             Int                      @default(1)
+  scoringPlacement        String?                  // JSON: {"1": 12, "2": 9, ...}
+  scoringBonus            String?
+  scoringPenalty          String?
+  sponsors                String?                  // JSON: [{ id, name, logo, website, displayOrder }, ...]
+  refundAvailable         Boolean                  @default(false)
+  refundPolicy            String?
+  supportEmail            String?
+  supportPhone            String?
+  discordUrl              String?
+  telegramUrl             String?
+  whatsappUrl             String?
+  isDraft                 Boolean                  @default(false)
+  isPublished             Boolean                  @default(true)
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   registrations           TournamentRegistration[]
   teams                   Team[]
   stages                  TournamentStage[]
+  rounds                  TournamentRound[]
   leaderboard             TournamentLeaderboard[]
   slotReservations        SlotReservation[]
   matches                 Match[]
   standings               Standing[]
   activityLogs            ActivityLog[]
+}
+
+model TournamentRound {
+  id                    String        @id @default(uuid())
+  tournamentId          String
+  tournament            Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name                  String        // e.g. "ROUND 1", "ROUND 2", "SEMI FINAL", "FINAL", "CUSTOM ROUND"
+  roundNumber           Int           @default(1)
+  roundType             String        @default("BATTLE_ROYALE") // BATTLE_ROYALE, KNOCKOUT, CUSTOM
+  startDate             String?
+  startTime             String?
+  description           String?
+  maxTeams              Int           @default(32)
+  selectionMethod       String        @default("MANUAL") // MANUAL, TOP_POINTS, QUALIFIED
+  status                String        @default("UPCOMING") // UPCOMING, ONGOING, COMPLETED
+  isLocked              Boolean       @default(false)
+  lockedAt              DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  roundTeams            RoundTeam[]
+}
+
+model RoundTeam {
+  id             String           @id @default(uuid())
+  roundId        String
+  round          TournamentRound  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  teamId         String
+  team           Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  status         String           @default("PENDING") // QUALIFIED, ELIMINATED, PENDING, DISQUALIFIED, ADVANCED
+  seed           Int?
+  score          Int              @default(0)
+  qualifiedAt    DateTime?
+  eliminatedAt   DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([roundId, teamId])
 }
 
 model TournamentStage {
@@ -124,7 +193,7 @@ model Team {
   teamTag         String?
   leaderId        String
   leader          User                    @relation(fields: [leaderId], references: [id], onDelete: Cascade)
-  status          String                  @default("PENDING") // PENDING, CONFIRMED, REJECTED, DISQUALIFIED
+  status          String                  @default("PENDING") // PENDING, CONFIRMED, REJECTED, DISQUALIFIED, NOT_CONFIRMED
   isLocked        Boolean                 @default(false)
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
@@ -134,6 +203,7 @@ model Team {
   slotReservation SlotReservation?
   leaderboard     TournamentLeaderboard[]
   activityLogs    ActivityLog[]
+  roundTeams      RoundTeam[]
 }
 
 model TeamMember {
@@ -188,6 +258,12 @@ model TournamentRegistration {
   currentStage       TournamentStage?          @relation(fields: [currentStageId], references: [id], onDelete: SetNull)
   slotNumber         Int?
   adminNotes         String?
+  checkInStatus      String                    @default("NOT_CHECKED_IN") // CHECKED_IN, NOT_CHECKED_IN, LATE, DISQUALIFIED, NO_SHOW
+  checkInTime        DateTime?
+  isWaitlisted       Boolean                   @default(false)
+  waitlistPriority   Int?
+  refundStatus       String?                   // REFUND_REQUESTED, REFUND_PROCESSING, REFUNDED, REFUND_REJECTED
+  refundReason       String?
   approvedAt         DateTime?
   confirmedAt        DateTime?
   rejectedAt         DateTime?
@@ -321,28 +397,34 @@ model RegistrationActivityLog {
 
 
 model Match {
-  id               String      @id @default(uuid())
-  tournamentId     String?
-  tournament       Tournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
-  tournamentName   String?
-  status           String      @default("UPCOMING") // LIVE, UPCOMING, RESULT
-  stage            String      @default("GRAND FINALS")
-  game             String      @default("FREE FIRE MAX")
-  map              String      @default("BERMUDA")
-  teamAName        String      @default("LORDZ ESPORTS")
-  teamATag         String      @default("LORDZ")
-  teamAScore       Int?        @default(0)
-  teamAPoints      Int?        @default(0)
-  teamBName        String
-  teamBTag         String
-  teamBScore       Int?        @default(0)
-  teamBPoints      Int?        @default(0)
-  winner           String?
-  startTime        String?
-  countdownSeconds Int?
-  streamUrl        String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  id                     String      @id @default(uuid())
+  tournamentId           String?
+  tournament             Tournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  tournamentName         String?
+  roundId                String?
+  matchNumber            Int         @default(1)
+  status                 String      @default("UPCOMING") // LIVE, UPCOMING, RESULT
+  stage                  String      @default("GRAND FINALS")
+  game                   String      @default("FREE FIRE MAX")
+  map                    String      @default("BERMUDA")
+  roomId                 String?
+  roomPassword           String?
+  credentialsReleaseTime String?
+  serverRegion           String?     @default("INDIA")
+  teamAName              String      @default("LORDZ ESPORTS")
+  teamATag               String      @default("LORDZ")
+  teamAScore             Int?        @default(0)
+  teamAPoints            Int?        @default(0)
+  teamBName              String
+  teamBTag               String
+  teamBScore             Int?        @default(0)
+  teamBPoints            Int?        @default(0)
+  winner                 String?
+  startTime              String?
+  countdownSeconds       Int?
+  streamUrl              String?
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
 }
 
 model Standing {
@@ -561,4 +643,46 @@ model PartnerInquiry {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model VotingEvent {
+  id            String          @id @default(uuid())
+  title         String
+  slug          String?
+  description   String?
+  bannerImage   String?
+  status        String          @default("UPCOMING")
+  startDate     DateTime?
+  endDate       DateTime?
+  isLiveResults Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  nominees      VotingNominee[]
+  votes         Vote[]
+}
+
+model VotingNominee {
+  id            String       @id @default(uuid())
+  votingEventId String
+  votingEvent   VotingEvent  @relation(fields: [votingEventId], references: [id], onDelete: Cascade)
+  playerId      String?
+  name          String?
+  role          String?
+  team          String?
+  imageUrl      String?
+  bio           String?
+  displayOrder  Int          @default(0)
+  createdAt     DateTime     @default(now())
+  votes         Vote[]
+}
+
+model Vote {
+  id            String        @id @default(uuid())
+  votingEventId String
+  votingEvent   VotingEvent   @relation(fields: [votingEventId], references: [id], onDelete: Cascade)
+  nomineeId     String
+  nominee       VotingNominee @relation(fields: [nomineeId], references: [id], onDelete: Cascade)
+  userId        String?
+  createdAt     DateTime      @default(now())
+}
+
 

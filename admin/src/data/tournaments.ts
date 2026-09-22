@@ -1,3 +1,58 @@
+export interface PrizeTier {
+  id: string;
+  place: string; // e.g. "1st", "2nd", "3rd", "4th-10th", "Top Fragger"
+  type: "PERCENTAGE" | "FIXED";
+  percentage?: number;
+  amount: number;
+  badge?: string; // 🥇, 🥈, 🥉, etc.
+}
+
+export interface ScoringPlacementTier {
+  place: number;
+  points: number;
+}
+
+export interface ScoringConfig {
+  winPoints: number;
+  killPoints: number;
+  placements: ScoringPlacementTier[];
+  bonuses?: string;
+  penalties?: string;
+}
+
+export interface SponsorItem {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  websiteUrl?: string;
+  tier?: "TITLE" | "POWERED_BY" | "ASSOCIATE" | "MEDIA" | string;
+}
+
+export interface MatchItem {
+  id: string;
+  tournamentId?: string;
+  tournamentName?: string | null;
+  roundId?: string;
+  matchNumber?: number;
+  status: "UPCOMING" | "LIVE" | "RESULT" | string;
+  stage: string;
+  game: string;
+  map: string;
+  serverRegion?: string;
+  roomId?: string;
+  roomPassword?: string;
+  credentialsReleaseTime?: string;
+  teamAName: string;
+  teamATag: string;
+  teamAScore: number;
+  teamBName: string;
+  teamBTag: string;
+  teamBScore: number;
+  winner?: string | null;
+  startTime?: string | null;
+  streamUrl?: string | null;
+}
+
 export interface Tournament {
   id: string;
   slug?: string;
@@ -9,21 +64,56 @@ export interface Tournament {
   firstPrize?: string | null;
   secondPrize?: string | null;
   thirdPrize?: string | null;
+  prizeDistributionType?: "CUSTOM" | "PERCENTAGE" | "FIXED" | "WINNER_TAKES_ALL" | string;
+  prizes?: string | null; // JSON string representation of PrizeTier[]
+  allowUnallocatedPrize?: boolean;
   entryFee: string;
   feeAmount?: number;
   currency?: string;
+  entryFeeType?: "PER_TEAM" | "PER_PLAYER" | string;
+  paymentMethod?: "ONLINE" | "UPI" | "BOTH" | string;
   slots: string;
   totalTeams: number;
   registeredTeams: number;
+  teamType?: "SOLO" | "DUO" | "TRIO" | "SQUAD" | "CUSTOM" | string;
   teamSize?: number;
+  minPlayersPerTeam?: number;
   maxPlayersPerTeam?: number;
+  allowSubstitutes?: boolean;
   substituteCount?: number;
+  allowWaitlist?: boolean;
+  allowLateRegistration?: boolean;
+  minTeams?: number;
   date: string;
   startDate?: string | null;
   endDate?: string | null;
+  startTime?: string | null;
   regStartDate?: string | null;
   regEndDate?: string | null;
+  regDeadline?: string | null;
+  rosterLockDate?: string | null;
+  checkInEnabled?: boolean;
+  checkInStartTime?: string | null;
+  checkInEndTime?: string | null;
+  noShowTimeoutMinutes?: number;
   format: string;
+  tournamentFormat?: "BATTLE_ROYALE" | "SINGLE_ELIMINATION" | "DOUBLE_ELIMINATION" | "ROUND_ROBIN" | string;
+  matchFormat?: string | null;
+  scoringWin?: number;
+  scoringKill?: number;
+  scoringPlacement?: string | null;
+  scoringBonus?: string | null;
+  scoringPenalty?: string | null;
+  sponsors?: string | null;
+  refundAvailable?: boolean;
+  refundPolicy?: string | null;
+  supportEmail?: string | null;
+  supportPhone?: string | null;
+  discordUrl?: string | null;
+  telegramUrl?: string | null;
+  whatsappUrl?: string | null;
+  isDraft?: boolean;
+  isPublished?: boolean;
   featured?: boolean;
   tagline: string;
   shortDescription?: string | null;
@@ -32,12 +122,15 @@ export interface Tournament {
   bannerImage?: string | null;
   logoImage?: string | null;
   rules?: string | null;
+  scoringRules?: string | null;
   termsConditions?: string | null;
+  contactInfo?: string | null;
   upiId?: string | null;
   upiQrImage?: string | null;
   bankDetails?: string | null;
   stagesCount?: number;
   stages?: TournamentStage[];
+  rounds?: TournamentRound[];
   registrations?: RegistrationItem[];
   leaderboard?: LeaderboardEntry[];
   stats?: {
@@ -50,6 +143,41 @@ export interface Tournament {
   };
 }
 
+export interface TournamentRound {
+  id: string;
+  tournamentId: string;
+  name: string;
+  roundNumber: number;
+  roundType: "BATTLE_ROYALE" | "KNOCKOUT" | "CUSTOM" | string;
+  startDate?: string | null;
+  startTime?: string | null;
+  description?: string | null;
+  maxTeams: number;
+  selectionMethod: "MANUAL" | "TOP_POINTS" | "QUALIFIED" | string;
+  status: "UPCOMING" | "ONGOING" | "COMPLETED" | string;
+  roundTeams?: RoundTeam[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface RoundTeam {
+  id: string;
+  roundId: string;
+  teamId: string;
+  teamName?: string;
+  captainName?: string;
+  status: "QUALIFIED" | "ELIMINATED" | "PENDING" | "DISQUALIFIED" | "ADVANCED" | string;
+  seed?: number | null;
+  score: number;
+  qualifiedAt?: string | null;
+  eliminatedAt?: string | null;
+  team?: {
+    id: string;
+    name: string;
+    logo?: string;
+  } | null;
+}
+
 export interface TournamentStage {
   id: string;
   tournamentId: string;
@@ -58,6 +186,7 @@ export interface TournamentStage {
   status: "UPCOMING" | "ONGOING" | "COMPLETED" | string;
   startDate?: string | null;
   endDate?: string | null;
+
   teamsCount?: number | null;
   currentTeamsCount?: number;
   qualificationCriteria?: string | null;
@@ -122,6 +251,12 @@ export interface RegistrationItem {
   playerNames?: string | null;
   status: "PENDING" | "PAYMENT_PENDING" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "WAITLISTED" | "DISQUALIFIED" | string;
   paymentStatus: "PENDING" | "SUBMITTED" | "VERIFIED" | "REJECTED" | "REFUNDED" | string;
+  isWaitlisted?: boolean;
+  waitlistPriority?: number | null;
+  checkInStatus?: "NOT_CHECKED_IN" | "CHECKED_IN" | "NO_SHOW" | "PENDING" | string;
+  checkInTime?: string | null;
+  refundStatus?: string | null;
+  refundReason?: string | null;
   currentStageId?: string | null;
   currentStage?: { id: string; name: string; order: number } | null;
   slotNumber?: number | null;

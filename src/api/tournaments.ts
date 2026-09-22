@@ -152,6 +152,28 @@ export const tournamentsApi = {
     }
     return res.json();
   },
+
+  checkInTeam: async (tournamentId: string, teamId: string): Promise<any> => {
+    return apiRequest(`/tournaments/${tournamentId}/checkin`, {
+      method: "POST",
+      body: JSON.stringify({ teamId }),
+    });
+  },
+
+  getMatches: async (tournamentId: string): Promise<any[]> => {
+    const res = await apiRequest<{ success: boolean; matches: any[] }>(
+      `/tournaments/${tournamentId}/matches`,
+      { method: "GET" },
+      { success: true, matches: [] }
+    );
+    return res.matches || [];
+  },
+
+  getMatchCredentials: async (tournamentId: string, matchId: string): Promise<any> => {
+    return apiRequest(`/tournaments/${tournamentId}/matches/${matchId}/credentials`, {
+      method: "GET",
+    });
+  },
 };
 
 export const getMyTournaments = tournamentsApi.getMyTournaments;
@@ -164,3 +186,6 @@ export const markNotificationRead = tournamentsApi.markNotificationRead;
 export const markAllNotificationsRead = tournamentsApi.markAllNotificationsRead;
 export const respondToInvitation = tournamentsApi.respondToInvitation;
 export const getTournamentTeams = tournamentsApi.getTournamentTeams;
+export const checkInTeam = tournamentsApi.checkInTeam;
+export const getMatchCredentials = tournamentsApi.getMatchCredentials;
+

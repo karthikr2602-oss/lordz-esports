@@ -111,6 +111,31 @@ router.post(
   tournamentCtrl.duplicateTournament
 );
 
+// Tournament Waitlist
+router.get("/tournaments/:id/waitlist", tournamentCtrl.getTournamentWaitlist);
+router.post(
+  "/tournaments/:id/waitlist/:registrationId/promote",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.promoteWaitlistTeam
+);
+router.delete(
+  "/tournaments/:id/waitlist/:registrationId",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.removeWaitlistTeam
+);
+
+// Tournament Check-In
+router.post("/tournaments/:id/check-in", authenticate, tournamentCtrl.checkInTeam);
+router.get("/tournaments/:id/check-in-status", tournamentCtrl.getTournamentCheckInStatus);
+router.post(
+  "/tournaments/:id/handle-no-shows",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.handleNoShows
+);
+
 // Stages & Team Progression
 router.get("/tournaments/:id/stages", tournamentCtrl.getStages);
 router.post(
@@ -137,6 +162,54 @@ router.post(
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
   tournamentCtrl.moveTeamsToStage
 );
+
+// Tournament Rounds & Team Selection / Progression
+router.get("/tournaments/:id/rounds", tournamentCtrl.getRounds);
+router.post(
+  "/tournaments/:id/rounds",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.createRound
+);
+router.put(
+  "/tournaments/:id/rounds/:roundId",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.updateRound
+);
+router.delete(
+  "/tournaments/:id/rounds/:roundId",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.deleteRound
+);
+router.get(
+  "/tournaments/:id/rounds/:roundId/eligible-teams",
+  tournamentCtrl.getEligibleTeamsForRound
+);
+router.post(
+  "/tournaments/:id/rounds/:roundId/teams",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.selectTeamsForRound
+);
+router.post(
+  "/tournaments/:id/rounds/:roundId/advance",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.advanceTeams
+);
+router.put(
+  "/tournaments/:id/rounds/:roundId/teams/:teamId",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.updateRoundTeamStatus
+);
+router.get(
+  "/tournaments/:id/teams/:teamId/round-history",
+  tournamentCtrl.getTeamRoundHistory
+);
+
 
 // Tournament Leaderboard
 router.get("/tournaments/:id/leaderboard", tournamentCtrl.getLeaderboard);
@@ -182,6 +255,7 @@ router.post("/tournaments/:id/register", optionalAuth, tournamentCtrl.registerSq
 
 // ================= MATCH CENTER ROUTES =================
 router.get("/matches", matchCtrl.getMatches);
+router.get("/matches/:id/credentials", authenticate, matchCtrl.getMatchCredentials);
 router.post(
   "/matches",
   authenticate,

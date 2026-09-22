@@ -105,7 +105,7 @@ export const getMyTournaments = async (
       return;
     }
 
-    // Find teams where user is leader OR an accepted team member
+    // Find teams where user is leader OR a team member OR has a pending invitation
     const teams = await prisma.team.findMany({
       where: {
         OR: [
@@ -114,7 +114,14 @@ export const getMyTournaments = async (
             members: {
               some: {
                 userId: req.user.id,
-                invitationStatus: "ACCEPTED",
+              },
+            },
+          },
+          {
+            invitations: {
+              some: {
+                invitedUserId: req.user.id,
+                status: "PENDING",
               },
             },
           },
@@ -132,6 +139,8 @@ export const getMyTournaments = async (
             prizePool: true,
             entryFee: true,
             feeAmount: true,
+            entryFeeType: true,
+            paymentMethod: true,
             date: true,
             startTime: true,
             regDeadline: true,
@@ -194,8 +203,17 @@ export const getMyTournaments = async (
 
     const formatted = teams.map((team) => {
       const isLeader = team.leaderId === req.user!.id;
+      const userMember = team.members.find((m) => m.userId === req.user!.id);
+      const userPendingInv = team.invitations.find(
+        (inv) => inv.invitedUserId === req.user!.id && inv.status === "PENDING"
+      );
+      const isInvitationPending =
+        !isLeader && (userPendingInv !== undefined || userMember?.invitationStatus === "PENDING");
       const isRosterLocked =
         team.tournament.rosterLockDate && new Date() > new Date(team.tournament.rosterLockDate);
+
+      const feeType = (team.tournament as any).entryFeeType || "PER_TEAM";
+      const isFeePaidByLeader = feeType === "PER_TEAM" && team.registration?.paymentStatus === "VERIFIED";
 
       return {
         id: team.id,
@@ -203,8 +221,13 @@ export const getMyTournaments = async (
         teamLogo: team.teamLogo,
         teamTag: team.teamTag,
         isLeader,
+        isInvitationPending,
+        userInvitationId: userPendingInv?.id || null,
+        role: isLeader ? "LEADER" : isInvitationPending ? "INVITED" : userMember?.role || "MEMBER",
         isLocked: team.isLocked || !!isRosterLocked,
-        status: team.status,
+        status: isInvitationPending ? "INVITATION_PENDING" : team.status,
+        entryFeeType: feeType,
+        isFeePaidByLeader,
         createdAt: team.createdAt,
         tournament: team.tournament,
         leader: team.leader,

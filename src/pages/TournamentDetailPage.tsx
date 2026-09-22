@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { tournamentsApi } from "../api/tournaments";
+import { tournamentsApi, getMyTournaments } from "../api/tournaments";
+import { useAuth } from "../context/AuthContext";
 import {
   type Tournament,
   type TournamentStage,
@@ -23,14 +24,17 @@ import {
   AlertCircle,
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { formatCurrency, formatDate } from "../utils/formatters";
 
 export const TournamentDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { isAuthenticated } = useAuth();
 
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [stages, setStages] = useState<TournamentStage[]>([]);
   const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [userTournaments, setUserTournaments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
     "ABOUT" | "REGISTRATION" | "TEAMS" | "STAGES" | "LEADERBOARD" | "RULES"
@@ -105,6 +109,33 @@ export const TournamentDetailPage: React.FC = () => {
       .catch(() => {});
   }, [slug]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      getMyTournaments()
+        .then((res) => {
+          if (Array.isArray(res)) {
+            setUserTournaments(res);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setUserTournaments([]);
+    }
+  }, [isAuthenticated]);
+
+  // Check if current user is registered in this tournament
+  const userRegistration = useMemo(() => {
+    if (!tournament) return null;
+    return (
+      userTournaments.find(
+        (item) =>
+          item.tournament?.id === tournament.id ||
+          item.tournamentId === tournament.id ||
+          (tournament.slug && item.tournament?.slug === tournament.slug)
+      ) || null
+    );
+  }, [tournament, userTournaments]);
+
   if (loading && !tournament) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center text-[#FFBE32] font-mono text-sm">
@@ -134,7 +165,60 @@ export const TournamentDetailPage: React.FC = () => {
 
   const registeredCount = tournament.registeredTeams ?? (tournament.stats?.total || 0);
   const totalSlots = tournament.totalTeams || 128;
-  const feeDisplay = tournament.entryFee || "FREE PRE-ENTRY";
+  const isTournamentFull = registeredCount >= totalSlots;
+  const allowWaitlist = Boolean((tournament as any).allowWaitlist);
+  const feeDisplay = formatCurrency(tournament.feeAmount ?? tournament.entryFee);
+  const prizeDisplay = formatCurrency(tournament.prizePool);
+
+  const isUserRegistered = Boolean(userRegistration);
+  const regStatus = userRegistration?.registration?.status || userRegistration?.status;
+  const paymentStatus = userRegistration?.registration?.paymentStatus || userRegistration?.paymentStatus;
+  const isConfirmed = regStatus === "CONFIRMED";
+  const isPaymentUnderReview = regStatus === "PAYMENT_UNDER_REVIEW" || paymentStatus === "UNDER_REVIEW";
+  const isPendingInvitation = Boolean(userRegistration?.isInvitationPending);
+
+  const isCheckInOpen = useMemo(() => {
+    if (!tournament?.checkInEnabled) return false;
+    const now = new Date().getTime();
+    if (tournament.checkInStartTime && now < new Date(tournament.checkInStartTime).getTime()) return false;
+    if (tournament.checkInEndTime && now > new Date(tournament.checkInEndTime).getTime()) return false;
+    return true;
+  }, [tournament]);
+
+  const parsedPrizes = useMemo(() => {
+    if (!tournament) return [];
+    if (Array.isArray(tournament.prizes)) return tournament.prizes;
+    if (typeof tournament.prizes === "string") {
+      try {
+        const parsed = JSON.parse(tournament.prizes);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    // Fallback to legacy firstPrize / secondPrize / thirdPrize
+    const fallback: any[] = [];
+    if (tournament.firstPrize) {
+      fallback.push({ position: "1st Place", percentage: 50, amount: parseInt(String(tournament.firstPrize).replace(/[^0-9]/g, "")) || 0, formattedAmount: tournament.firstPrize });
+    }
+    if (tournament.secondPrize) {
+      fallback.push({ position: "2nd Place", percentage: 30, amount: parseInt(String(tournament.secondPrize).replace(/[^0-9]/g, "")) || 0, formattedAmount: tournament.secondPrize });
+    }
+    if (tournament.thirdPrize) {
+      fallback.push({ position: "3rd Place", percentage: 20, amount: parseInt(String(tournament.thirdPrize).replace(/[^0-9]/g, "")) || 0, formattedAmount: tournament.thirdPrize });
+    }
+    return fallback;
+  }, [tournament]);
+
+  const parsedSponsors = useMemo(() => {
+    if (!tournament) return [];
+    if (Array.isArray(tournament.sponsors)) return tournament.sponsors;
+    if (typeof tournament.sponsors === "string") {
+      try {
+        const parsed = JSON.parse(tournament.sponsors);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {}
+    }
+    return [];
+  }, [tournament]);
 
   const handleAddSubstitute = () => {
     if (substitutes.length >= (tournament.substituteCount || 2)) {
@@ -158,15 +242,7 @@ export const TournamentDetailPage: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const allRoster = [
-        ...players.map((p, idx) => ({
-          ...p,
-          isCaptain: idx === 0,
-        })),
-        ...substitutes,
-      ];
-
-      const payload = {
+      const res = await tournamentsApi.registerSquad(tournament.id, {
         teamName,
         captainName: captainName || captainIgn,
         captainIgn,
@@ -174,28 +250,42 @@ export const TournamentDetailPage: React.FC = () => {
         captainEmail,
         whatsapp,
         discordTag,
-        players: allRoster,
-      };
-
-      const res = await tournamentsApi.registerSquad(tournament.id, payload);
-
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ["#FFBE32", "#FFA000", "#FFFFFF"],
+        players: [
+          ...players.map((p) => ({
+            name: p.name || p.ign,
+            ign: p.ign,
+            playerId: p.playerId,
+            role: p.role,
+            isCaptain: p.isCaptain,
+            isSubstitute: false,
+          })),
+          ...substitutes.map((s) => ({
+            name: s.name || s.ign,
+            ign: s.ign,
+            playerId: s.playerId,
+            role: s.role,
+            isCaptain: false,
+            isSubstitute: true,
+          })),
+        ],
       });
 
-      setSubmissionResult({
-        registrationNumber: res.data?.registrationNumber || `LZ-${tournament.id.slice(0, 3).toUpperCase()}-REG`,
-        status: res.data?.status || "PRE-ENTRY RESERVED",
-      });
-      setSubmitSuccess(true);
-
-      // Dynamically increment count on page
-      setTournament((prev) => (prev ? { ...prev, registeredTeams: (prev.registeredTeams || 0) + 1 } : prev));
+      if (res?.success) {
+        setSubmitSuccess(true);
+        setSubmissionResult({
+          registrationNumber: res.registrationNumber || res.id || "CONFIRMED",
+          status: res.status || "CONFIRMED",
+        });
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      } else {
+        setErrorMessage(res?.message || "Registration failed. Please try again.");
+      }
     } catch (err: any) {
-      setErrorMessage(err.message || "Registration failed. Please review your squad information.");
+      setErrorMessage(err?.message || "An unexpected error occurred during registration.");
     } finally {
       setSubmitting(false);
     }
@@ -237,9 +327,43 @@ export const TournamentDetailPage: React.FC = () => {
                   {tournament.game}
                 </span>
 
-                <span className="px-3 py-1 rounded-md text-[10px] font-heading font-extrabold uppercase tracking-wider bg-amber-950/60 text-[#FFBE32] border border-[#FFBE32]/40 backdrop-blur-md">
-                  {tournament.status === "REGISTRATION_OPEN" ? "REGISTRATION OPEN" : tournament.status}
-                </span>
+                {isUserRegistered ? (
+                  <span
+                    className={`px-3 py-1 rounded-md text-[10px] font-heading font-black uppercase tracking-wider backdrop-blur-md flex items-center gap-1.5 ${
+                      isConfirmed
+                        ? "bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/40"
+                        : isPendingInvitation
+                        ? "bg-amber-500/20 text-[#FFBE32] border border-[#FFBE32]/40"
+                        : "bg-[#FFBE32]/20 text-[#FFBE32] border border-[#FFBE32]/40"
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3 h-3" />
+                    {isConfirmed
+                      ? "REGISTERED ✓"
+                      : isPendingInvitation
+                      ? "INVITATION PENDING"
+                      : isPaymentUnderReview
+                      ? "PAYMENT PENDING"
+                      : "REGISTERED"}
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 rounded-md text-[10px] font-heading font-extrabold uppercase tracking-wider bg-amber-950/60 text-[#FFBE32] border border-[#FFBE32]/40 backdrop-blur-md">
+                    {tournament.status === "REGISTRATION_OPEN"
+                      ? isTournamentFull
+                        ? allowWaitlist
+                          ? "WAITLIST OPEN"
+                          : "REGISTRATION FULL"
+                        : "REGISTRATION OPEN"
+                      : tournament.status}
+                  </span>
+                )}
+
+                {isCheckInOpen && (
+                  <span className="px-3 py-1 rounded-md text-[10px] font-heading font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 backdrop-blur-md flex items-center gap-1.5 animate-pulse">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    CHECK-IN ACTIVE
+                  </span>
+                )}
 
                 <span className="px-3 py-1 rounded-md text-[10px] font-heading font-bold uppercase tracking-wider bg-black/60 border border-white/10 text-gray-300">
                   {tournament.format}
@@ -259,16 +383,16 @@ export const TournamentDetailPage: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <Trophy className="h-4 w-4 text-[#FFBE32]" />
                   <span className="text-gray-400">Prize Pool:</span>
-                  <strong className="text-[#FFBE32] font-display text-lg">{tournament.prizePool}</strong>
+                  <strong className="text-[#FFBE32] font-display text-lg">{prizeDisplay}</strong>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-400">{tournament.date}</span>
+                  <span className="text-gray-400">{formatDate(tournament.date || (tournament as any).startDate)}</span>
                 </div>
               </div>
             </div>
 
-            {/* DYNAMIC REGISTRATION CARD (CORE REQUIREMENT 20 & 21) */}
+            {/* DYNAMIC REGISTRATION CARD */}
             <div className="p-6 rounded-2xl bg-black/80 border-2 border-[#FFBE32]/40 backdrop-blur-xl shadow-[0_0_30px_rgba(255,190,50,0.15)] flex flex-col justify-between min-w-[280px]">
               <div>
                 <div className="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gray-400">
@@ -295,15 +419,48 @@ export const TournamentDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  setActiveTab("REGISTRATION");
-                  window.scrollTo({ top: 500, behavior: "smooth" });
-                }}
-                className="mt-5 w-full py-3 rounded-xl font-heading text-xs font-extrabold uppercase tracking-wider bg-[#FFBE32] hover:bg-[#FFA000] text-black text-center shadow-[0_0_15px_rgba(255,190,50,0.3)] transition-all cursor-pointer"
-              >
-                Register Squad Now
-              </button>
+              {isUserRegistered ? (
+                <div className="mt-5 space-y-2">
+                  <div className="p-2.5 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] text-center">
+                    <div className="flex items-center justify-center gap-1.5 font-heading text-xs font-bold uppercase tracking-wider">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>
+                        {isConfirmed
+                          ? "YOU ARE REGISTERED ✓"
+                          : isPendingInvitation
+                          ? "INVITATION PENDING"
+                          : isPaymentUnderReview
+                          ? "PAYMENT UNDER REVIEW"
+                          : "REGISTRATION PENDING"}
+                      </span>
+                    </div>
+                  </div>
+                  <Link
+                    to="/my-tournaments"
+                    className="block w-full py-3 rounded-xl font-heading text-xs font-extrabold uppercase tracking-wider bg-[#22C55E] hover:bg-[#16a34a] text-black text-center shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-all"
+                  >
+                    View in My Tournaments
+                  </Link>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setActiveTab("REGISTRATION");
+                    window.scrollTo({ top: 500, behavior: "smooth" });
+                  }}
+                  className={`mt-5 w-full py-3 rounded-xl font-heading text-xs font-extrabold uppercase tracking-wider text-black text-center transition-all cursor-pointer ${
+                    isTournamentFull && allowWaitlist
+                      ? "bg-amber-400 hover:bg-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+                      : "bg-[#FFBE32] hover:bg-[#FFA000] shadow-[0_0_15px_rgba(255,190,50,0.3)]"
+                  }`}
+                >
+                  {isTournamentFull && allowWaitlist
+                    ? "Join Priority Waitlist"
+                    : isTournamentFull
+                    ? "Tournament Full"
+                    : "Register Squad Now"}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -359,45 +516,126 @@ export const TournamentDetailPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Prize Distribution */}
+              {/* Dynamic Prize Distribution */}
               <div className="p-6 rounded-2xl bg-[#0D0D12] border border-white/10 space-y-4">
-                <h2 className="font-display text-2xl uppercase tracking-wider text-white flex items-center gap-2">
-                  <Trophy className="h-6 w-6 text-[#FFBE32]" />
-                  Prize Pool Distribution
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display text-2xl uppercase tracking-wider text-white flex items-center gap-2">
+                    <Trophy className="h-6 w-6 text-[#FFBE32]" />
+                    Prize Pool Distribution
+                  </h2>
+                  <span className="text-xs font-mono font-bold text-[#FFBE32] bg-[#FFBE32]/10 px-2.5 py-1 rounded-md border border-[#FFBE32]/30">
+                    Total: {prizeDisplay}
+                  </span>
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-5 rounded-xl bg-gradient-to-b from-[#FFBE32]/15 to-transparent border border-[#FFBE32]/40 text-center space-y-1 shadow-[0_0_20px_rgba(255,190,50,0.1)]">
-                    <Crown className="h-7 w-7 text-[#FFBE32] mx-auto mb-1" />
-                    <div className="text-[10px] font-heading font-extrabold uppercase tracking-widest text-[#FFBE32]">
-                      CHAMPION (1ST)
-                    </div>
-                    <div className="font-display text-2xl font-bold text-white">
-                      {tournament.firstPrize || "₹30,000"}
+                {parsedPrizes.length === 1 || (tournament as any).prizeType === "WINNER_TAKES_ALL" ? (
+                  <div className="p-8 rounded-2xl bg-gradient-to-b from-[#FFBE32]/20 via-[#171720] to-black border-2 border-[#FFBE32]/50 text-center space-y-3 shadow-[0_0_40px_rgba(255,190,50,0.15)]">
+                    <Crown className="h-12 w-12 text-[#FFBE32] mx-auto animate-pulse" />
+                    <div>
+                      <span className="text-[11px] font-heading font-black uppercase tracking-widest text-[#FFBE32] bg-[#FFBE32]/10 px-3 py-1 rounded-full border border-[#FFBE32]/30">
+                        WINNER TAKES ALL • 1ST PLACE
+                      </span>
+                      <div className="font-display text-4xl sm:text-5xl font-black text-white mt-2">
+                        {formatCurrency(parsedPrizes[0]?.amount || (tournament as any).firstPrize || tournament.prizePool)}
+                      </div>
+                      <p className="text-xs font-mono text-gray-400 mt-1 max-w-sm mx-auto">
+                        100% of the tournament prize pool is awarded exclusively to the Grand Champion.
+                      </p>
                     </div>
                   </div>
+                ) : parsedPrizes.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {parsedPrizes.map((tier: any, pIdx: number) => {
+                      const isFirst = pIdx === 0;
+                      const isSecond = pIdx === 1;
+                      const isThird = pIdx === 2;
 
-                  <div className="p-5 rounded-xl bg-gradient-to-b from-white/10 to-transparent border border-white/15 text-center space-y-1">
-                    <MedalSilver className="h-7 w-7 text-gray-300 mx-auto mb-1" />
-                    <div className="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gray-300">
-                      RUNNER UP (2ND)
-                    </div>
-                    <div className="font-display text-2xl font-bold text-white">
-                      {tournament.secondPrize || "₹15,000"}
-                    </div>
+                      return (
+                        <div
+                          key={pIdx}
+                          className={`p-5 rounded-xl text-center space-y-1 transition-all ${
+                            isFirst
+                              ? "bg-gradient-to-b from-[#FFBE32]/15 to-transparent border border-[#FFBE32]/40 shadow-[0_0_20px_rgba(255,190,50,0.1)]"
+                              : isSecond
+                              ? "bg-gradient-to-b from-white/10 to-transparent border border-white/15"
+                              : isThird
+                              ? "bg-gradient-to-b from-amber-700/15 to-transparent border border-amber-700/30"
+                              : "bg-black/40 border border-white/10"
+                          }`}
+                        >
+                          {isFirst ? (
+                            <Crown className="h-7 w-7 text-[#FFBE32] mx-auto mb-1" />
+                          ) : isSecond ? (
+                            <MedalSilver className="h-7 w-7 text-gray-300 mx-auto mb-1" />
+                          ) : isThird ? (
+                            <Flame className="h-7 w-7 text-amber-500 mx-auto mb-1" />
+                          ) : (
+                            <Award className="h-7 w-7 text-gray-400 mx-auto mb-1" />
+                          )}
+                          <div
+                            className={`text-[10px] font-heading font-extrabold uppercase tracking-widest ${
+                              isFirst
+                                ? "text-[#FFBE32]"
+                                : isSecond
+                                ? "text-gray-300"
+                                : isThird
+                                ? "text-amber-500"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {tier.position || `RANK #${pIdx + 1}`}
+                            {tier.percentage ? ` (${tier.percentage}%)` : ""}
+                          </div>
+                          <div className="font-display text-2xl font-bold text-white">
+                            {formatCurrency(tier.amount)}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+                ) : (
+                  <div className="p-6 rounded-xl bg-black/40 border border-white/10 text-center text-xs font-mono text-gray-400">
+                    Grand prize of {prizeDisplay} awarded based on official competitive tournament rules.
+                  </div>
+                )}
+              </div>
 
-                  <div className="p-5 rounded-xl bg-gradient-to-b from-amber-700/15 to-transparent border border-amber-700/30 text-center space-y-1">
-                    <Flame className="h-7 w-7 text-amber-500 mx-auto mb-1" />
-                    <div className="text-[10px] font-heading font-extrabold uppercase tracking-widest text-amber-500">
-                      3RD PLACE
-                    </div>
-                    <div className="font-display text-2xl font-bold text-white">
-                      {tournament.thirdPrize || "₹5,000"}
-                    </div>
+              {/* Sponsors Showcase if available */}
+              {parsedSponsors.length > 0 && (
+                <div className="p-6 rounded-2xl bg-[#0D0D12] border border-white/10 space-y-4">
+                  <h2 className="font-display text-2xl uppercase tracking-wider text-white flex items-center gap-2">
+                    <Award className="h-6 w-6 text-[#FFBE32]" />
+                    Championship Sponsors &amp; Partners
+                  </h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {parsedSponsors.map((sp: any, sIdx: number) => (
+                      <a
+                        key={sIdx}
+                        href={sp.website || "#"}
+                        target={sp.website ? "_blank" : undefined}
+                        rel="noopener noreferrer"
+                        className="p-4 rounded-xl bg-black/40 border border-white/10 hover:border-[#FFBE32]/40 transition-colors flex flex-col items-center justify-center text-center space-y-2 group"
+                      >
+                        {sp.logo ? (
+                          <img src={sp.logo} alt={sp.name} className="h-10 w-auto object-contain max-w-[120px]" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-display text-xs text-[#FFBE32]">
+                            {sp.name.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <strong className="text-xs font-heading font-bold text-white group-hover:text-[#FFBE32] transition-colors block">
+                            {sp.name}
+                          </strong>
+                          {sp.tier && (
+                            <span className="text-[9px] font-mono text-gray-500 uppercase">{sp.tier} PARTNER</span>
+                          )}
+                        </div>
+                      </a>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Right Specifications Rail */}
@@ -441,7 +679,35 @@ export const TournamentDetailPage: React.FC = () => {
         {/* ================= TAB 2: PUBLIC SQUAD REGISTRATION FORM ================= */}
         {activeTab === "REGISTRATION" && (
           <div className="max-w-3xl mx-auto">
-            {submitSuccess && submissionResult ? (
+            {isUserRegistered ? (
+              <div className="p-8 rounded-2xl bg-[#0D0D12] border border-[#22C55E]/40 text-center space-y-5 shadow-[0_0_30px_rgba(34,197,94,0.15)]">
+                <div className="h-16 w-16 rounded-full bg-[#22C55E]/20 border border-[#22C55E] flex items-center justify-center text-[#22C55E] mx-auto">
+                  <CheckCircle2 className="h-10 w-10" />
+                </div>
+                <h2 className="font-display text-3xl uppercase tracking-wider text-white">
+                  YOU ARE ALREADY REGISTERED
+                </h2>
+                <p className="text-sm text-gray-300 font-body max-w-md mx-auto">
+                  Your squad is already on the roster for <strong className="text-[#FFBE32]">{tournament.title}</strong>. 
+                  You can track payment verification status, manage your squad roster, or view room access in your athlete dashboard.
+                </p>
+
+                <div className="pt-2 flex justify-center gap-3">
+                  <Link
+                    to="/my-tournaments"
+                    className="px-6 py-3 rounded-xl bg-[#22C55E] hover:bg-[#16a34a] text-black font-heading font-black text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-all"
+                  >
+                    View in My Tournaments
+                  </Link>
+                  <button
+                    onClick={() => setActiveTab("ABOUT")}
+                    className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-heading font-bold text-xs uppercase tracking-wider transition-colors"
+                  >
+                    Return to Overview
+                  </button>
+                </div>
+              </div>
+            ) : submitSuccess && submissionResult ? (
               <div className="p-8 rounded-2xl bg-[#0D0D12] border-2 border-[#FFBE32]/40 text-center space-y-5 shadow-[0_0_40px_rgba(255,190,50,0.15)]">
                 <div className="h-16 w-16 rounded-full bg-[#FFBE32]/20 border border-[#FFBE32] flex items-center justify-center text-[#FFBE32] mx-auto">
                   <CheckCircle2 className="h-10 w-10" />
@@ -946,6 +1212,18 @@ Unruly conduct, teaming, or exploiting map bugs results in instant forfeit of sl
 4. Slot Finality:
 Slots are non-transferable once verified.`}
             </div>
+
+            {tournament.refundPolicy && (
+              <div className="p-6 rounded-2xl bg-[#0D0D12] border border-white/10 space-y-3">
+                <h3 className="font-display text-xl uppercase tracking-wider text-[#FFBE32] flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-[#FFBE32]" />
+                  Refund &amp; Cancellation Policy
+                </h3>
+                <p className="text-xs font-mono text-gray-300 whitespace-pre-line leading-relaxed">
+                  {tournament.refundPolicy}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

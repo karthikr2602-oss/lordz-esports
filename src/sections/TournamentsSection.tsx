@@ -1,9 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeading } from "../components/common/SectionHeading";
 import { tournamentsData, type Tournament } from "../data/tournaments";
-import { tournamentsApi } from "../api/tournaments";
-import { Trophy, Calendar, Shield, ArrowRight } from "lucide-react";
+import { tournamentsApi, getMyTournaments } from "../api/tournaments";
+import { useAuth } from "../context/AuthContext";
+import { Trophy, Calendar, Shield, ArrowRight, CheckCircle2 } from "lucide-react";
+import { formatCurrency, formatDate } from "../utils/formatters";
 
 interface TournamentsSectionProps {
   onSelectTournament: (tournament: Tournament) => void;
@@ -17,7 +20,9 @@ export const TournamentsSection = ({
   onSelectTournament,
   showHeader = true,
 }: TournamentsSectionProps) => {
+  const { isAuthenticated } = useAuth();
   const [tournaments, setTournaments] = useState<Tournament[]>(tournamentsData);
+  const [userTournaments, setUserTournaments] = useState<any[]>([]);
   const [selectedGame, setSelectedGame] = useState<GameFilter>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<StatusFilter>("ALL");
 
@@ -29,6 +34,37 @@ export const TournamentsSection = ({
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      getMyTournaments()
+        .then((res) => {
+          if (Array.isArray(res)) {
+            setUserTournaments(res);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setUserTournaments([]);
+    }
+  }, [isAuthenticated]);
+
+  // Map user registrations by tournament id or slug
+  const userRegistrationMap = useMemo(() => {
+    const map = new Map<string, { status: string; paymentStatus?: string; isInvitationPending?: boolean }>();
+    userTournaments.forEach((item) => {
+      const tId = item.tournament?.id || item.tournamentId;
+      const tSlug = item.tournament?.slug;
+      const status = item.registration?.status || item.status || "PENDING";
+      const paymentStatus = item.registration?.paymentStatus || item.paymentStatus;
+      const isInvitationPending = Boolean(item.isInvitationPending);
+
+      const info = { status, paymentStatus, isInvitationPending };
+      if (tId) map.set(tId, info);
+      if (tSlug) map.set(tSlug, info);
+    });
+    return map;
+  }, [userTournaments]);
 
   const gameFilters: GameFilter[] = [
     "ALL",
@@ -111,6 +147,12 @@ export const TournamentsSection = ({
             {filteredTournaments.length > 0 ? (
               filteredTournaments.map((t, index) => {
                 const isLive = t.status === "LIVE";
+                const userReg = userRegistrationMap.get(t.id) || (t.slug ? userRegistrationMap.get(t.slug) : undefined);
+                const isUserRegistered = Boolean(userReg);
+                const isConfirmed = userReg?.status === "CONFIRMED";
+                const isUnderReview =
+                  userReg?.status === "PAYMENT_UNDER_REVIEW" || userReg?.paymentStatus === "UNDER_REVIEW";
+                const isPendingInvitation = Boolean(userReg?.isInvitationPending);
 
                 return (
                   <motion.div
@@ -136,14 +178,32 @@ export const TournamentsSection = ({
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E] via-transparent to-black/60" />
 
                       {/* Top Badges */}
-                      {/* Top Badges */}
-                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
                         <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-bold uppercase tracking-widest bg-black/80 border border-white/10 text-gray-300 backdrop-blur-md">
                           <Shield className="h-3 w-3 text-[#FFBE32]" />
                           {t.game}
                         </span>
 
-                        {(() => {
+                        {isUserRegistered ? (
+                          <span
+                            className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-heading font-black uppercase tracking-wider backdrop-blur-md ${
+                              isConfirmed
+                                ? "bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/40 shadow-[0_0_12px_rgba(34,197,94,0.3)]"
+                                : isPendingInvitation
+                                ? "bg-amber-500/20 text-[#FFBE32] border border-[#FFBE32]/40 animate-pulse"
+                                : "bg-[#FFBE32]/20 text-[#FFBE32] border border-[#FFBE32]/40"
+                            }`}
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                            {isConfirmed
+                              ? "REGISTERED ✓"
+                              : isPendingInvitation
+                              ? "INVITATION PENDING"
+                              : isUnderReview
+                              ? "PAYMENT PENDING"
+                              : "REGISTERED"}
+                          </span>
+                        ) : (() => {
                           const isFull = t.status === "FULL" || (t.availableSlots !== undefined && t.availableSlots <= 0);
                           const isClosingSoon = t.status === "CLOSING_SOON" || (!isFull && t.availableSlots !== undefined && t.availableSlots <= 5);
 
@@ -192,11 +252,11 @@ export const TournamentsSection = ({
 
                     <div className="p-6 pt-4">
                       {/* Title */}
-                      <a href={`/tournaments/${t.slug || t.id}`}>
+                      <Link to={`/tournaments/${t.slug || t.id}`}>
                         <h3 className="font-display text-2xl tracking-wide uppercase text-white group-hover:text-[#FFBE32] transition-colors leading-tight">
                           {t.title}
                         </h3>
-                      </a>
+                      </Link>
                       <p className="mt-1.5 text-xs text-gray-400 font-body line-clamp-2">
                         {t.tagline || t.shortDescription}
                       </p>
@@ -210,19 +270,19 @@ export const TournamentsSection = ({
                           </span>
                         </div>
                         <span className="font-display text-2xl font-bold text-[#FFBE32] tracking-wider">
-                          {t.prizePool}
+                          {formatCurrency(t.prizePool)}
                         </span>
                       </div>
 
                       {/* Metadata Grid */}
                       <div className="mt-3.5 grid grid-cols-2 gap-2 text-xs text-gray-300">
                         <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-gray-500" />
-                          <span className="truncate">{t.date}</span>
+                          <Calendar className="h-3.5 w-3.5 text-gray-500 shrink-0" />
+                          <span className="truncate">{formatDate(t.date || t.startDate)}</span>
                         </div>
                         <div className="flex items-center gap-1.5 justify-end">
                           <span className="text-[#FFBE32] font-bold">
-                            {t.feeAmount && t.feeAmount > 0 ? `₹${t.feeAmount} ENTRY` : t.entryFee || "FREE"}
+                            {formatCurrency(t.feeAmount ?? t.entryFee)}
                           </span>
                         </div>
                       </div>
@@ -230,16 +290,24 @@ export const TournamentsSection = ({
 
                     {/* Card Footer Actions */}
                     <div className="p-6 pt-0 flex gap-2">
-                      {(() => {
+                      {isUserRegistered ? (
+                        <Link
+                          to="/my-tournaments"
+                          className="flex-1 py-2.5 px-3 rounded font-heading text-xs font-bold uppercase tracking-wider bg-[#22C55E]/15 hover:bg-[#22C55E]/25 text-[#22C55E] border border-[#22C55E]/40 text-center transition-all duration-200 flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(34,197,94,0.15)]"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span>VIEW IN MY TOURNAMENTS</span>
+                        </Link>
+                      ) : (() => {
                         const isFull = t.status === "FULL" || (t.availableSlots !== undefined && t.availableSlots <= 0);
                         if (isFull) {
                           return (
-                            <a
-                              href={`/tournaments/${t.slug || t.id}`}
+                            <Link
+                              to={`/tournaments/${t.slug || t.id}`}
                               className="flex-1 py-2.5 px-3 rounded font-heading text-xs font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-gray-400 hover:text-white text-center transition-all duration-200"
                             >
                               SLOTS FULL • VIEW ARENA
-                            </a>
+                            </Link>
                           );
                         }
                         return (
@@ -252,13 +320,13 @@ export const TournamentsSection = ({
                         );
                       })()}
 
-                      <a
-                        href={`/tournaments/${t.slug || t.id}`}
+                      <Link
+                        to={`/tournaments/${t.slug || t.id}`}
                         className="py-2.5 px-3.5 rounded font-heading text-xs font-bold uppercase tracking-wider bg-[#141417] hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 flex items-center justify-center transition-all duration-200"
                         title="View Tournament Arena"
                       >
                         <ArrowRight className="h-3.5 w-3.5" />
-                      </a>
+                      </Link>
                     </div>
                   </motion.div>
                 );
@@ -286,3 +354,4 @@ export const TournamentsSection = ({
     </section>
   );
 };
+
