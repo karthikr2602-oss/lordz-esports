@@ -160,17 +160,15 @@ export const TeamsPage = () => {
                 The Collective Roster
               </h2>
               <p className="text-sm text-[#888888] font-body max-w-lg">
-                The eight real individuals steering technology, competitive governance, broadcast production, and community.
+                The dedicated individuals steering engineering, clan leadership, and community.
               </p>
             </div>
 
             {/* Discipline Filter Chips */}
             <div className="flex flex-wrap gap-2 text-xs font-mono">
               {[
-                { id: "all", label: "All Members" },
-                { id: "technology", label: "Technology" },
-                { id: "operations", label: "Operations" },
-                { id: "creative", label: "Creative" },
+                { id: "all", label: "All" },
+                { id: "developers", label: "Developers" },
                 { id: "community", label: "Community" },
               ].map((filter) => (
                 <button
