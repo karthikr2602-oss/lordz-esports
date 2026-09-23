@@ -3,8 +3,10 @@ import {
   tournamentsData,
   type Tournament,
   type TournamentStage,
+  type TournamentRound,
   type RegistrationItem,
   type LeaderboardEntry,
+  type MatchItem,
 } from "../data/tournaments";
 
 export interface SquadRegistrationInput {
@@ -243,12 +245,149 @@ export const tournamentsApi = {
     });
   },
 
+  // Rounds & Progression
+  getRounds: async (tournamentId: string): Promise<TournamentRound[]> => {
+    return apiRequest<TournamentRound[]>(`/tournaments/${tournamentId}/rounds`, { method: "GET" }, []);
+  },
+
+  createRound: async (tournamentId: string, round: Partial<TournamentRound>): Promise<TournamentRound> => {
+    return apiRequest<TournamentRound>(`/tournaments/${tournamentId}/rounds`, {
+      method: "POST",
+      body: JSON.stringify(round),
+    });
+  },
+
+  updateRound: async (tournamentId: string, roundId: string, round: Partial<TournamentRound>): Promise<TournamentRound> => {
+    return apiRequest<TournamentRound>(`/tournaments/${tournamentId}/rounds/${roundId}`, {
+      method: "PUT",
+      body: JSON.stringify(round),
+    });
+  },
+
+  deleteRound: async (tournamentId: string, roundId: string): Promise<{ success: boolean }> => {
+    return apiRequest<{ success: boolean }>(`/tournaments/${tournamentId}/rounds/${roundId}`, {
+      method: "DELETE",
+    });
+  },
+
+  getEligibleTeamsForRound: async (
+    tournamentId: string,
+    roundId: string
+  ): Promise<{ success: boolean; data: any[]; round: any }> => {
+    return apiRequest(`/tournaments/${tournamentId}/rounds/${roundId}/eligible-teams`, { method: "GET" });
+  },
+
+  selectTeamsForRound: async (
+    tournamentId: string,
+    roundId: string,
+    teamIds: string[]
+  ): Promise<{ success: boolean; message: string }> => {
+    return apiRequest(`/tournaments/${tournamentId}/rounds/${roundId}/teams`, {
+      method: "POST",
+      body: JSON.stringify({ teamIds }),
+    });
+  },
+
+  advanceTeams: async (
+    tournamentId: string,
+    roundId: string,
+    teamIds: string[],
+    nextRoundId: string
+  ): Promise<{ success: boolean; message: string }> => {
+    return apiRequest(`/tournaments/${tournamentId}/rounds/${roundId}/advance`, {
+      method: "POST",
+      body: JSON.stringify({ teamIds, nextRoundId }),
+    });
+  },
+
+  updateRoundTeamStatus: async (
+    tournamentId: string,
+    roundId: string,
+    teamId: string,
+    data: { status?: string; score?: number; seed?: number }
+  ): Promise<{ success: boolean; message: string }> => {
+    return apiRequest(`/tournaments/${tournamentId}/rounds/${roundId}/teams/${teamId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  getTeamRoundHistory: async (tournamentId: string, teamId: string): Promise<{ success: boolean; data: any[] }> => {
+    return apiRequest(`/tournaments/${tournamentId}/teams/${teamId}/round-history`, { method: "GET" });
+  },
+
+  // Waitlist
+  getWaitlist: async (tournamentId: string): Promise<RegistrationItem[]> => {
+    return apiRequest<RegistrationItem[]>(`/tournaments/${tournamentId}/waitlist`, { method: "GET" }, []);
+  },
+
+  promoteWaitlistTeam: async (tournamentId: string, registrationId: string): Promise<any> => {
+    return apiRequest(`/tournaments/${tournamentId}/waitlist/${registrationId}/promote`, { method: "POST" });
+  },
+
+  removeWaitlistTeam: async (tournamentId: string, registrationId: string): Promise<any> => {
+    return apiRequest(`/tournaments/${tournamentId}/waitlist/${registrationId}`, { method: "DELETE" });
+  },
+
+  // Check-In
+  getCheckInStatus: async (tournamentId: string): Promise<{ total: number; checkedIn: number; pending: number; noShows: number; teams: any[] }> => {
+    return apiRequest(`/tournaments/${tournamentId}/check-in-status`, { method: "GET" }, { total: 0, checkedIn: 0, pending: 0, noShows: 0, teams: [] });
+  },
+
+  checkInTeam: async (tournamentId: string, registrationId?: string): Promise<any> => {
+    return apiRequest(`/tournaments/${tournamentId}/check-in`, {
+      method: "POST",
+      body: JSON.stringify({ registrationId }),
+    });
+  },
+
+  handleNoShows: async (tournamentId: string): Promise<any> => {
+    return apiRequest(`/tournaments/${tournamentId}/handle-no-shows`, { method: "POST" });
+  },
+
+  // Matches
+  getMatches: async (params?: { tournamentId?: string; roundId?: string; status?: string }): Promise<MatchItem[]> => {
+    const query = new URLSearchParams();
+    if (params?.tournamentId) query.set("tournamentId", params.tournamentId);
+    if (params?.roundId) query.set("roundId", params.roundId);
+    if (params?.status && params.status !== "ALL") query.set("status", params.status);
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    return apiRequest<MatchItem[]>(`/matches${qs}`, { method: "GET" }, []);
+  },
+
+  createMatch: async (data: Partial<MatchItem>): Promise<MatchItem> => {
+    return apiRequest<MatchItem>("/matches", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateMatch: async (id: string, data: Partial<MatchItem>): Promise<MatchItem> => {
+    return apiRequest<MatchItem>(`/matches/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteMatch: async (id: string): Promise<{ success: boolean }> => {
+    return apiRequest<{ success: boolean }>(`/matches/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  getMatchCredentials: async (id: string): Promise<any> => {
+    return apiRequest(`/matches/${id}/credentials`, { method: "GET" });
+  },
+
   // File Uploads
   uploadImage: async (file: File): Promise<{ success: boolean; url: string; filename: string }> => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const token = localStorage.getItem("lordz_admin_token") || localStorage.getItem("token");
+    const token =
+      localStorage.getItem("lordz_admin_token") ||
+      localStorage.getItem("token") ||
+      ((import.meta as any).env?.DEV ? "demo-admin-token" : "");
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -259,7 +398,8 @@ export const tournamentsApi = {
     });
 
     if (!res.ok) {
-      throw new Error("Failed to upload image");
+      const err = await res.json().catch(() => ({ message: "Failed to upload image" }));
+      throw new Error(err.message || "Failed to upload image");
     }
     return res.json();
   },

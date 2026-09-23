@@ -14,42 +14,70 @@ import {
   ExternalLink,
   CreditCard,
   RefreshCw,
+  Check,
+  X,
+  Copy,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useModals } from "../context/useModals";
-import { getMyTournaments, submitPayment } from "../api/tournaments";
+import { getMyTournaments, submitPayment, respondToInvitation, tournamentsApi } from "../api/tournaments";
 import { ManageTeamModal } from "../components/modals/ManageTeamModal";
+import { formatCurrency, formatDate } from "../utils/formatters";
 
 interface RegisteredTournamentItem {
   id: string;
-  tournamentId: string;
+  tournamentId?: string;
   tournament: {
     id: string;
     title: string;
-    slug: string;
+    slug?: string;
     game: string;
-    gameMode: string;
-    entryFee: number;
-    prizePool: number;
-    startDate: string;
+    gameMode?: string;
+    entryFee?: any;
+    feeAmount?: number;
+    prizePool?: any;
+    startDate?: string;
+    date?: string;
     startTime?: string;
     bannerUrl?: string;
+    bannerImage?: string;
     rosterLockDate?: string;
     contactInfo?: string;
     status: string;
+    entryFeeType?: string;
+    checkInEnabled?: boolean;
+    checkInStartTime?: string | null;
+    checkInEndTime?: string | null;
   };
-  teamId: string;
-  team: {
+  teamId?: string;
+  teamName?: string;
+  teamTag?: string;
+  teamLogo?: string;
+  isLeader?: boolean;
+  isInvitationPending?: boolean;
+  userInvitationId?: string | null;
+  role?: string;
+  isFeePaidByLeader?: boolean;
+  entryFeeType?: string;
+  leader?: {
     id: string;
-    name: string;
+    username: string;
+    ign?: string;
+    fullName?: string;
+  };
+  team?: {
+    id: string;
+    name?: string;
+    teamName?: string;
     tag?: string;
-    logoUrl?: string;
-    members: Array<{
+    leader?: any;
+    members?: Array<{
       id: string;
       userId: string;
       role: string;
-      ign: string;
+      ign?: string;
       gameUid?: string;
+      invitationStatus?: string;
       user?: {
         id: string;
         username: string;
@@ -59,13 +87,43 @@ interface RegisteredTournamentItem {
       };
     }>;
   };
-  status: string;
-  paymentStatus: string;
-  createdAt: string;
+  members?: Array<{
+    id: string;
+    userId: string;
+    role: string;
+    ign?: string;
+    gameUid?: string;
+    invitationStatus?: string;
+    user?: {
+      id: string;
+      username: string;
+      ign?: string;
+      gameUid?: string;
+      avatarUrl?: string;
+    };
+  }>;
+  status?: string;
+  paymentStatus?: string;
+  createdAt?: string;
   confirmedAt?: string;
+  registration?: {
+    id: string;
+    registrationNumber?: string;
+    status: string;
+    paymentStatus: string;
+    slotNumber?: number;
+    payment?: {
+      id: string;
+      amount?: number;
+      status: string;
+      utr?: string;
+      rejectionReason?: string;
+    };
+    createdAt?: string;
+  } | null;
   payment?: {
     id: string;
-    amount: number;
+    amount?: number;
     status: string;
     utr?: string;
     rejectionReason?: string;
@@ -93,6 +151,47 @@ export const MyTournamentsPage: React.FC = () => {
   const [submittingPayment, setSubmittingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+  // Invitation response state
+  const [respondingInvId, setRespondingInvId] = useState<string | null>(null);
+
+  // Check-In state
+  const [checkingInTeamId, setCheckingInTeamId] = useState<string | null>(null);
+
+  // Matches & Room Credentials state
+  const [matchesByTournament, setMatchesByTournament] = useState<Record<string, any[]>>({});
+  const [fetchingMatches, setFetchingMatches] = useState<Record<string, boolean>>({});
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCheckIn = async (tournamentId: string, teamId: string) => {
+    setCheckingInTeamId(teamId);
+    try {
+      await tournamentsApi.checkInTeam(tournamentId, teamId);
+      await fetchRegistrations();
+    } catch (err: any) {
+      alert(err.message || "Failed to check in squad.");
+    } finally {
+      setCheckingInTeamId(null);
+    }
+  };
+
+  const handleLoadMatches = async (tournamentId: string) => {
+    setFetchingMatches((prev) => ({ ...prev, [tournamentId]: true }));
+    try {
+      const matches = await tournamentsApi.getMatches(tournamentId);
+      setMatchesByTournament((prev) => ({ ...prev, [tournamentId]: matches }));
+    } catch (err) {
+      console.error("Failed to load match credentials:", err);
+    } finally {
+      setFetchingMatches((prev) => ({ ...prev, [tournamentId]: false }));
+    }
+  };
+
+  const handleCopy = (key: string, val: string) => {
+    navigator.clipboard.writeText(val);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
   const fetchRegistrations = async () => {
     try {
@@ -124,9 +223,16 @@ export const MyTournamentsPage: React.FC = () => {
     setSubmittingPayment(true);
     setPaymentError("");
     try {
-      const res = await submitPayment(resubmitReg.id, {
+      const regId = resubmitReg.registration?.id || resubmitReg.id;
+      const amount =
+        resubmitReg.tournament.feeAmount ??
+        (typeof resubmitReg.tournament.entryFee === "number"
+          ? resubmitReg.tournament.entryFee
+          : parseInt(String(resubmitReg.tournament.entryFee).replace(/\D/g, ""), 10) || 0);
+
+      const res = await submitPayment(regId, {
         utr: utrInput.trim(),
-        amount: resubmitReg.tournament.entryFee,
+        amount,
       });
 
       if (res?.success) {
@@ -144,6 +250,22 @@ export const MyTournamentsPage: React.FC = () => {
       setPaymentError(err.message || "Error submitting payment.");
     } finally {
       setSubmittingPayment(false);
+    }
+  };
+
+  const handleRespondInvitation = async (invitationId: string, action: "ACCEPT" | "REJECT") => {
+    try {
+      setRespondingInvId(invitationId);
+      const res = await respondToInvitation(invitationId, action);
+      if (res?.success) {
+        await fetchRegistrations();
+      } else {
+        alert(res?.message || `Failed to ${action.toLowerCase()} invitation`);
+      }
+    } catch (err: any) {
+      alert(err?.message || `Failed to ${action.toLowerCase()} invitation`);
+    } finally {
+      setRespondingInvId(null);
     }
   };
 
@@ -230,24 +352,93 @@ export const MyTournamentsPage: React.FC = () => {
         </div>
       ) : (
         <div className="mt-8 space-y-6">
-          {registrations.map((reg) => {
-            const isConfirmed = reg.status === "CONFIRMED";
-            const isPaymentUnderReview = reg.status === "PAYMENT_UNDER_REVIEW" || reg.paymentStatus === "UNDER_REVIEW";
-            const isRejected = reg.status === "PAYMENT_FAILED" || reg.payment?.status === "REJECTED";
-            const isPending = reg.status === "PENDING";
+          {registrations.map((item) => {
+            const tournament = item.tournament || ({} as any);
+            const teamObj = item.team;
+            const teamId = item.teamId || teamObj?.id || item.id;
+            const squadName = item.teamName || teamObj?.name || teamObj?.teamName || "UNNAMED";
+            const squadTag = item.teamTag || teamObj?.tag;
+            const membersList = item.members || teamObj?.members || [];
+
+            const isInvitationPending =
+              Boolean(item.isInvitationPending) ||
+              item.status === "INVITATION_PENDING" ||
+              item.role === "INVITED";
+
+            const invitationId = item.userInvitationId;
+
+            // Registration / payment status reconciliation
+            const reg = item.registration || (item as any);
+            const regStatus = isInvitationPending
+              ? "INVITATION_PENDING"
+              : reg?.status || item.status || "PENDING";
+            const paymentStatus =
+              reg?.paymentStatus || item.paymentStatus || reg?.payment?.status || item.payment?.status;
+
+            const isConfirmed = regStatus === "CONFIRMED";
+            const isPaymentUnderReview =
+              regStatus === "PAYMENT_UNDER_REVIEW" || paymentStatus === "UNDER_REVIEW";
+            const isRejected =
+              regStatus === "PAYMENT_FAILED" ||
+              paymentStatus === "REJECTED" ||
+              reg?.payment?.status === "REJECTED" ||
+              item.payment?.status === "REJECTED";
+            const isWaitlisted =
+              Boolean(reg?.isWaitlisted) ||
+              regStatus === "WAITLISTED" ||
+              item.status === "WAITLISTED";
+            const waitlistPriority = reg?.waitlistPriority || (item as any).waitlistPriority || 1;
+
+            const isCheckInActive = Boolean(
+              tournament.checkInEnabled &&
+              (!tournament.checkInStartTime || new Date() >= new Date(tournament.checkInStartTime)) &&
+              (!tournament.checkInEndTime || new Date() <= new Date(tournament.checkInEndTime))
+            );
+
+            const isCheckedIn =
+              reg?.checkInStatus === "CHECKED_IN" ||
+              (item as any).checkInStatus === "CHECKED_IN" ||
+              (item as any).isCheckedIn;
+
+            const isPending = !isInvitationPending && !isConfirmed && !isPaymentUnderReview && !isRejected && !isWaitlisted;
 
             // Determine if current logged-in user is Leader of this team
-            const currentMember = reg.team?.members?.find((m) => m.userId === user?.id);
-            const isLeader = currentMember?.role === "LEADER";
+            const currentMember = membersList.find((m) => m.userId === user?.id);
+            const isLeader =
+              item.isLeader !== undefined
+                ? item.isLeader
+                : currentMember?.role === "LEADER" || (item.leader && item.leader.id === user?.id);
 
             // Roster lock check
-            const isRosterLocked = reg.tournament.rosterLockDate
-              ? new Date() > new Date(reg.tournament.rosterLockDate)
+            const isRosterLocked = tournament.rosterLockDate
+              ? new Date() > new Date(tournament.rosterLockDate)
               : false;
+
+            // Fee info
+            const feeType = tournament.entryFeeType || item.entryFeeType || "PER_TEAM";
+            const isPerTeam = feeType === "PER_TEAM";
+            const leaderName =
+              item.leader?.ign ||
+              item.leader?.username ||
+              item.leader?.fullName ||
+              teamObj?.leader?.ign ||
+              teamObj?.leader?.username ||
+              "Team Leader";
+
+            const rawDate = tournament.startDate || tournament.date || "";
+            const formattedTournamentDate = formatDate(rawDate, {
+              includeTime: true,
+              timeStr: tournament.startTime,
+            });
+
+            const displayEntryFee = formatCurrency(
+              tournament.feeAmount !== undefined ? tournament.feeAmount : tournament.entryFee
+            );
+            const displayPrizePool = formatCurrency(tournament.prizePool);
 
             return (
               <motion.div
-                key={reg.id}
+                key={item.id}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="rounded-2xl border border-white/10 bg-[#0C0C0F]/90 backdrop-blur-xl overflow-hidden hover:border-[#FFBE32]/40 transition-all duration-300 shadow-xl"
@@ -255,7 +446,11 @@ export const MyTournamentsPage: React.FC = () => {
                 {/* Status Bar */}
                 <div
                   className={`px-5 py-2.5 flex flex-wrap items-center justify-between gap-3 border-b ${
-                    isConfirmed
+                    isInvitationPending
+                      ? "bg-[#FFBE32]/15 border-[#FFBE32]/30 text-[#FFBE32]"
+                      : isWaitlisted
+                      ? "bg-amber-500/15 border-amber-500/30 text-[#FFBE32]"
+                      : isConfirmed
                       ? "bg-[#22C55E]/10 border-[#22C55E]/30 text-[#22C55E]"
                       : isPaymentUnderReview
                       ? "bg-[#FFBE32]/10 border-[#FFBE32]/30 text-[#FFBE32]"
@@ -265,13 +460,17 @@ export const MyTournamentsPage: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center gap-2 font-heading font-bold text-xs uppercase tracking-wider">
-                    {isConfirmed && <CheckCircle2 className="w-4 h-4 shrink-0" />}
+                    {isInvitationPending && <UserPlus className="w-4 h-4 shrink-0 animate-pulse text-[#FFBE32]" />}
+                    {isWaitlisted && <Clock className="w-4 h-4 shrink-0 text-[#FFBE32]" />}
+                    {!isWaitlisted && isConfirmed && <CheckCircle2 className="w-4 h-4 shrink-0 text-[#22C55E]" />}
                     {isPaymentUnderReview && <Clock className="w-4 h-4 shrink-0 animate-pulse" />}
                     {isRejected && <XCircle className="w-4 h-4 shrink-0" />}
                     {isPending && <AlertCircle className="w-4 h-4 shrink-0" />}
 
                     <span>
-                      {isConfirmed && "SLOT CONFIRMED — REGISTRATION COMPLETE"}
+                      {isInvitationPending && "TEAM INVITATION PENDING — ACTION REQUIRED"}
+                      {isWaitlisted && `PRIORITY WAITLIST — POSITION #${waitlistPriority}`}
+                      {!isWaitlisted && isConfirmed && (isCheckedIn ? "SLOT CONFIRMED — CHECKED IN ✓" : "SLOT CONFIRMED — REGISTRATION COMPLETE")}
                       {isPaymentUnderReview && "PAYMENT UNDER REVIEW — VERIFYING UTR"}
                       {isRejected && "PAYMENT REJECTED"}
                       {isPending && "REGISTRATION PENDING"}
@@ -279,11 +478,59 @@ export const MyTournamentsPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-3 font-mono text-[11px] text-gray-400">
-                    <span>REG ID: #{reg.id.slice(0, 8).toUpperCase()}</span>
-                    <span>•</span>
-                    <span>{new Date(reg.createdAt).toLocaleDateString()}</span>
+                    <span>
+                      REG ID: #{((reg?.registrationNumber || reg?.id || item.id) as string).slice(0, 8).toUpperCase()}
+                    </span>
+                    {item.createdAt && (
+                      <>
+                        <span>•</span>
+                        <span>{formatDate(item.createdAt)}</span>
+                      </>
+                    )}
                   </div>
                 </div>
+
+                {/* Team Invitation Pending Action Bar */}
+                {isInvitationPending && invitationId && (
+                  <div className="px-5 py-4 bg-[#FFBE32]/10 border-b border-[#FFBE32]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-[#FFBE32] text-black font-heading font-black text-[10px] uppercase tracking-wider">
+                          INVITED TO SQUAD
+                        </span>
+                        <p className="font-heading font-bold text-sm text-white">
+                          {leaderName} invited you to join <span className="text-[#FFBE32]">{squadName}</span>
+                        </p>
+                      </div>
+                      <p className="text-xs text-gray-300">
+                        {isPerTeam
+                          ? "✓ Entry fee covered by Team Leader. No additional payment required from you."
+                          : `Individual player entry fee applies: ${displayEntryFee}`}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        disabled={respondingInvId === invitationId}
+                        onClick={() => handleRespondInvitation(invitationId, "ACCEPT")}
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#22C55E] hover:bg-[#16a34a] text-black font-heading font-black text-xs uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>{respondingInvId === invitationId ? "ACCEPTING..." : "ACCEPT INVITATION"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={respondingInvId === invitationId}
+                        onClick={() => handleRespondInvitation(invitationId, "REJECT")}
+                        className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-white/10 hover:border-red-500/30 font-heading font-bold text-xs uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>DECLINE</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Card Main Body */}
                 <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -293,19 +540,22 @@ export const MyTournamentsPage: React.FC = () => {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="px-2 py-0.5 rounded bg-white/10 text-gray-300 font-mono text-[10px] uppercase font-bold">
-                            {reg.tournament.game}
+                            {tournament.game || "ESPORTS"}
                           </span>
                           <span className="px-2 py-0.5 rounded bg-[#FFBE32]/20 border border-[#FFBE32]/30 text-[#FFBE32] font-mono text-[10px] uppercase font-bold">
-                            {reg.tournament.gameMode || "SQUAD"}
+                            {tournament.gameMode || "SQUAD"}
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-400 font-mono text-[10px] uppercase font-bold">
+                            {isPerTeam ? "PER TEAM FEE" : "PER PLAYER FEE"}
                           </span>
                         </div>
                         <h3 className="font-display text-2xl text-white uppercase tracking-wider">
-                          {reg.tournament.title}
+                          {tournament.title}
                         </h3>
                       </div>
 
                       <Link
-                        to={`/tournaments/${reg.tournament.slug || reg.tournament.id}`}
+                        to={`/tournaments/${tournament.slug || tournament.id}`}
                         className="inline-flex items-center gap-1.5 text-xs font-heading font-bold text-[#FFBE32] hover:text-[#FFE082] uppercase transition-colors shrink-0"
                       >
                         <span>TOURNAMENT DETAILS</span>
@@ -321,7 +571,7 @@ export const MyTournamentsPage: React.FC = () => {
                           <span>START DATE</span>
                         </div>
                         <p className="font-heading font-bold text-xs text-white">
-                          {new Date(reg.tournament.startDate).toLocaleDateString()} {reg.tournament.startTime || ""}
+                          {formattedTournamentDate}
                         </p>
                       </div>
 
@@ -331,7 +581,7 @@ export const MyTournamentsPage: React.FC = () => {
                           <span>ENTRY FEE</span>
                         </div>
                         <p className="font-heading font-bold text-xs text-white">
-                          {reg.tournament.entryFee > 0 ? `₹${reg.tournament.entryFee}` : "FREE ENTRY"}
+                          {displayEntryFee}
                         </p>
                       </div>
 
@@ -341,7 +591,7 @@ export const MyTournamentsPage: React.FC = () => {
                           <span>PRIZE POOL</span>
                         </div>
                         <p className="font-heading font-bold text-xs text-[#FFBE32]">
-                          ₹{reg.tournament.prizePool.toLocaleString()}
+                          {displayPrizePool}
                         </p>
                       </div>
                     </div>
@@ -352,10 +602,10 @@ export const MyTournamentsPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-[#FFBE32]" />
                           <span className="font-heading font-bold text-xs text-white uppercase tracking-wider">
-                            SQUAD: <span className="text-[#FFBE32]">{reg.team?.name || "UNNAMED"}</span>
+                            SQUAD: <span className="text-[#FFBE32]">{squadName}</span>
                           </span>
-                          {reg.team?.tag && (
-                            <span className="text-[10px] font-mono text-gray-400">[{reg.team.tag}]</span>
+                          {squadTag && (
+                            <span className="text-[10px] font-mono text-gray-400">[{squadTag}]</span>
                           )}
                         </div>
 
@@ -365,10 +615,10 @@ export const MyTournamentsPage: React.FC = () => {
                             type="button"
                             onClick={() =>
                               setSelectedTeam({
-                                id: reg.team.id,
-                                name: reg.team.name,
-                                members: reg.team.members || [],
-                                rosterLockDate: reg.tournament.rosterLockDate,
+                                id: teamId,
+                                name: squadName,
+                                members: membersList,
+                                rosterLockDate: tournament.rosterLockDate,
                                 maxPlayers: 6,
                               })
                             }
@@ -382,33 +632,46 @@ export const MyTournamentsPage: React.FC = () => {
 
                       {/* Members list */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {reg.team?.members?.map((m) => (
-                          <div
-                            key={m.id}
-                            className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5"
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <div className="w-7 h-7 rounded-md bg-[#FFBE32]/10 border border-[#FFBE32]/20 flex items-center justify-center font-display text-xs text-[#FFBE32] shrink-0">
-                                {m.ign.slice(0, 2).toUpperCase()}
+                        {membersList.map((m) => {
+                          const ign = m.ign || m.user?.ign || m.user?.username || "Player";
+                          const uid = m.gameUid || m.user?.gameUid;
+                          const isMemPending = m.invitationStatus === "PENDING";
+
+                          return (
+                            <div
+                              key={m.id}
+                              className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-7 h-7 rounded-md bg-[#FFBE32]/10 border border-[#FFBE32]/20 flex items-center justify-center font-display text-xs text-[#FFBE32] shrink-0">
+                                  {ign.slice(0, 2).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-heading font-bold text-xs text-white truncate">{ign}</p>
+                                  {uid && (
+                                    <p className="font-mono text-[9px] text-gray-400 truncate">UID: {uid}</p>
+                                  )}
+                                </div>
                               </div>
-                              <div className="min-w-0">
-                                <p className="font-heading font-bold text-xs text-white truncate">{m.ign}</p>
-                                {m.gameUid && (
-                                  <p className="font-mono text-[9px] text-gray-400 truncate">UID: {m.gameUid}</p>
+                              <div className="flex items-center gap-1.5">
+                                {isMemPending && (
+                                  <span className="text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                    INVITED
+                                  </span>
                                 )}
+                                <span
+                                  className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded ${
+                                    m.role === "LEADER"
+                                      ? "bg-[#FFBE32]/20 text-[#FFBE32] border border-[#FFBE32]/30 font-bold"
+                                      : "bg-white/10 text-gray-400"
+                                  }`}
+                                >
+                                  {m.role}
+                                </span>
                               </div>
                             </div>
-                            <span
-                              className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded ${
-                                m.role === "LEADER"
-                                  ? "bg-[#FFBE32]/20 text-[#FFBE32] border border-[#FFBE32]/30 font-bold"
-                                  : "bg-white/10 text-gray-400"
-                              }`}
-                            >
-                              {m.role}
-                            </span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -420,13 +683,15 @@ export const MyTournamentsPage: React.FC = () => {
                           <span>PAYMENT REJECTION REASON:</span>
                         </div>
                         <p className="font-mono text-[11px] mb-3">
-                          {reg.payment?.rejectionReason || "UTR was invalid or payment could not be reconciled."}
+                          {reg?.payment?.rejectionReason ||
+                            item.payment?.rejectionReason ||
+                            "UTR was invalid or payment could not be reconciled."}
                         </p>
                         <button
                           type="button"
                           onClick={() => {
-                            setResubmitReg(reg);
-                            setUtrInput(reg.payment?.utr || "");
+                            setResubmitReg(item);
+                            setUtrInput(reg?.payment?.utr || item.payment?.utr || "");
                           }}
                           className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-heading font-bold text-xs uppercase tracking-wider cursor-pointer"
                         >
@@ -443,22 +708,146 @@ export const MyTournamentsPage: React.FC = () => {
                       <span>MATCH ACCESS</span>
                     </h4>
 
-                    {isConfirmed ? (
+                    {isInvitationPending ? (
+                      <div className="p-3 rounded-xl bg-[#FFBE32]/10 border border-[#FFBE32]/20 text-xs text-[#FFBE32] space-y-1">
+                        <p className="font-bold uppercase tracking-wider flex items-center gap-1.5">
+                          <UserPlus className="w-3.5 h-3.5" /> SQUAD INVITATION
+                        </p>
+                        <p className="text-gray-300 text-[11px]">
+                          Accept the team invitation above to join this tournament roster and receive room access.
+                        </p>
+                      </div>
+                    ) : isWaitlisted ? (
+                      <div className="p-4 rounded-xl bg-amber-500/10 border border-[#FFBE32]/30 text-xs text-[#FFBE32] space-y-2">
+                        <p className="font-bold uppercase tracking-wider flex items-center gap-1.5">
+                          <Clock className="w-4 h-4" /> PRIORITY WAITLIST #{waitlistPriority}
+                        </p>
+                        <p className="text-gray-300 text-[11px] leading-relaxed">
+                          All main tournament slots are filled. Your squad is queued at position #{waitlistPriority}. If a confirmed team forfeits, fails verification, or misses check-in, waitlisted teams are promoted in order.
+                        </p>
+                      </div>
+                    ) : isConfirmed ? (
                       <div className="space-y-3">
-                        <div className="p-3 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/20 text-xs text-[#22C55E] space-y-1">
-                          <p className="font-bold uppercase tracking-wider flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> SLOT CONFIRMED
-                          </p>
-                          <p className="text-gray-300 text-[11px]">
-                            Your slot is locked in. Custom room ID and password will be displayed here and sent via Discord 15 minutes before match start.
-                          </p>
-                        </div>
+                        {/* Check-In module if enabled */}
+                        {tournament.checkInEnabled && (
+                          <div className={`p-3.5 rounded-xl border text-xs space-y-2 ${
+                            isCheckedIn
+                              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                              : isCheckInActive
+                              ? "bg-[#FFBE32]/10 border-[#FFBE32]/30 text-[#FFBE32]"
+                              : "bg-white/5 border-white/10 text-gray-400"
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <span className="font-heading font-black uppercase tracking-wider flex items-center gap-1.5">
+                                {isCheckedIn ? (
+                                  <>
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                    CHECKED IN ✓
+                                  </>
+                                ) : isCheckInActive ? (
+                                  <>
+                                    <Clock className="w-4 h-4 text-[#FFBE32] animate-pulse" />
+                                    CHECK-IN WINDOW ACTIVE
+                                  </>
+                                ) : (
+                                  <>
+                                    <Clock className="w-4 h-4 text-gray-500" />
+                                    CHECK-IN SCHEDULED
+                                  </>
+                                )}
+                              </span>
+                              {isCheckInActive && !isCheckedIn && isLeader && (
+                                <button
+                                  type="button"
+                                  disabled={checkingInTeamId === teamId}
+                                  onClick={() => handleCheckIn(tournament.id, teamId)}
+                                  className="px-3 py-1.5 rounded-lg bg-[#FFBE32] hover:bg-[#FFA000] text-black font-heading font-black text-[10px] uppercase tracking-wider shadow-[0_0_10px_rgba(255,190,50,0.3)] transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  {checkingInTeamId === teamId ? "CHECKING IN..." : "CHECK IN SQUAD"}
+                                </button>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-gray-300">
+                              {isCheckedIn
+                                ? "Squad arrival confirmed for official match contention."
+                                : isCheckInActive
+                                ? "Please check in your squad before the deadline to prevent slot forfeiture."
+                                : `Check-in window opens: ${formatDate(tournament.checkInStartTime || rawDate, { includeTime: true })}`}
+                            </p>
+                          </div>
+                        )}
 
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
-                          <p className="text-[10px] font-mono text-gray-400 uppercase mb-1">CUSTOM ROOM CREDENTIALS</p>
-                          <p className="font-mono font-bold text-xs text-[#FFBE32] tracking-widest">
-                            REVEALING AT MATCH TIME
-                          </p>
+                        {/* Room Credentials Module */}
+                        <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-mono text-gray-400 uppercase">CUSTOM ROOM CREDENTIALS</p>
+                            <button
+                              type="button"
+                              onClick={() => handleLoadMatches(tournament.id)}
+                              disabled={fetchingMatches[tournament.id]}
+                              className="text-[10px] font-heading font-bold text-[#FFBE32] hover:underline uppercase flex items-center gap-1 cursor-pointer"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${fetchingMatches[tournament.id] ? "animate-spin" : ""}`} />
+                              <span>{fetchingMatches[tournament.id] ? "Checking..." : "Refresh Credentials"}</span>
+                            </button>
+                          </div>
+
+                          {matchesByTournament[tournament.id] && matchesByTournament[tournament.id].length > 0 ? (
+                            <div className="space-y-2">
+                              {matchesByTournament[tournament.id].map((m: any) => {
+                                const hasCredentials = Boolean(m.roomId);
+                                return (
+                                  <div key={m.id} className="p-2.5 rounded-lg bg-black/70 border border-white/10 space-y-1.5">
+                                    <div className="flex justify-between text-[11px] font-mono">
+                                      <span className="text-gray-300 font-bold uppercase">Match #{m.matchNumber || 1} • {m.map || "BERMUDA"}</span>
+                                      <span className="text-[#FFBE32]">{m.status}</span>
+                                    </div>
+                                    {hasCredentials ? (
+                                      <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-1">
+                                        <div className="flex items-center justify-between bg-white/5 p-1.5 rounded">
+                                          <span className="text-gray-400 text-[10px]">ROOM:</span>
+                                          <span className="text-white font-bold">{m.roomId}</span>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleCopy(`room_${m.id}`, m.roomId)}
+                                            className="text-[#FFBE32] hover:text-white"
+                                            title="Copy Room ID"
+                                          >
+                                            {copiedKey === `room_${m.id}` ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                          </button>
+                                        </div>
+                                        <div className="flex items-center justify-between bg-white/5 p-1.5 rounded">
+                                          <span className="text-gray-400 text-[10px]">PASS:</span>
+                                          <span className="text-white font-bold">{m.roomPassword || "lordz2026"}</span>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleCopy(`pass_${m.id}`, m.roomPassword || "lordz2026")}
+                                            className="text-[#FFBE32] hover:text-white"
+                                            title="Copy Room Password"
+                                          >
+                                            {copiedKey === `pass_${m.id}` ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <p className="text-[10px] font-mono text-gray-400">
+                                        Credentials release: {m.credentialsReleaseTime ? formatDate(m.credentialsReleaseTime, { includeTime: true }) : "15 mins before match"}
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="text-center py-2">
+                              <p className="font-mono font-bold text-xs text-[#FFBE32] tracking-widest">
+                                REVEALING 15 MINS BEFORE START
+                              </p>
+                              <p className="text-[10px] font-mono text-gray-400 mt-1">
+                                Room credentials will be posted here and broadcasted before match lobby opens.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ) : isPaymentUnderReview ? (
@@ -467,7 +856,11 @@ export const MyTournamentsPage: React.FC = () => {
                           <Clock className="w-3.5 h-3.5 animate-spin" /> VERIFICATION IN PROGRESS
                         </p>
                         <p className="text-gray-300 text-[11px]">
-                          UTR submitted: <span className="font-mono text-white font-bold">{reg.payment?.utr || "Submitted"}</span>. Our admins verify manual UPI payments within 15-30 minutes.
+                          UTR submitted:{" "}
+                          <span className="font-mono text-white font-bold">
+                            {reg?.payment?.utr || item.payment?.utr || "Submitted"}
+                          </span>
+                          . Our admins verify manual UPI payments within 15-30 minutes.
                         </p>
                       </div>
                     ) : (
@@ -480,10 +873,10 @@ export const MyTournamentsPage: React.FC = () => {
                     )}
 
                     {/* Support Discord / Contact */}
-                    {reg.tournament.contactInfo && (
+                    {tournament.contactInfo && (
                       <div className="pt-2 border-t border-white/10">
                         <p className="text-[10px] font-mono text-gray-400 uppercase mb-1">COORDINATION</p>
-                        <p className="text-xs text-gray-300 font-mono break-all">{reg.tournament.contactInfo}</p>
+                        <p className="text-xs text-gray-300 font-mono break-all">{tournament.contactInfo}</p>
                       </div>
                     )}
                   </div>
@@ -520,7 +913,12 @@ export const MyTournamentsPage: React.FC = () => {
             </h3>
             <p className="text-xs text-gray-400 mb-4">
               Enter the 12-digit UPI Reference / UTR number for your transaction of{" "}
-              <span className="text-[#FFBE32] font-bold">₹{resubmitReg.tournament.entryFee}</span>.
+              <span className="text-[#FFBE32] font-bold">
+                {formatCurrency(
+                  resubmitReg.tournament.feeAmount ?? resubmitReg.tournament.entryFee
+                )}
+              </span>
+              .
             </p>
 
             {paymentError && (
@@ -573,3 +971,4 @@ export const MyTournamentsPage: React.FC = () => {
     </div>
   );
 };
+

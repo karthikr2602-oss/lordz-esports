@@ -6,11 +6,11 @@ import {
   type Tournament,
   tournamentsData,
 } from "../data/tournaments";
+import { formatCurrency } from "../utils/formatters";
 import {
   Search,
   Check,
   X,
-  Eye,
   FileSpreadsheet,
 } from "lucide-react";
 
@@ -94,17 +94,17 @@ export const AdminRegistrationsPage: React.FC = () => {
     }
   };
 
-  const handleUpdatePayment = async (id: string, paymentStatus: string, autoApprove = false) => {
+  const handleVerifyPayment = async (id: string) => {
     try {
-      await tournamentsApi.updatePaymentStatus(id, paymentStatus, undefined, autoApprove);
+      await tournamentsApi.verifyPayment(id);
       setRegistrations((prev) =>
         prev.map((r) =>
           r.id === id
             ? {
                 ...r,
-                paymentStatus,
-                status: autoApprove ? "APPROVED" : r.status,
-                payment: r.payment ? { ...r.payment, status: paymentStatus } : null,
+                paymentStatus: "VERIFIED",
+                status: "APPROVED",
+                payment: r.payment ? { ...r.payment, status: "VERIFIED" } : null,
               }
             : r
         )
@@ -114,15 +114,57 @@ export const AdminRegistrationsPage: React.FC = () => {
           prev
             ? {
                 ...prev,
-                paymentStatus,
-                status: autoApprove ? "APPROVED" : prev.status,
-                payment: prev.payment ? { ...prev.payment, status: paymentStatus } : null,
+                paymentStatus: "VERIFIED",
+                status: "APPROVED",
+                payment: prev.payment ? { ...prev.payment, status: "VERIFIED" } : null,
               }
             : null
         );
       }
     } catch (err: any) {
-      alert(err.message || "Failed to update payment");
+      alert(err.message || "Failed to verify payment");
+    }
+  };
+
+  const handleRejectPayment = async (id: string) => {
+    const reason = window.prompt(
+      "Enter rejection reason (will be displayed to the user):",
+      "Invalid UTR number / Payment proof not found"
+    );
+    if (!reason || reason.trim() === "") return;
+
+    try {
+      await tournamentsApi.rejectPayment(id, reason.trim());
+      setRegistrations((prev) =>
+        prev.map((r) =>
+          r.id === id
+            ? {
+                ...r,
+                paymentStatus: "REJECTED",
+                status: "PAYMENT_PENDING",
+                payment: r.payment
+                  ? { ...r.payment, status: "REJECTED", adminNotes: reason.trim() }
+                  : null,
+              }
+            : r
+        )
+      );
+      if (activeRegDetail && activeRegDetail.id === id) {
+        setActiveRegDetail((prev) =>
+          prev
+            ? {
+                ...prev,
+                paymentStatus: "REJECTED",
+                status: "PAYMENT_PENDING",
+                payment: prev.payment
+                  ? { ...prev.payment, status: "REJECTED", adminNotes: reason.trim() }
+                  : null,
+              }
+            : null
+        );
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to reject payment");
     }
   };
 
@@ -561,7 +603,7 @@ export const AdminRegistrationsPage: React.FC = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
                   <div>
                     <span className="text-gray-500 block text-[10px]">Amount:</span>
-                    <span className="text-[#FFBE32] font-bold">₹{activeRegDetail.payment.amount}</span>
+                    <span className="text-[#FFBE32] font-bold">{formatCurrency(activeRegDetail.payment.amount)}</span>
                   </div>
                   <div>
                     <span className="text-gray-500 block text-[10px]">Method:</span>
@@ -573,18 +615,37 @@ export const AdminRegistrationsPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-gray-500 block text-[10px]">Status:</span>
-                    <span className="text-emerald-400 font-bold">{activeRegDetail.payment.status}</span>
+                    <span className="text-white font-bold">{activeRegDetail.payment.status}</span>
                   </div>
                 </div>
 
+                {activeRegDetail.payment.adminNotes && (
+                  <div className="p-2 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-300">
+                    <strong className="text-red-400">Rejection Reason / Note:</strong> {activeRegDetail.payment.adminNotes}
+                  </div>
+                )}
+
                 {activeRegDetail.payment.screenshot && (
                   <div className="pt-2">
-                    <button
-                      onClick={() => setPreviewScreenshot(activeRegDetail.payment?.screenshot || null)}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-white inline-flex items-center gap-1.5"
-                    >
-                      <Eye className="h-3.5 w-3.5 text-[#FFBE32]" /> View Payment Screenshot
-                    </button>
+                    <span className="text-gray-500 block text-[10px] mb-1">Payment Screenshot Proof:</span>
+                    <div className="flex items-center gap-3">
+                      <div
+                        onClick={() => setPreviewScreenshot(activeRegDetail.payment!.screenshot!)}
+                        className="h-20 w-32 rounded-lg border border-white/10 bg-black/60 overflow-hidden cursor-pointer hover:border-[#FFBE32] transition-colors"
+                      >
+                        <img
+                          src={activeRegDetail.payment.screenshot}
+                          alt="Screenshot"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setPreviewScreenshot(activeRegDetail.payment!.screenshot!)}
+                        className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-mono"
+                      >
+                        Enlarge Screenshot
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -602,14 +663,22 @@ export const AdminRegistrationsPage: React.FC = () => {
 
             {/* Action Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {activeRegDetail.payment && activeRegDetail.paymentStatus !== "VERIFIED" && activeRegDetail.paymentStatus !== "FREE" && (
-                  <button
-                    onClick={() => handleUpdatePayment(activeRegDetail.id, "VERIFIED", true)}
-                    className="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500 text-cyan-400 hover:text-black font-heading font-bold text-xs uppercase cursor-pointer"
-                  >
-                    Verify Payment
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleVerifyPayment(activeRegDetail.id)}
+                      className="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-black font-heading font-bold text-xs uppercase cursor-pointer border border-emerald-500/30"
+                    >
+                      Verify Payment ✓
+                    </button>
+                    <button
+                      onClick={() => handleRejectPayment(activeRegDetail.id)}
+                      className="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-heading font-bold text-xs uppercase cursor-pointer border border-red-500/30"
+                    >
+                      Reject Payment ✗
+                    </button>
+                  </>
                 )}
                 {activeRegDetail.status !== "APPROVED" && (
                   <button

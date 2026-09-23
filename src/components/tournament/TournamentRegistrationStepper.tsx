@@ -22,6 +22,7 @@ import {
   Clock,
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { formatCurrency } from "../../utils/formatters";
 
 interface RegistrationStepperProps {
   isOpen: boolean;
@@ -115,9 +116,23 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
 
   if (!tournament) return null;
 
-  const feeAmount = tournament.feeAmount || 0;
-  const isFree = feeAmount === 0;
+  const parsedFeeFromText = parseInt(String(tournament.entryFee || "").replace(/[^0-9]/g, ""), 10) || 0;
+  const entryFeeType = (tournament as any).entryFeeType || "PER_TEAM";
+  const rawBaseFee =
+    tournament.feeAmount !== undefined && tournament.feeAmount !== null && Number(tournament.feeAmount) > 0
+      ? Number(tournament.feeAmount)
+      : parsedFeeFromText;
+  const baseFee = entryFeeType === "FREE" ? 0 : rawBaseFee;
+  const isPerPlayer = entryFeeType === "PER_PLAYER";
+
   const teamSize = tournament.teamSize || 4;
+  const substitutesAllowed = (tournament as any).substitutesAllowed ?? true;
+  const maxSubstitutes = (tournament as any).maxSubstitutes ?? 2;
+  const maxTotalPlayers = substitutesAllowed ? teamSize + maxSubstitutes : teamSize;
+
+  const startersCount = Math.max(1, players.filter((p: any) => !p.isSubstitute).length);
+  const feeAmount = isPerPlayer ? baseFee * startersCount : baseFee;
+  const isFree = entryFeeType === "FREE" || feeAmount === 0;
   const upiId = tournament.upiId || "lordzesports@upi";
 
   // Dynamic slots
@@ -125,6 +140,8 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
   const totalSlots = tournament.totalTeams || 32;
   const availableSlots = tournament.availableSlots !== undefined ? tournament.availableSlots : Math.max(0, totalSlots - confirmedCount);
   const isTournamentFull = availableSlots <= 0;
+  const allowWaitlist = Boolean((tournament as any).allowWaitlist);
+  const isWaitlisting = isTournamentFull && allowWaitlist;
 
   // Copy UPI
   const handleCopyUpi = () => {
@@ -187,19 +204,22 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
     if (isPlayerAlreadyAdded(player)) {
       return;
     }
-    if (players.length >= teamSize) {
+    if (players.length >= maxTotalPlayers) {
       return;
     }
+
+    const isStarter = players.filter((p: any) => !p.isSubstitute).length < teamSize;
 
     const newPlayer = {
       id: player.id,
       name: player.fullName || player.ign || player.username,
       ign: player.ign || player.username,
       username: player.username,
-      role: "STARTER",
+      role: isStarter ? "STARTER" : "SUBSTITUTE",
       email: player.email || undefined,
       gameUid: player.gameUid || undefined,
       isCaptain: false,
+      isSubstitute: !isStarter,
     };
 
     setPlayers((prev) => [...prev, newPlayer]);
@@ -233,13 +253,13 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
         captainPhone: user?.phone || whatsapp,
         whatsapp,
         discordTag,
-        players: players.map((p, idx) => ({
+        players: players.map((p: any, idx) => ({
           name: p.name || p.ign || `Player ${idx + 1}`,
           ign: p.ign || `PLAYER_${idx + 1}`,
-          role: p.role || (idx === 0 ? "IGL" : "STARTER"),
+          role: p.role || (idx === 0 ? "IGL" : p.isSubstitute ? "SUBSTITUTE" : "STARTER"),
           email: p.email || undefined,
           isCaptain: idx === 0,
-          isSubstitute: false,
+          isSubstitute: Boolean(p.isSubstitute),
         })),
         payment: !isFree
           ? {
@@ -411,7 +431,7 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
                   </button>
                 </div>
               </div>
-            ) : isTournamentFull ? (
+            ) : isTournamentFull && !allowWaitlist ? (
               <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/30 text-center space-y-2">
                 <span className="px-3 py-1 rounded text-xs font-heading font-black bg-red-500 text-white uppercase tracking-wider">
                   TOURNAMENT FULL
@@ -421,15 +441,30 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
                 </p>
               </div>
             ) : (
-              <div className="flex justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="px-6 py-3 rounded-xl text-xs font-heading font-extrabold uppercase tracking-wider bg-[#FFBE32] hover:bg-[#FFA000] text-black shadow-[0_0_15px_rgba(255,190,50,0.3)] flex items-center gap-2 cursor-pointer transition-all"
-                >
-                  <span>Continue to Team Details</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+              <div className="space-y-4 pt-2">
+                {isWaitlisting && (
+                  <div className="p-4 rounded-xl bg-amber-500/15 border border-[#FFBE32]/40 flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-[#FFBE32] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-heading font-black uppercase text-[#FFBE32] tracking-wider">
+                        CHAMPIONSHIP SLOTS FULL — PRIORITY WAITLIST OPEN
+                      </p>
+                      <p className="text-[11px] font-mono text-gray-300 mt-1">
+                        All main tournament slots have been filled. Registering now places your squad on the Priority Waitlist. If any active team is disqualified or withdraws, waitlisted teams are promoted in order.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="px-6 py-3 rounded-xl text-xs font-heading font-extrabold uppercase tracking-wider bg-[#FFBE32] hover:bg-[#FFA000] text-black shadow-[0_0_15px_rgba(255,190,50,0.3)] flex items-center gap-2 cursor-pointer transition-all"
+                  >
+                    <span>{isWaitlisting ? "Join Priority Waitlist" : "Continue to Team Details"}</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -726,15 +761,28 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
               <div className="p-5 rounded-2xl bg-gradient-to-b from-[#171720] to-black border border-[#FFBE32]/30 space-y-4 shadow-[0_0_30px_rgba(255,190,50,0.1)]">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/10 pb-4">
                   <div>
-                    <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">Tournament Entry Fee</span>
-                    <div className="font-display text-3xl font-black text-[#FFBE32]">₹{feeAmount}</div>
+                    <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">
+                      Tournament Entry Fee {isPerPlayer ? "(Per Player)" : "(Per Squad)"}
+                    </span>
+                    <div className="font-display text-3xl font-black text-[#FFBE32]">
+                      {formatCurrency(feeAmount)}
+                    </div>
+                    {isPerPlayer ? (
+                      <span className="text-[10px] font-mono text-[#FFBE32] block mt-0.5">
+                        {formatCurrency(baseFee)} × {startersCount} Starter Athletes = {formatCurrency(feeAmount)}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-gray-400 block mt-0.5">
+                        Full Squad Fee (Covers entire team)
+                      </span>
+                    )}
                   </div>
 
                   {/* Copy UPI Button */}
                   <div className="flex items-center gap-2 bg-black/60 p-2.5 rounded-xl border border-white/10">
                     <div className="text-left">
                       <span className="text-[9px] font-mono text-gray-500 uppercase block">Official UPI ID</span>
-                      <strong className="text-xs font-mono text-white">{upiId}</strong>
+                      <strong className="text-xs font-mono text-white select-all">{upiId}</strong>
                     </div>
                     <button
                       type="button"
@@ -756,18 +804,18 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
                       <div className="w-36 h-36 bg-gray-100 flex flex-col items-center justify-center text-black font-mono text-[10px] text-center p-2">
                         <QrCode className="h-16 w-16 mb-1 text-black" />
                         <span>UPI SCAN & PAY</span>
-                        <strong>₹{feeAmount}</strong>
+                        <strong>{formatCurrency(feeAmount)}</strong>
                       </div>
                     )}
                   </div>
 
                   <div className="space-y-2 text-xs font-mono text-gray-300">
-                    <p className="font-heading font-bold text-white uppercase text-xs">Instructions:</p>
+                    <p className="font-heading font-bold text-white uppercase text-xs">Payment Steps:</p>
                     <ol className="list-decimal pl-4 space-y-1 text-[11px] text-gray-400">
-                      <li>Scan the QR code using GPay, PhonePe, Paytm or BHIM.</li>
-                      <li>Pay the exact entry fee of <strong className="text-[#FFBE32]">₹{feeAmount}</strong>.</li>
-                      <li>Copy the 12-digit UTR or Transaction Number.</li>
-                      <li>Enter the UTR number and attach a screenshot below.</li>
+                      <li>Scan the official QR code using GPay, PhonePe, Paytm or BHIM.</li>
+                      <li>Pay the exact entry fee of <strong className="text-[#FFBE32]">{formatCurrency(feeAmount)}</strong>.</li>
+                      <li>Copy the 12-digit UTR or Transaction Reference number.</li>
+                      <li>Enter the UTR number and upload the screenshot proof below.</li>
                     </ol>
                   </div>
                 </div>
@@ -949,11 +997,11 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
                 {submitting ? (
                   <>
                     <div className="h-3.5 w-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                    <span>Confirming...</span>
+                    <span>{isWaitlisting ? "Joining Waitlist..." : "Confirming..."}</span>
                   </>
                 ) : (
                   <>
-                    <span>Confirm Registration</span>
+                    <span>{isWaitlisting ? "Join Priority Waitlist" : "Confirm Registration"}</span>
                     <Check className="h-4 w-4" />
                   </>
                 )}
@@ -965,7 +1013,24 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
         {/* ================= STEP 6: DEDICATED CONFIRMATION ================= */}
         {step === 6 && (
           <div className="py-6 text-center space-y-6">
-            {registrationResult?.status === "CONFIRMED" ? (
+            {registrationResult?.isWaitlisted || registrationResult?.status === "WAITLISTED" ? (
+              <div className="space-y-4">
+                <div className="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-[#FFBE32] flex items-center justify-center text-[#FFBE32] mx-auto shadow-[0_0_30px_rgba(255,190,50,0.3)]">
+                  <Clock className="h-8 w-8" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#FFBE32] bg-[#FFBE32]/10 px-3 py-1 rounded-full border border-[#FFBE32]/30">
+                    SLOT FULL • ADDED TO PRIORITY WAITLIST (POSITION #{registrationResult?.waitlistPriority || 1})
+                  </span>
+                  <h3 className="font-display text-3xl uppercase tracking-wider text-white mt-3">
+                    WAITLIST QUEUE CONFIRMED
+                  </h3>
+                  <p className="text-xs text-gray-300 font-mono mt-1 max-w-md mx-auto">
+                    Your squad is queued at priority position #{registrationResult?.waitlistPriority || 1}. If any verified team is disqualified or unregisters, waitlisted teams are promoted in order.
+                  </p>
+                </div>
+              </div>
+            ) : registrationResult?.status === "CONFIRMED" ? (
               <div className="space-y-4">
                 <div className="w-16 h-16 rounded-full bg-[#22C55E]/20 border-2 border-[#22C55E] flex items-center justify-center text-[#22C55E] mx-auto shadow-[0_0_30px_rgba(34,197,94,0.4)] animate-bounce">
                   <CheckCircle2 className="h-8 w-8" />

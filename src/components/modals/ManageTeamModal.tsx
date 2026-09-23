@@ -233,9 +233,28 @@ export const ManageTeamModal: React.FC<ManageTeamModalProps> = ({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/30">
-                      ACCEPTED
-                    </span>
+                    {(() => {
+                      const status = m.invitationStatus || (isLeader ? "ACCEPTED" : "ACCEPTED");
+                      if (status === "PENDING") {
+                        return (
+                          <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold text-[#FFBE32] bg-[#FFBE32]/10 border border-[#FFBE32]/30 animate-pulse">
+                            INVITED / PENDING
+                          </span>
+                        );
+                      }
+                      if (status === "DECLINED") {
+                        return (
+                          <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold text-red-400 bg-red-500/10 border border-red-500/30">
+                            DECLINED
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/30">
+                          ACCEPTED
+                        </span>
+                      );
+                    })()}
 
                     {!isLeader && !isRosterLocked && (
                       <button
@@ -252,6 +271,32 @@ export const ManageTeamModal: React.FC<ManageTeamModalProps> = ({
               );
             })}
           </div>
+
+          {/* Pending Invitations list */}
+          {currentTeam.pendingInvitations && currentTeam.pendingInvitations.length > 0 && (
+            <div className="space-y-2 pt-2">
+              <div className="text-[11px] font-heading font-bold uppercase tracking-wider text-[#FFBE32]">
+                Pending Team Invitations ({currentTeam.pendingInvitations.length})
+              </div>
+              <div className="divide-y divide-white/5 rounded-xl border border-[#FFBE32]/20 bg-[#FFBE32]/5 overflow-hidden">
+                {currentTeam.pendingInvitations.map((inv: any) => (
+                  <div key={inv.id} className="p-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <span className="text-xs font-heading font-bold text-white uppercase">
+                        {inv.invitedUser?.ign || inv.invitedUser?.username || "Invited Athlete"}
+                      </span>
+                      <p className="text-[10px] font-mono text-gray-400">
+                        @{inv.invitedUser?.username} • Sent {new Date(inv.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[9px] font-mono font-bold text-[#FFBE32] bg-[#FFBE32]/10 border border-[#FFBE32]/30 animate-pulse">
+                      PENDING ACCEPTANCE
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Search & Invite Players (if not locked) */}
