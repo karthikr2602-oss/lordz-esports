@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { API_BASE } from "../api/client";
+import { getApiUrl } from "../api/client";
 import { playersApi } from "../api/players";
 import { type Player, playersData } from "../data/players";
 import {
@@ -88,7 +88,7 @@ export const AdminPlayersPage: React.FC = () => {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch(`${API_BASE}/upload`, {
+      const res = await fetch(getApiUrl("/upload"), {
         method: "POST",
         headers,
         body: uploadData,

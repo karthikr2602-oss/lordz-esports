@@ -1,4 +1,4 @@
-import { apiRequest, API_BASE } from "./client";
+import { apiRequest, getApiUrl } from "./client";
 
 export interface DashboardMetrics {
   kpis: {
@@ -66,7 +66,7 @@ export const adminApi = {
     formData.append("file", file);
 
     const token = localStorage.getItem("lordz_admin_token");
-    const response = await fetch(`${API_BASE}/upload`, {
+    const response = await fetch(getApiUrl("/upload"), {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,

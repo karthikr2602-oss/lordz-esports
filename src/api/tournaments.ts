@@ -1,4 +1,4 @@
-import { apiRequest, API_BASE } from "./client";
+import { apiRequest, getApiUrl } from "./client";
 import {
   tournamentsData,
   type Tournament,
@@ -142,7 +142,7 @@ export const tournamentsApi = {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch(`${API_BASE}/upload`, {
+    const res = await fetch(getApiUrl("/upload"), {
       method: "POST",
       body: formData,
     });

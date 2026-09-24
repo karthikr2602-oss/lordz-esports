@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAdminAuth } from "../context/AdminAuthContext";
-import { API_BASE } from "../api/client";
+import { getApiUrl } from "../api/client";
 import logoImg from "../assets/lordz-logo.png";
 import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
 
@@ -23,7 +23,7 @@ export const AdminLoginPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
+      const res = await fetch(getApiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

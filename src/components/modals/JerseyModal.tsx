@@ -5,7 +5,7 @@ import { Check, ShieldCheck, Sparkles } from "lucide-react";
 import jerseyFrontImg from "../../assets/jersey-front.jpg";
 import jerseyBackImg from "../../assets/jersey-back.jpg";
 import confetti from "canvas-confetti";
-import { API_BASE } from "../../api/client";
+import { getApiUrl } from "../../api/client";
 
 interface JerseyModalProps {
   isOpen: boolean;
@@ -28,7 +28,7 @@ export const JerseyModal = ({ isOpen, onClose }: JerseyModalProps) => {
     e.preventDefault();
 
     try {
-      const res = await fetch(`${API_BASE}/orders`, {
+      const res = await fetch(getApiUrl("/orders"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

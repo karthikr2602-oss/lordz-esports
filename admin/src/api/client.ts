@@ -3,22 +3,50 @@
  * Resilient API fetcher with token management and automatic fallback support.
  */
 
-const defaultBase =
-  typeof window !== "undefined" &&
-  window.location.hostname !== "localhost" &&
-  window.location.hostname !== "127.0.0.1"
-    ? "https://lordz-esportsserver.vercel.app/api"
-    : "/api";
+function resolveApiBase(): string {
+  let envUrl = ((import.meta.env.VITE_API_URL as string | undefined) || "").trim().replace(/\/+$/, "");
 
-const rawBase = (import.meta.env.VITE_API_URL || defaultBase).trim().replace(/\/+$/, "");
-export const API_BASE =
-  rawBase.startsWith("http") && !rawBase.includes("/api")
-    ? `${rawBase}/api`
-    : rawBase;
+  // If envUrl is missing protocol but looks like a remote hostname (e.g. lordz-esportsserver.vercel.app)
+  if (envUrl && !envUrl.startsWith("http://") && !envUrl.startsWith("https://") && !envUrl.startsWith("/")) {
+    envUrl = `https://${envUrl}`;
+  }
+
+  const isBrowser = typeof window !== "undefined";
+  const isLocalhost =
+    isBrowser &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname.startsWith("192.168."));
+
+  // If on production (Cloudflare *.workers.dev or custom domain) and envUrl is empty, relative, or points to frontend host, fallback to live Vercel backend
+  if (!isLocalhost && (!envUrl || envUrl.startsWith("/") || envUrl.includes("workers.dev"))) {
+    return "https://lordz-esportsserver.vercel.app/api";
+  }
+
+  if (!envUrl) {
+    return "/api";
+  }
+
+  if (envUrl.includes("lordz-esportsserver.vercel.app") && !envUrl.endsWith("/api")) {
+    return `${envUrl}/api`;
+  }
+
+  return envUrl;
+}
+
+export const API_BASE = resolveApiBase();
 
 export function getApiUrl(endpoint: string): string {
-  if (endpoint.startsWith("http")) return endpoint;
-  const clean = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
+    return endpoint;
+  }
+  let clean = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+
+  // If API_BASE ends with /api and endpoint also starts with /api/, strip duplicate
+  if (API_BASE.endsWith("/api") && clean.startsWith("/api/")) {
+    clean = clean.slice(4);
+  }
+
   return `${API_BASE}${clean}`;
 }
 
@@ -48,9 +76,7 @@ export async function apiRequest<T = any>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const url = endpoint.startsWith("http")
-    ? endpoint
-    : `${API_BASE}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+  const url = getApiUrl(endpoint);
 
   try {
     const response = await fetch(url, {
