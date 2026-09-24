@@ -57,6 +57,26 @@ export interface ApiResponse<T = any> {
   [key: string]: any;
 }
 
+// In-memory client cache with TTL (3 minutes) for instant page navigation
+interface ClientCacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+const clientCache = new Map<string, ClientCacheEntry<any>>();
+const CLIENT_CACHE_TTL = 3 * 60 * 1000;
+
+export function clearClientCache(pattern?: string) {
+  if (!pattern) {
+    clientCache.clear();
+    return;
+  }
+  for (const key of clientCache.keys()) {
+    if (key.includes(pattern)) {
+      clientCache.delete(key);
+    }
+  }
+}
+
 export async function apiRequest<T = any>(
   endpoint: string,
   options: RequestInit = {},
@@ -77,6 +97,17 @@ export async function apiRequest<T = any>(
   }
 
   const url = getApiUrl(endpoint);
+  const method = (options.method || "GET").toUpperCase();
+  const isCacheableGet = method === "GET" && !token;
+
+  if (isCacheableGet) {
+    const cached = clientCache.get(url);
+    if (cached && Date.now() - cached.timestamp < CLIENT_CACHE_TTL) {
+      return cached.data as T;
+    }
+  } else if (method !== "GET") {
+    clientCache.clear();
+  }
 
   try {
     const response = await fetch(url, {
@@ -97,7 +128,13 @@ export async function apiRequest<T = any>(
       throw new Error(json.message || `Request failed with status ${response.status}`);
     }
 
-    return (json.data !== undefined ? json.data : (json as unknown as T)) as T;
+    const result = (json.data !== undefined ? json.data : (json as unknown as T)) as T;
+
+    if (isCacheableGet) {
+      clientCache.set(url, { data: result, timestamp: Date.now() });
+    }
+
+    return result;
   } catch (error: any) {
     // If a fallback was provided, gracefully return it
     if (fallbackData !== undefined) {

@@ -111,6 +111,8 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                           src={athleteImg}
                           alt={`${player.ign} - Lord Esports`}
                           onError={() => setFailedImages((prev) => ({ ...prev, [player.id]: true }))}
+                          loading="lazy"
+                          decoding="async"
                           className="h-full w-full object-cover object-top filter contrast-105 group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E] via-black/20 to-transparent opacity-85" />

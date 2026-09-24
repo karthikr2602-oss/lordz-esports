@@ -90,6 +90,8 @@ export const MediaSection = ({
                 <img
                   src={getThumbnail(featuredVideo)}
                   alt="Featured Stream"
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover object-center filter brightness-60 group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
@@ -162,6 +164,8 @@ export const MediaSection = ({
                   <img
                     src={getThumbnail(item)}
                     alt={item.title}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover object-center filter brightness-90 group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = jerseyPromoImg;

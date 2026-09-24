@@ -240,6 +240,8 @@ export const PartnersSection = ({
                       <img
                         src={logo}
                         alt={partner.name}
+                        loading="lazy"
+                        decoding="async"
                         className="max-h-14 sm:max-h-16 max-w-full object-contain filter opacity-75 group-hover:opacity-100 group-hover:drop-shadow-[0_0_20px_rgba(255,190,50,0.45)] transition-all duration-300"
                       />
                     ) : (

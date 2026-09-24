@@ -23,4 +23,21 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor';
+            }
+            if (id.includes('lucide-react')) {
+              return 'icons';
+            }
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 900,
+  },
 })

@@ -114,7 +114,9 @@ export const TeamsPage = () => {
             src={imgSrc}
             alt={member.name || member.handle || "Member"}
             onError={handleImgError}
-            className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500 ease-out"
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500 ease-out"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#111111] via-[#0B0B0B] to-[#070707] relative group">

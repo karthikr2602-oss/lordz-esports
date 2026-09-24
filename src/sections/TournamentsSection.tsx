@@ -170,6 +170,8 @@ export const TournamentsSection = ({
                         <img
                           src={t.bannerImage}
                           alt={t.title}
+                          loading="lazy"
+                          decoding="async"
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60 filter saturate-150"
                         />
                       ) : (

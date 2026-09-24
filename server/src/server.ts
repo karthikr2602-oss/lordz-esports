@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import path from "path";
 import os from "os";
 import dotenv from "dotenv";
+import compression from "compression";
 import routes from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { prisma } from "./config/prisma.js";
@@ -59,6 +60,9 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use("/api", limiter);
+
+// Gzip / Brotli response compression
+app.use(compression());
 
 // Parsers
 app.use(express.json({ limit: "10mb" }));

@@ -754,6 +754,8 @@ export const ProductsPage = () => {
                 <img
                   src={product.image}
                   alt={product.name}
+                  loading="lazy"
+                  decoding="async"
                   className="max-h-full max-w-full object-contain filter group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]"
                 />
 

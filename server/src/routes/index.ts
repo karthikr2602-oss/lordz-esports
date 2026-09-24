@@ -21,6 +21,12 @@ import * as userCtrl from "../controllers/userController.js";
 import * as uploadCtrl from "../controllers/uploadController.js";
 import * as planCtrl from "../controllers/partnerPlanController.js";
 import * as votingCtrl from "../controllers/votingController.js";
+import { cacheMiddleware, delCache } from "../config/cache.js";
+
+const invalidate = (pattern: string) => (_req: any, _res: any, next: any) => {
+  delCache(pattern).catch(() => {});
+  next();
+};
 
 const router = Router();
 
@@ -50,7 +56,7 @@ router.post(
 );
 
 // ================= TOURNAMENT ROUTES =================
-router.get("/tournaments", tournamentCtrl.getTournaments);
+router.get("/tournaments", cacheMiddleware(120), tournamentCtrl.getTournaments);
 router.get(
   "/tournaments/admin/analytics",
   authenticate,
@@ -238,18 +244,21 @@ router.post(
   "/tournaments",
   authenticate,
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  invalidate("http:*tournaments*"),
   tournamentCtrl.createTournament
 );
 router.put(
   "/tournaments/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  invalidate("http:*tournaments*"),
   tournamentCtrl.updateTournament
 );
 router.delete(
   "/tournaments/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  invalidate("http:*tournaments*"),
   tournamentCtrl.deleteTournament
 );
 router.post("/tournaments/:id/register", optionalAuth, tournamentCtrl.registerSquad);
@@ -277,7 +286,7 @@ router.delete(
 );
 
 // ================= STANDINGS ROUTES =================
-router.get("/standings", standingCtrl.getStandings);
+router.get("/standings", cacheMiddleware(60), standingCtrl.getStandings);
 router.put(
   "/standings/batch",
   authenticate,
@@ -286,7 +295,7 @@ router.put(
 );
 
 // ================= PLAYERS ROUTES =================
-router.get("/players", playerCtrl.getPlayers);
+router.get("/players", cacheMiddleware(180), playerCtrl.getPlayers);
 router.get(
   "/players/admin/all",
   authenticate,
@@ -297,23 +306,26 @@ router.post(
   "/players",
   authenticate,
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  invalidate("http:*players*"),
   playerCtrl.createPlayer
 );
 router.put(
   "/players/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  invalidate("http:*players*"),
   playerCtrl.updatePlayer
 );
 router.delete(
   "/players/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  invalidate("http:*players*"),
   playerCtrl.deletePlayer
 );
 
 // ================= LEGENDS / OLD PLAYERS ROUTES =================
-router.get("/legends", legendCtrl.getLegends);
+router.get("/legends", cacheMiddleware(300), legendCtrl.getLegends);
 router.post(
   "/legends",
   authenticate,
@@ -334,7 +346,7 @@ router.delete(
 );
 
 // ================= MERCHANDISE ROUTES =================
-router.get("/merchandise", merchCtrl.getProducts);
+router.get("/merchandise", cacheMiddleware(180), merchCtrl.getProducts);
 router.post(
   "/merchandise",
   authenticate,
@@ -372,7 +384,7 @@ router.put(
 );
 
 // ================= NEWS ROUTES =================
-router.get("/news", newsCtrl.getArticles);
+router.get("/news", cacheMiddleware(180), newsCtrl.getArticles);
 router.get(
   "/news/admin/all",
   authenticate,
@@ -383,23 +395,26 @@ router.post(
   "/news",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*news*"),
   newsCtrl.createArticle
 );
 router.put(
   "/news/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*news*"),
   newsCtrl.updateArticle
 );
 router.delete(
   "/news/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*news*"),
   newsCtrl.deleteArticle
 );
 
 // ================= PARTNERS ROUTES =================
-router.get("/partners", partnerCtrl.getPartners);
+router.get("/partners", cacheMiddleware(300), partnerCtrl.getPartners);
 router.get(
   "/partners/admin/all",
   authenticate,
@@ -410,18 +425,21 @@ router.post(
   "/partners",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*partners*"),
   partnerCtrl.createPartner
 );
 router.put(
   "/partners/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*partners*"),
   partnerCtrl.updatePartner
 );
 router.delete(
   "/partners/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*partners*"),
   partnerCtrl.deletePartner
 );
 
@@ -460,32 +478,36 @@ router.delete(
 );
 
 // ================= MEDIA ROUTES =================
-router.get("/media", mediaCtrl.getMedia);
+router.get("/media", cacheMiddleware(180), mediaCtrl.getMedia);
 router.post(
   "/media",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*media*"),
   mediaCtrl.createMedia
 );
 router.put(
   "/media/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*media*"),
   mediaCtrl.updateMedia
 );
 router.delete(
   "/media/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*media*"),
   mediaCtrl.deleteMedia
 );
 
 // ================= SETTINGS ROUTES =================
-router.get("/settings", settingCtrl.getSettings);
+router.get("/settings", cacheMiddleware(300), settingCtrl.getSettings);
 router.put(
   "/settings",
   authenticate,
   requireRole("SUPER_ADMIN"),
+  invalidate("http:*settings*"),
   settingCtrl.updateSettings
 );
 
