@@ -291,7 +291,7 @@ export const collectiveMembers: CollectiveMember[] = [
     initials: "DS",
     avatar: "/members/dinesh.jpeg",
     instagram: "https://www.instagram.com/__dinesh__s_?stkn=MXFsMWdkaWRuZHJnaw==",
-    linkedin: "https://www.linkedin.com/in/dinesh-s",
+    linkedin: "https://www.linkedin.com/in/sdineshsivakumar/",
   },
    {
     id: "jeremiah-paul",
@@ -303,7 +303,7 @@ export const collectiveMembers: CollectiveMember[] = [
     initials: "JP",
     avatar: "/members/jer 2].jpeg",
     instagram: "https://www.instagram.com/iam_jeremiahpaul_?stkn=OTJka25yYWhkOWRk",
-    linkedin: "https://www.linkedin.com/in/jeremiah-paul",
+    linkedin: "https://www.linkedin.com/in/jeremiahpaull/",
   },
   {
     id: "karthik-r",
@@ -315,7 +315,7 @@ export const collectiveMembers: CollectiveMember[] = [
     initials: "KR",
     avatar: "/members/kart.jpeg",
     instagram: "https://www.instagram.com/karthi.z7?stkn=MTZsbG4yY25keGk3Mg==",
-    linkedin: "https://www.linkedin.com/in/karthik-r",
+    linkedin: "https://www.linkedin.com/in/karthikravii/",
   },
   {
     id: "founder",

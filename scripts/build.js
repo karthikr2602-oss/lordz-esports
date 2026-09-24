@@ -13,7 +13,11 @@ execSync("npm install --include=dev", {
   stdio: "inherit",
   env: { ...process.env, NODE_ENV: "development" }
 });
-execSync("npm run build", { cwd: adminDir, stdio: "inherit" });
+execSync("npm run build", {
+  cwd: adminDir,
+  stdio: "inherit",
+  env: { ...process.env, VITE_BASE: "/admin/" }
+});
 
 console.log("📦 Packaging Admin Portal into dist/admin...");
 const adminDist = path.resolve("admin", "dist");

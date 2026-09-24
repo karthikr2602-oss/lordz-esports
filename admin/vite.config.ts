@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/admin/',
+  base: process.env.VITE_BASE || '/',
   plugins: [tailwindcss(), react()],
   server: {
     port: 5175,
