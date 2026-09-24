@@ -4,7 +4,7 @@ import { GoldButton } from "../components/common/GoldButton";
 import { OutlineButton } from "../components/common/OutlineButton";
 import { TemplePattern } from "../components/common/TemplePattern";
 import logoImg from "../assets/lordz-logo.png";
-import freeFireStandingImg from "../assets/free-fire-standing.png";
+import freeFireFlameImg from "../assets/free-fire-flame-character.png";
 import { Trophy, ChevronDown, Sparkles } from "lucide-react";
 
 // Subtle floating energy particles for the Free Fire character
@@ -144,18 +144,18 @@ export const HeroSection = ({
           {/* RIGHT: Freestanding Free Fire Character Showcase (lg:col-span-5) */}
           <div className="lg:col-span-5 flex justify-center items-center relative min-h-[480px] sm:min-h-[580px] lg:min-h-[660px]">
             
-            {/* 1. Ambient Energy Halos (Dual Cyan & Gold Glow) */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-80 w-80 sm:h-[460px] sm:w-[460px] rounded-full bg-gradient-to-tr from-[#FFBE32]/10 via-cyan-500/20 to-teal-400/15 blur-[120px] pointer-events-none" />
+            {/* 1. Ambient Energy Halos (Dual Flame Gold & Amber Glow) */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-80 w-80 sm:h-[460px] sm:w-[460px] rounded-full bg-gradient-to-tr from-[#FFBE32]/15 via-orange-500/20 to-red-500/10 blur-[120px] pointer-events-none" />
 
-            {/* 2. Dynamic Esports Diagonal Energy Blade / Line Accent (Matching reference image) */}
+            {/* 2. Dynamic Esports Diagonal Energy Blade / Line Accent (Matching theme) */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-              <svg className="w-full h-full opacity-60" viewBox="0 0 500 600" fill="none">
+              <svg className="w-full h-full opacity-70" viewBox="0 0 500 600" fill="none">
                 <defs>
                   <linearGradient id="cyberLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#FFBE32" stopOpacity="0" />
-                    <stop offset="35%" stopColor="#FFBE32" stopOpacity="0.8" />
-                    <stop offset="65%" stopColor="#22d3ee" stopOpacity="0.9" />
-                    <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+                    <stop offset="35%" stopColor="#FFBE32" stopOpacity="0.9" />
+                    <stop offset="65%" stopColor="#f97316" stopOpacity="0.85" />
+                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
                   </linearGradient>
                   <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
                     <feGaussianBlur stdDeviation="6" result="glow" />
@@ -206,7 +206,7 @@ export const HeroSection = ({
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-gradient-to-tr from-cyan-500/35 via-teal-400/30 to-emerald-400/20 blur-[65px] pointer-events-none"
+                className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-gradient-to-tr from-[#FFBE32]/35 via-orange-500/30 to-red-500/20 blur-[65px] pointer-events-none"
               />
 
               {/* Core Radial Flash */}
@@ -220,15 +220,15 @@ export const HeroSection = ({
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-52 rounded-full bg-cyan-400/25 blur-[50px] pointer-events-none"
+                className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-52 rounded-full bg-amber-400/25 blur-[50px] pointer-events-none"
               />
 
-              {/* Floating Cyan Energy Particles */}
+              {/* Floating Golden/Amber Energy Particles */}
               {characterParticles.map((p) => (
                 <motion.div
                   key={p.id}
                   style={{ left: p.x, top: p.y }}
-                  className="absolute pointer-events-none w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_#22d3ee,0_0_16px_#06b6d4] z-20"
+                  className="absolute pointer-events-none w-1.5 h-1.5 rounded-full bg-amber-300 shadow-[0_0_8px_#f59e0b,0_0_16px_#ea580c] z-20"
                   animate={{
                     y: [0, -22, 0],
                     x: [0, p.id % 2 === 0 ? 8 : -8, 0],
@@ -257,14 +257,14 @@ export const HeroSection = ({
                 }}
               >
                 <motion.img
-                  src={freeFireStandingImg}
-                  alt="Lord Esports Free Fire Apex Character"
+                  src={freeFireFlameImg}
+                  alt="Lord Esports Free Fire Flame Character"
                   className="max-h-[460px] sm:max-h-[560px] lg:max-h-[640px] xl:max-h-[680px] w-auto object-contain select-none pointer-events-none filter contrast-[1.06] brightness-[1.04]"
                   animate={{
                     filter: [
-                      "drop-shadow(0 0 16px rgba(6, 182, 212, 0.45)) drop-shadow(0 0 35px rgba(20, 184, 166, 0.25))",
-                      "drop-shadow(0 0 28px rgba(6, 182, 212, 0.8)) drop-shadow(0 0 55px rgba(20, 184, 166, 0.5)) drop-shadow(0 0 80px rgba(34, 197, 94, 0.25))",
-                      "drop-shadow(0 0 16px rgba(6, 182, 212, 0.45)) drop-shadow(0 0 35px rgba(20, 184, 166, 0.25))",
+                      "drop-shadow(0 0 16px rgba(255, 190, 50, 0.45)) drop-shadow(0 0 35px rgba(249, 115, 22, 0.25))",
+                      "drop-shadow(0 0 28px rgba(255, 190, 50, 0.85)) drop-shadow(0 0 55px rgba(249, 115, 22, 0.55)) drop-shadow(0 0 80px rgba(239, 68, 68, 0.25))",
+                      "drop-shadow(0 0 16px rgba(255, 190, 50, 0.45)) drop-shadow(0 0 35px rgba(249, 115, 22, 0.25))",
                     ],
                   }}
                   transition={{
@@ -279,8 +279,8 @@ export const HeroSection = ({
               <div className="relative w-64 sm:w-80 h-10 -mt-6 pointer-events-none z-0 flex items-center justify-center">
                 {/* Dark contact shadow */}
                 <div className="w-52 sm:w-64 h-5 rounded-full bg-black/85 blur-[12px]" />
-                {/* Cyan ambient floor glow */}
-                <div className="absolute w-60 sm:w-72 h-8 rounded-full bg-cyan-500/20 blur-[20px]" />
+                {/* Amber ambient floor glow */}
+                <div className="absolute w-60 sm:w-72 h-8 rounded-full bg-amber-500/25 blur-[20px]" />
               </div>
 
               {/* Floating Esports Nameplate / Badge (Sleek minimalist Pill) */}
@@ -288,9 +288,9 @@ export const HeroSection = ({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.7 }}
-                className="mt-3 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#0B0C10]/90 border border-cyan-500/30 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(6,182,212,0.2)]"
+                className="mt-3 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#0B0C10]/90 border border-[#FFBE32]/35 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(255,190,50,0.2)]"
               >
-                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+                <span className="h-2 w-2 rounded-full bg-[#FFBE32] animate-ping" />
                 <span className="font-heading text-xs font-bold uppercase tracking-[0.25em] text-[#FFBE32]">
                   FREE FIRE
                 </span>
