@@ -289,7 +289,7 @@ export const collectiveMembers: CollectiveMember[] = [
     divisions: ["Developers"],
     focus: "Transactional flows, bracket scoring automation & data consistency",
     initials: "DS",
-    avatar: "/members/dinesh.jpeg",
+    avatar: "/members/dinesh2.jpeg",
     instagram: "https://www.instagram.com/__dinesh__s_?stkn=MXFsMWdkaWRuZHJnaw==",
     linkedin: "https://www.linkedin.com/in/sdineshsivakumar/",
   },
