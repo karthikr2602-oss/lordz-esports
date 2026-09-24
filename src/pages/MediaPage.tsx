@@ -1,17 +1,39 @@
-import { useEffect } from "react";
 import { PageHero } from "../components/common/PageHero";
 import { MediaSection } from "../sections/MediaSection";
 import { useModals } from "../context/useModals";
+import { SEO } from "../components/common/SEO";
+import { mediaData } from "../data/media";
 
 export const MediaPage = () => {
   const { playMedia } = useModals();
 
-  useEffect(() => {
-    document.title = "LORD ESPORTS — Media Hub, Highlights & Streams";
-  }, []);
+  const videoSchemas = mediaData
+    .filter((m) => Boolean(m.youtubeId))
+    .slice(0, 5)
+    .map((m) => ({
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      name: m.title,
+      description: m.description || `Official LORDZ ESPORTS ${m.game} highlight.`,
+      thumbnailUrl: m.thumbnail || `https://img.youtube.com/vi/${m.youtubeId}/hqdefault.jpg`,
+      uploadDate: "2026-09-20T12:00:00Z",
+      contentUrl: `https://www.youtube.com/watch?v=${m.youtubeId}`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${m.youtubeId}`,
+    }));
 
   return (
     <div className="min-h-screen bg-[#050505]">
+      <SEO
+        title="LORDZ ESPORTS Media | Tournament Highlights, Streams &amp; VODs"
+        description="Watch official tournament highlights, clutch plays, team cinematics, and broadcast VODs from LORDZ ESPORTS."
+        canonicalPath="/media"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Media", item: "/media" },
+        ]}
+        structuredData={videoSchemas}
+      />
+
       <PageHero
         badge="CINEMATICS & CLUTCHES"
         title="LORD"

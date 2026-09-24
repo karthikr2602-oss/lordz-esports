@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { collectiveMembers } from "../data/teams";
 import teamPhoto from "../assets/about-team.jpg";
+import { SEO } from "../components/common/SEO";
 import {
   ArrowUpRight,
   ExternalLink,
@@ -57,7 +58,6 @@ export const TeamsPage = () => {
   const [memberFilter, setMemberFilter] = useState<string>("all");
 
   useEffect(() => {
-    document.title = "LORD ESPORTS — The People Behind The Play";
     window.scrollTo(0, 0);
   }, []);
 
@@ -76,7 +76,7 @@ export const TeamsPage = () => {
     aspectRatio = "aspect-[4/5]",
     large = false,
   }: {
-    member: { name: string; initials: string; avatar?: string; handle?: string };
+    member: { name: string; initials: string; avatar?: string; handle?: string; primaryRole?: string };
     className?: string;
     aspectRatio?: string;
     large?: boolean;
@@ -112,7 +112,9 @@ export const TeamsPage = () => {
         {!hasError && imgSrc ? (
           <img
             src={imgSrc}
-            alt={member.name || member.handle || "Member"}
+            alt={`${member.name} (${member.primaryRole || member.handle || "Team Member"}) - LORDZ ESPORTS`}
+            loading="lazy"
+            decoding="async"
             onError={handleImgError}
             loading="lazy"
             decoding="async"
@@ -145,6 +147,16 @@ export const TeamsPage = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-[#E0E0E0] selection:bg-[#FFBE32] selection:text-black font-sans">
+      <SEO
+        title="LORDZ ESPORTS Team | Founders, Leadership &amp; Operations Collective"
+        description="Meet the core team and leadership powering LORDZ ESPORTS across technology, tournament operations, management, creative media, and community."
+        canonicalPath="/teams"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Team", item: "/teams" },
+        ]}
+      />
+
       {/* ========================================================================= */}
       {/* 1. INTRODUCTION / HERO SECTION */}
       {/* ========================================================================= */}

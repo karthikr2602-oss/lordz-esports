@@ -66,11 +66,13 @@ export const HeroSection = ({
             >
               <img
                 src={logoImg}
-                alt="Lord LE"
+                alt="LORDZ ESPORTS Official Crest"
+                width={16}
+                height={16}
                 className="h-4 w-4 object-contain drop-shadow-[0_0_8px_#FFBE32]"
               />
               <span className="font-heading text-xs font-bold uppercase tracking-[0.25em] text-[#FFBE32]">
-                RISE WITH LORD
+                LORDZ ESPORTS
               </span>
               <span className="h-1 w-1 rounded-full bg-white/40" />
               <span className="font-heading text-[11px] text-gray-300 tracking-widest">
@@ -85,6 +87,7 @@ export const HeroSection = ({
               transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-[4.5rem] xl:text-[5.2rem] leading-[1.06] uppercase tracking-tight text-white font-extrabold"
             >
+              <span className="sr-only">LORDZ ESPORTS — </span>
               FORGE YOUR <br />
               <span className="text-gold-gradient">LEGACY.</span>
             </motion.h1>
@@ -96,7 +99,7 @@ export const HeroSection = ({
               transition={{ duration: 0.6, delay: 0.35 }}
               className="mt-6 text-base sm:text-lg md:text-xl text-[#9CA3AF] font-body max-w-lg leading-relaxed"
             >
-              Compete. Improve. Build your name. Join India's elite competitive esports network for daily scrims, championship tournaments, and legacy recognition.
+              Compete. Improve. Build your name. Join LORDZ ESPORTS, India's elite competitive esports network for daily scrims, championship tournaments, and legacy recognition.
             </motion.p>
 
             {/* Quick Micro-Highlight Metrics */}
@@ -258,7 +261,8 @@ export const HeroSection = ({
               >
                 <motion.img
                   src={freeFireFlameImg}
-                  alt="Lord Esports Free Fire Flame Character"
+                  alt="LORDZ ESPORTS Free Fire Flame Character"
+                  fetchPriority="high"
                   className="max-h-[460px] sm:max-h-[560px] lg:max-h-[640px] xl:max-h-[680px] w-auto object-contain select-none pointer-events-none filter contrast-[1.06] brightness-[1.04]"
                   animate={{
                     filter: [

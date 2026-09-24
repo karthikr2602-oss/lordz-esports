@@ -823,7 +823,10 @@ export const getTournamentById = async (req: Request, res: Response, next: NextF
       try {
         const tournament: any = await prisma.tournament.findFirst({
           where: {
-            id,
+            OR: [
+              { id },
+              { slug: id },
+            ],
           } as any,
           include: {
             registrations: {
@@ -966,7 +969,7 @@ export const createTournament = async (req: AuthenticatedRequest, res: Response,
 
     if (dbConnected) {
       try {
-        const { slug: _slug, ...createPayload } = data as any;
+        const createPayload = { ...data, slug: generatedSlug };
         const dbResult = await prisma.tournament.create({
           data: {
             ...createPayload,

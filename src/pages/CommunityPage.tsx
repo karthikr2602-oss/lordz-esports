@@ -1,14 +1,20 @@
-import { useEffect } from "react";
 import { PageHero } from "../components/common/PageHero";
 import { CommunitySection } from "../sections/CommunitySection";
+import { SEO } from "../components/common/SEO";
 
 export const CommunityPage = () => {
-  useEffect(() => {
-    document.title = "LORD ESPORTS — Community, Discord & Channels";
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#070709]">
+      <SEO
+        title="LORDZ ESPORTS Community | Discord, WhatsApp &amp; Gaming Guild"
+        description="Join the official LORDZ ESPORTS community. Connect with competitive players, participate in daily Free Fire scrims, and access official Discord and WhatsApp hubs."
+        canonicalPath="/community"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Community", item: "/community" },
+        ]}
+      />
+
       <PageHero
         badge="INDIAN GAMING GUILD"
         title="JOIN THE"

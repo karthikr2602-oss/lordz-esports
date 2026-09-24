@@ -22,6 +22,7 @@ import {
   Flame,
   ChevronRight,
 } from "lucide-react";
+import { SEO } from "../components/common/SEO";
 
 export const VotingPage = () => {
   const { user, isAuthenticated } = useAuth();
@@ -68,7 +69,6 @@ export const VotingPage = () => {
   };
 
   useEffect(() => {
-    document.title = "LORD ESPORTS — Community & Creator Awards Voting";
     loadActiveEvents();
   }, [isAuthenticated, user?.id]);
 
@@ -219,6 +219,16 @@ export const VotingPage = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FFBE32] selection:text-black">
+      <SEO
+        title="LORDZ ESPORTS Fan Awards Voting | Vote for MVP of the Season"
+        description="Cast your vote for the MVP of the season, top fraggers, and community awards in official LORDZ ESPORTS fan polls."
+        canonicalPath="/voting"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Voting", item: "/voting" },
+        ]}
+      />
+
       {/* Hero Section */}
       <PageHero
         badge="LORD ESPORTS ANNUAL AWARDS"

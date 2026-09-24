@@ -1,17 +1,48 @@
-import { useEffect } from "react";
 import { PageHero } from "../components/common/PageHero";
 import { TournamentsSection } from "../sections/TournamentsSection";
 import { useModals } from "../context/useModals";
+import { SEO } from "../components/common/SEO";
+import { SITE_URL } from "../config/seo";
 
 export const TournamentsPage = () => {
   const { openJoinTournament } = useModals();
 
-  useEffect(() => {
-    document.title = "LORD ESPORTS — Tournament Arena & Scrims";
-  }, []);
+  const tournamentsSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "LORDZ ESPORTS Competitive Tournaments",
+    description: "Official Free Fire and Free Fire MAX competitive tournaments and scrims.",
+    url: `${SITE_URL}/tournaments`,
+    numberOfItems: 2,
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "FLAME OF GLORY - FINALS",
+        url: `${SITE_URL}/tournaments/fog-season-2`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "LORD CLUTCH CUP S1",
+        url: `${SITE_URL}/tournaments/lordz-clutch-cup`,
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-[#050505]">
+      <SEO
+        title="LORDZ ESPORTS Tournaments | Competitive Free Fire Circuits &amp; Scrims"
+        description="Explore verified Free Fire and Free Fire MAX esports tournaments by LORDZ ESPORTS. Register your squad, view prize pools, stages, schedules, and live brackets."
+        canonicalPath="/tournaments"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Tournaments", item: "/tournaments" },
+        ]}
+        structuredData={tournamentsSchema}
+      />
+
       <PageHero
         badge="COMPETITIVE CIRCUITS"
         title="TOURNAMENT"

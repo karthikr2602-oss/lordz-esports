@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { formatCurrency, formatDate } from "../utils/formatters";
+import { SEO } from "../components/common/SEO";
+import { SITE_URL } from "../config/seo";
 
 export const TournamentDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -150,6 +152,7 @@ export const TournamentDetailPage: React.FC = () => {
   if (!tournament) {
     return (
       <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 text-center">
+        <SEO title="Tournament Not Found | LORDZ ESPORTS" noindex nofollow />
         <Trophy className="h-16 w-16 text-gray-600 mb-4" />
         <h1 className="font-display text-3xl uppercase tracking-wider">Tournament Not Found</h1>
         <p className="text-sm text-gray-400 mt-2">The tournament arena you are looking for may have concluded or been archived.</p>
@@ -291,8 +294,64 @@ export const TournamentDetailPage: React.FC = () => {
     }
   };
 
+  const tournamentSchema = useMemo(() => {
+    if (!tournament) return null;
+    const path = `/tournaments/${tournament.slug || slug}`;
+    return {
+      "@context": "https://schema.org",
+      "@type": "SportsEvent",
+      name: tournament.title,
+      description:
+        tournament.shortDescription ||
+        tournament.description ||
+        `Official ${tournament.game} tournament hosted by LORDZ ESPORTS.`,
+      url: `${SITE_URL}${path}`,
+      startDate: tournament.startDate || "2026-09-28T18:00:00Z",
+      ...(tournament.endDate ? { endDate: tournament.endDate } : {}),
+      eventStatus:
+        tournament.status === "CANCELLED"
+          ? "https://schema.org/EventCancelled"
+          : "https://schema.org/EventScheduled",
+      eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
+      location: {
+        "@type": "VirtualLocation",
+        url: `${SITE_URL}${path}`,
+      },
+      organizer: {
+        "@type": "SportsOrganization",
+        name: "LORDZ ESPORTS",
+        url: SITE_URL,
+      },
+      offers: {
+        "@type": "Offer",
+        price: tournament.feeAmount || 0,
+        priceCurrency: tournament.currency || "INR",
+        availability: isTournamentFull ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
+        url: `${SITE_URL}${path}`,
+        validFrom: tournament.regStartDate || undefined,
+      },
+    };
+  }, [tournament, slug, isTournamentFull]);
+
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FFBE32] selection:text-black">
+      <SEO
+        title={`${tournament.title} | LORDZ ESPORTS Tournament`}
+        description={
+          tournament.shortDescription ||
+          tournament.description ||
+          `Join ${tournament.title}, the official ${tournament.game} championship by LORDZ ESPORTS. Total Prize Pool: ${prizeDisplay}. Format: ${tournament.format}.`
+        }
+        canonicalPath={`/tournaments/${tournament.slug || slug}`}
+        ogImage={tournament.bannerImage || "/og-image.jpg"}
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Tournaments", item: "/tournaments" },
+          { name: tournament.title, item: `/tournaments/${tournament.slug || slug}` },
+        ]}
+        structuredData={tournamentSchema || undefined}
+      />
+
       {/* Top Banner Hero */}
       <div className="relative border-b border-white/10 bg-[#08080A] overflow-hidden">
         {/* Background Banner Image */}

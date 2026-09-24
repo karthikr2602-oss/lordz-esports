@@ -1,14 +1,15 @@
-import { useEffect } from "react";
 import { PageHero } from "../components/common/PageHero";
 import { HallOfGlorySection } from "../sections/HallOfGlorySection";
+import { SEO } from "../components/common/SEO";
 
 export const HallOfGloryPage = () => {
-  useEffect(() => {
-    document.title = "LORD ESPORTS — Hall of Glory & Trophies";
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#050505]">
+      <SEO
+        title="LORDZ ESPORTS Hall of Glory &amp; Trophy Room"
+        description="Honoring landmark championship victories, tournament MVPs, and historic milestones in LORDZ ESPORTS history."
+        canonicalPath="/tournaments"
+      />
       <PageHero
         badge="TROPHY ROOM & ACHIEVEMENTS"
         title="HALL OF"

@@ -11,6 +11,7 @@ import {
   Globe
 } from "lucide-react";
 import { partnersApi, type PartnerItem } from "../api/partners";
+import { SEO } from "../components/common/SEO";
 
 // Default local logos
 import logoInfinix from "../assets/partner-infinix.png";
@@ -143,7 +144,6 @@ export const BrandPartnersPage = () => {
   const [dbPartners, setDbPartners] = useState<PartnerItem[]>([]);
 
   useEffect(() => {
-    document.title = "Official Brand Partners — Lord Esports Collaborations";
     partnersApi
       .getAll()
       .then((res) => {
@@ -233,6 +233,16 @@ export const BrandPartnersPage = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-28 pb-24">
+      <SEO
+        title="Official Brand Partners &amp; Sponsors | LORDZ ESPORTS"
+        description="Explore official brands, industry leaders, gaming platforms, and corporate sponsors partnering with LORDZ ESPORTS."
+        canonicalPath="/partners"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Brand Partners", item: "/partners" },
+        ]}
+      />
+
       {/* Background Ambience */}
       <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-radial from-[#FFBE32]/8 via-transparent to-transparent blur-[160px] pointer-events-none" />
 

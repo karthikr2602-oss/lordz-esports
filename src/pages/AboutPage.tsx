@@ -1,15 +1,23 @@
-import { useEffect } from "react";
 import { PageHero } from "../components/common/PageHero";
 import { AboutSection } from "../sections/AboutSection";
 import { StatsSection } from "../sections/StatsSection";
+import { SEO } from "../components/common/SEO";
+import { buildOrganizationSchema } from "../config/seo";
 
 export const AboutPage = () => {
-  useEffect(() => {
-    document.title = "LORD ESPORTS — About Organization & Manifesto";
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#050505]">
+      <SEO
+        title="About LORDZ ESPORTS | Organization History, Manifesto &amp; Achievements"
+        description="Learn about LORDZ ESPORTS, India's premier competitive mobile esports organization. Built on discipline, South Indian cultural identity, and championship-tier tournament performance."
+        canonicalPath="/about"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "About", item: "/about" },
+        ]}
+        structuredData={buildOrganizationSchema()}
+      />
+
       <PageHero
         badge="ORGANIZATION PROFILE"
         title="ABOUT"

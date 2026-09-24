@@ -41,4 +41,7 @@ uploads/
 **/uploads/
 server/uploads/lordz-*
 
+# Generated Prisma Client
+server/src/generated/
+
 

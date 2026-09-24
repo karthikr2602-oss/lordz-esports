@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import { LoadingScreen } from "./components/common/LoadingScreen";
 import { CustomCursor } from "./components/common/CustomCursor";
@@ -7,22 +8,24 @@ import { FooterSection } from "./sections/FooterSection";
 import { ModalProvider } from "./context/ModalContext";
 import { AuthProvider } from "./context/AuthContext";
 
-// Public Pages
+// Eager HomePage for fastest initial render & LCP
 import { HomePage } from "./pages/HomePage";
-import { TournamentsPage } from "./pages/TournamentsPage";
-import { TournamentDetailPage } from "./pages/TournamentDetailPage";
-import { PlayersPage } from "./pages/PlayersPage";
-import { ProductsPage } from "./pages/ProductsPage";
-import { AboutPage } from "./pages/AboutPage";
-import { NewsPage } from "./pages/NewsPage";
-import { MediaPage } from "./pages/MediaPage";
-import { CommunityPage } from "./pages/CommunityPage";
-import { BrandPartnersPage } from "./pages/BrandPartnersPage";
-import { PartnersPage } from "./pages/PartnersPage";
-import { MyTournamentsPage } from "./pages/MyTournamentsPage";
-import { VotingPage } from "./pages/VotingPage";
-import { TeamsPage } from "./pages/TeamsPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
+
+// Code-split secondary routes for Core Web Vitals optimization
+const TournamentsPage = lazy(() => import("./pages/TournamentsPage").then((m) => ({ default: m.TournamentsPage })));
+const TournamentDetailPage = lazy(() => import("./pages/TournamentDetailPage").then((m) => ({ default: m.TournamentDetailPage })));
+const PlayersPage = lazy(() => import("./pages/PlayersPage").then((m) => ({ default: m.PlayersPage })));
+const ProductsPage = lazy(() => import("./pages/ProductsPage").then((m) => ({ default: m.ProductsPage })));
+const AboutPage = lazy(() => import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })));
+const NewsPage = lazy(() => import("./pages/NewsPage").then((m) => ({ default: m.NewsPage })));
+const MediaPage = lazy(() => import("./pages/MediaPage").then((m) => ({ default: m.MediaPage })));
+const CommunityPage = lazy(() => import("./pages/CommunityPage").then((m) => ({ default: m.CommunityPage })));
+const BrandPartnersPage = lazy(() => import("./pages/BrandPartnersPage").then((m) => ({ default: m.BrandPartnersPage })));
+const PartnersPage = lazy(() => import("./pages/PartnersPage").then((m) => ({ default: m.PartnersPage })));
+const MyTournamentsPage = lazy(() => import("./pages/MyTournamentsPage").then((m) => ({ default: m.MyTournamentsPage })));
+const VotingPage = lazy(() => import("./pages/VotingPage").then((m) => ({ default: m.VotingPage })));
+const TeamsPage = lazy(() => import("./pages/TeamsPage").then((m) => ({ default: m.TeamsPage })));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
 
 /**
  * Public Layout with Lordz Header, Loading, Cursor, and Footer
@@ -35,7 +38,15 @@ function PublicLayout() {
       <CustomCursor />
       <Navbar />
       <main className="flex-grow">
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className="min-h-[60vh] flex items-center justify-center">
+              <div className="h-8 w-8 border-2 border-[#FFBE32] border-t-transparent rounded-full animate-spin" />
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
       <FooterSection />
     </div>
