@@ -4,8 +4,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://lordz-esports-6zhs.vercel.app/api/:path*" },
-    { "source": "/uploads/:path*", "destination": "https://lordz-esports-6zhs.vercel.app/uploads/:path*" },
+    { "source": "/api/:path*", "destination": "https://lordz-esportsserver.vercel.app/api/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://lordz-esportsserver.vercel.app/uploads/:path*" },
     { "source": "/admin/:path*", "destination": "/admin/index.html" },
     { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }

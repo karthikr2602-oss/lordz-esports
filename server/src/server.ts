@@ -14,7 +14,20 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
+const CLIENT_URL = process.env.CLIENT_URL || "https://lordz-esports.lordesportz75.workers.dev";
+const ADMIN_URL = process.env.ADMIN_URL || "https://lordz-esports-admin.lordesportz75.workers.dev";
+
+// Allowed origins for CORS (Cloudflare production, Vercel, and local development)
+const allowedOrigins = [
+  "https://lordz-esports.lordesportz75.workers.dev",
+  "https://lordz-esports-admin.lordesportz75.workers.dev",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  CLIENT_URL,
+  ADMIN_URL,
+  ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim()) : []),
+].filter(Boolean);
 
 // Security headers
 app.use(
@@ -27,8 +40,8 @@ app.use(
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g., mobile apps, curl) or matching dev host
-      if (!origin || origin.includes("localhost") || origin === CORS_ORIGIN) {
+      // Allow requests with no origin (e.g., mobile apps, curl) or matching allowed host
+      if (!origin || origin.includes("localhost") || origin.endsWith(".workers.dev") || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(null, true); // Dev permissive
@@ -217,12 +230,12 @@ app.get("/", (req, res) => {
         <div class="stat-value" style="color: #4ade80;">● Neon PostgreSQL Connected</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Server Port</div>
-        <div class="stat-value">5000 (Development)</div>
+        <div class="stat-label">Server Environment</div>
+        <div class="stat-value" style="font-size: 13px;">${process.env.VERCEL ? "Production (Vercel)" : "Port " + PORT + " (Development)"}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">CORS Origins</div>
-        <div class="stat-value" style="font-size: 13px;">5173, 5174, 5175</div>
+        <div class="stat-label">Connected Apps</div>
+        <div class="stat-value" style="font-size: 12px; color: #FFBE32;">Cloudflare Live (Workers)</div>
       </div>
     </div>
 
@@ -268,8 +281,8 @@ app.get("/", (req, res) => {
     </div>
 
     <div class="action-row">
-      <a href="http://localhost:5173" target="_blank" class="btn btn-primary">Open Main Website (5173) &rarr;</a>
-      <a href="http://localhost:5175" target="_blank" class="btn btn-secondary">Open Admin Portal (5175) &rarr;</a>
+      <a href="${CLIENT_URL}" target="_blank" class="btn btn-primary">Open Main Website &rarr;</a>
+      <a href="${ADMIN_URL}" target="_blank" class="btn btn-secondary">Open Admin Portal &rarr;</a>
     </div>
   </div>
 </body>
@@ -308,7 +321,7 @@ app.get(["/api", "/api/v1"], (_req, res) => {
     service: "Lord Esports REST API",
     version: "1.0.0",
     status: "healthy",
-    documentation: "Visit http://localhost:5000/ for available endpoints",
+    documentation: "Visit / for available endpoints",
   });
 });
 
