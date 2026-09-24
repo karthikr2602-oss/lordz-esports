@@ -1,23 +1,37 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useMotionValue, useSpring } from "framer-motion";
 
 export function useMouseParallax(sensitivity = 15) {
-  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+
+  const springConfig = { damping: 25, stiffness: 180, mass: 0.5 };
+  const x = useSpring(rawX, springConfig);
+  const y = useSpring(rawY, springConfig);
 
   useEffect(() => {
-    // Only enable on non-touch devices
-    const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    const isTouch = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
     if (isTouch) return;
 
+    let rafId: number | null = null;
     const handleMouseMove = (e: MouseEvent) => {
-      const { innerWidth, innerHeight } = window;
-      const x = ((e.clientX / innerWidth) - 0.5) * sensitivity;
-      const y = ((e.clientY / innerHeight) - 0.5) * sensitivity;
-      setCoords({ x, y });
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        const { innerWidth, innerHeight } = window;
+        const normX = ((e.clientX / innerWidth) - 0.5) * sensitivity;
+        const normY = ((e.clientY / innerHeight) - 0.5) * sensitivity;
+        rawX.set(normX);
+        rawY.set(normY);
+        rafId = null;
+      });
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [sensitivity]);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+  }, [sensitivity, rawX, rawY]);
 
-  return coords;
+  return { x, y };
 }

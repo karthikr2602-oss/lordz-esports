@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useTransform } from "framer-motion";
 import { useMouseParallax } from "../hooks/useMouseParallax";
 import { GoldButton } from "../components/common/GoldButton";
 import { OutlineButton } from "../components/common/OutlineButton";
@@ -27,8 +27,12 @@ export const HeroSection = ({
   onExploreTournaments,
   onJoinLordz,
 }: HeroSectionProps) => {
-  // Desktop mouse parallax coordinates
-  const parallax = useMouseParallax(12);
+  // Desktop mouse parallax coordinates via MotionValues (zero React re-renders)
+  const { x: mouseX, y: mouseY } = useMouseParallax(12);
+  const lightBlobX = useTransform(mouseX, (v) => v * -1.5);
+  const lightBlobY = useTransform(mouseY, (v) => v * -1.5);
+  const characterX = useTransform(mouseX, (v) => v * 1.2);
+  const characterY = useTransform(mouseY, (v) => v * 1.2);
 
   return (
     <section
@@ -41,14 +45,13 @@ export const HeroSection = ({
       {/* Subtle Temple Gopuram Architectural Lines */}
       <TemplePattern className="opacity-[0.06] scale-125 translate-y-10" />
 
-      {/* Subtle Floating Gold Light Blobs */}
+      {/* Subtle Floating Gold Light Blobs — GPU transform style */}
       <motion.div
-        animate={{
-          x: parallax.x * -1.5,
-          y: parallax.y * -1.5,
+        style={{
+          x: lightBlobX,
+          y: lightBlobY,
         }}
-        transition={{ type: "spring", damping: 30, stiffness: 200 }}
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[450px] w-[450px] sm:h-[600px] sm:w-[600px] rounded-full bg-[#FFBE32]/10 blur-[130px] pointer-events-none"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[450px] w-[450px] sm:h-[600px] sm:w-[600px] rounded-full bg-[#FFBE32]/10 blur-[90px] pointer-events-none will-change-transform"
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
@@ -192,38 +195,38 @@ export const HeroSection = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
               style={{
-                x: parallax.x * 1.2,
-                y: parallax.y * 1.2,
+                x: characterX,
+                y: characterY,
               }}
-              className="relative flex flex-col items-center justify-end z-10 w-full h-full"
+              className="relative flex flex-col items-center justify-end z-10 w-full h-full will-change-transform"
             >
-              {/* Animated Energy Aura behind Character */}
+              {/* Animated Energy Aura behind Character — GPU opacity and scale without image repainting */}
               <motion.div
                 animate={{
-                  scale: [0.92, 1.12, 0.95, 1.08, 0.92],
-                  opacity: [0.35, 0.7, 0.4, 0.75, 0.35],
-                  rotate: [0, 5, -5, 2, 0],
+                  scale: [0.94, 1.08, 0.96, 1.06, 0.94],
+                  opacity: [0.4, 0.75, 0.45, 0.8, 0.4],
+                  rotate: [0, 4, -4, 2, 0],
                 }}
                 transition={{
                   duration: 6,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-gradient-to-tr from-[#FFBE32]/35 via-orange-500/30 to-red-500/20 blur-[65px] pointer-events-none"
+                className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 sm:w-80 sm:h-80 rounded-full bg-gradient-to-tr from-[#FFBE32]/35 via-orange-500/30 to-red-500/20 blur-[50px] pointer-events-none"
               />
 
               {/* Core Radial Flash */}
               <motion.div
                 animate={{
                   opacity: [0.3, 0.65, 0.3],
-                  scale: [0.9, 1.08, 0.9],
+                  scale: [0.92, 1.06, 0.92],
                 }}
                 transition={{
                   duration: 4,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-52 rounded-full bg-amber-400/25 blur-[50px] pointer-events-none"
+                className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 sm:w-52 sm:h-52 rounded-full bg-amber-400/25 blur-[40px] pointer-events-none"
               />
 
               {/* Floating Golden/Amber Energy Particles */}
@@ -247,7 +250,7 @@ export const HeroSection = ({
                 />
               ))}
 
-              {/* The Standing Character with Floating Levitation & Glow Pulse */}
+              {/* The Standing Character with Floating Levitation — Responsive height for mobile & desktop */}
               <motion.div
                 className="relative z-10 flex items-end justify-center"
                 animate={{
@@ -259,32 +262,20 @@ export const HeroSection = ({
                   ease: "easeInOut",
                 }}
               >
-                <motion.img
+                <img
                   src={freeFireFlameImg}
                   alt="LORDZ ESPORTS Free Fire Flame Character"
                   fetchPriority="high"
-                  className="max-h-[460px] sm:max-h-[560px] lg:max-h-[640px] xl:max-h-[680px] w-auto object-contain select-none pointer-events-none filter contrast-[1.06] brightness-[1.04]"
-                  animate={{
-                    filter: [
-                      "drop-shadow(0 0 16px rgba(255, 190, 50, 0.45)) drop-shadow(0 0 35px rgba(249, 115, 22, 0.25))",
-                      "drop-shadow(0 0 28px rgba(255, 190, 50, 0.85)) drop-shadow(0 0 55px rgba(249, 115, 22, 0.55)) drop-shadow(0 0 80px rgba(239, 68, 68, 0.25))",
-                      "drop-shadow(0 0 16px rgba(255, 190, 50, 0.45)) drop-shadow(0 0 35px rgba(249, 115, 22, 0.25))",
-                    ],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
+                  className="max-h-[300px] xs:max-h-[360px] sm:max-h-[520px] lg:max-h-[640px] xl:max-h-[680px] w-auto object-contain select-none pointer-events-none filter contrast-[1.06] brightness-[1.04] drop-shadow-[0_0_24px_rgba(255,190,50,0.55)] transition-all"
                 />
               </motion.div>
 
               {/* Realistic Ground Shadow & Energy Ring Beneath Character */}
-              <div className="relative w-64 sm:w-80 h-10 -mt-6 pointer-events-none z-0 flex items-center justify-center">
+              <div className="relative w-48 sm:w-80 h-10 -mt-6 pointer-events-none z-0 flex items-center justify-center">
                 {/* Dark contact shadow */}
-                <div className="w-52 sm:w-64 h-5 rounded-full bg-black/85 blur-[12px]" />
+                <div className="w-40 sm:w-64 h-5 rounded-full bg-black/85 blur-[12px]" />
                 {/* Amber ambient floor glow */}
-                <div className="absolute w-60 sm:w-72 h-8 rounded-full bg-amber-500/25 blur-[20px]" />
+                <div className="absolute w-44 sm:w-72 h-8 rounded-full bg-amber-500/25 blur-[18px]" />
               </div>
 
               {/* Floating Esports Nameplate / Badge (Sleek minimalist Pill) */}
@@ -292,14 +283,14 @@ export const HeroSection = ({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.7 }}
-                className="mt-3 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#0B0C10]/90 border border-[#FFBE32]/35 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(255,190,50,0.2)]"
+                className="mt-3 inline-flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#0B0C10]/90 border border-[#FFBE32]/35 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(255,190,50,0.2)]"
               >
-                <span className="h-2 w-2 rounded-full bg-[#FFBE32] animate-ping" />
-                <span className="font-heading text-xs font-bold uppercase tracking-[0.25em] text-[#FFBE32]">
+                <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#FFBE32] animate-ping" />
+                <span className="font-heading text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-[#FFBE32]">
                   FREE FIRE
                 </span>
                 <span className="h-3 w-px bg-white/20" />
-                <span className="font-display text-xs tracking-wider uppercase text-white font-bold">
+                <span className="font-display text-[10px] sm:text-xs tracking-wider uppercase text-white font-bold">
                   APEX OPERATOR
                 </span>
               </motion.div>
@@ -311,12 +302,12 @@ export const HeroSection = ({
       {/* Subtle Scroll Down Indicator */}
       <a
         href="#jersey"
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-gray-400 hover:text-[#FFBE32] transition-colors z-20 group"
+        className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-gray-400 hover:text-[#FFBE32] transition-colors z-20 group"
       >
-        <span className="font-heading text-[10px] tracking-[0.25em] uppercase text-gray-500 group-hover:text-[#FFBE32]">
+        <span className="font-heading text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] uppercase text-gray-500 group-hover:text-[#FFBE32]">
           SCROLL
         </span>
-        <ChevronDown className="h-4 w-4 animate-bounce text-[#FFBE32]" />
+        <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-bounce text-[#FFBE32]" />
       </a>
     </section>
   );

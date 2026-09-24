@@ -69,6 +69,17 @@ export const TeamsPage = () => {
     );
   });
 
+  // Object position map to prioritize faces and avoid clipping heads
+  const memberImagePositions: Record<string, string> = {
+    "dinesh-s": "center 20%",
+    "jeremiah-paul": "center 15%",
+    "karthik-r": "center 15%",
+    "founder": "center 20%",
+    "demo-community-manager": "center 10%",
+    "CEO": "center 10%",
+    "editor": "center 15%",
+  };
+
   // Reusable Member Avatar / Portrait Component
   const MemberPortrait = ({
     member,
@@ -76,7 +87,7 @@ export const TeamsPage = () => {
     aspectRatio = "aspect-[4/5]",
     large = false,
   }: {
-    member: { name: string; initials: string; avatar?: string; handle?: string; primaryRole?: string };
+    member: { id: string; name: string; initials: string; avatar?: string; handle?: string; primaryRole?: string };
     className?: string;
     aspectRatio?: string;
     large?: boolean;
@@ -105,6 +116,8 @@ export const TeamsPage = () => {
       }
     };
 
+    const objectPosition = memberImagePositions[member.id] || "center 20%";
+
     return (
       <div
         className={`relative overflow-hidden rounded-md bg-[#0A0A0A] border border-white/[0.08] ${aspectRatio} ${className}`}
@@ -116,24 +129,25 @@ export const TeamsPage = () => {
             onError={handleImgError}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500 ease-out"
+            style={{ objectPosition }}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 ease-out"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#111111] via-[#0B0B0B] to-[#070707] relative group">
+          <div className="w-full h-full flex flex-col items-center justify-center p-3 sm:p-4 bg-gradient-to-b from-[#111111] via-[#0B0B0B] to-[#070707] relative group">
             {/* Minimalist Grid Pattern */}
             <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
 
             {/* Initials Monogram */}
             <div
               className={`rounded-full border border-white/[0.08] flex items-center justify-center font-display font-black text-white/90 group-hover:border-[#FFBE32]/60 group-hover:text-[#FFBE32] transition-colors ${
-                large ? "w-20 h-20 text-2xl" : "w-12 h-12 text-sm"
+                large ? "w-16 h-16 sm:w-20 sm:h-20 text-xl sm:text-2xl" : "w-10 h-10 sm:w-12 sm:h-12 text-xs sm:text-sm"
               }`}
             >
               {member.initials}
             </div>
 
             {member.handle && (
-              <span className="font-mono text-[10px] text-[#777777] mt-3 tracking-widest uppercase">
+              <span className="font-mono text-[9px] sm:text-[10px] text-[#777777] mt-2 sm:mt-3 tracking-widest uppercase">
                 //{member.handle}
               </span>
             )}
@@ -146,7 +160,7 @@ export const TeamsPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-[#E0E0E0] selection:bg-[#FFBE32] selection:text-black font-sans">
       <SEO
-        title="LORDZ ESPORTS Team | Founders, Leadership &amp; Operations Collective"
+        title="LORDZ ESPORTS Team | Founders, Leadership & Operations Collective"
         description="Meet the core team and leadership powering LORDZ ESPORTS across technology, tournament operations, management, creative media, and community."
         canonicalPath="/teams"
         breadcrumbs={[
@@ -204,7 +218,7 @@ export const TeamsPage = () => {
                 <img
                   src={teamPhoto}
                   alt="Lord Esports Collective"
-                  className="w-full h-72 sm:h-80 object-cover hover:scale-105 transition-transform duration-700 ease-out"
+                  className="w-full h-52 xs:h-60 sm:h-80 object-cover hover:scale-105 transition-transform duration-700 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/20 to-transparent pointer-events-none" />
 
@@ -229,26 +243,26 @@ export const TeamsPage = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 2. THE COLLECTIVE ROSTER (ALL 8 MEMBERS WITH IMAGE ARCHITECTURE) */}
+      {/* 2. THE COLLECTIVE ROSTER (ALL MEMBERS WITH IMAGE ARCHITECTURE) */}
       {/* ========================================================================= */}
-      <section className="py-16 sm:py-24 border-b border-white/[0.07]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 sm:py-24 border-b border-white/[0.07]">
+        <div className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8">
           {/* Section Header with Filter Chips */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 sm:mb-12">
             <div className="space-y-2">
               <span className="font-mono text-xs uppercase tracking-[0.2em] text-[#FFBE32] block">
                 COMPLETE DIRECTORY
               </span>
-              <h2 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-white">
+              <h2 className="font-display text-2xl sm:text-4xl font-extrabold uppercase tracking-tight text-white">
                 The Collective Roster
               </h2>
-              <p className="text-sm text-[#888888] font-body max-w-lg">
+              <p className="text-xs sm:text-sm text-[#888888] font-body max-w-lg">
                 The dedicated individuals steering engineering, clan leadership, and community.
               </p>
             </div>
 
             {/* Discipline Filter Chips */}
-            <div className="flex flex-wrap gap-2 text-xs font-mono">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 text-xs font-mono">
               {[
                 { id: "all", label: "All" },
                 { id: "developers", label: "Developers" },
@@ -258,7 +272,7 @@ export const TeamsPage = () => {
                 <button
                   key={filter.id}
                   onClick={() => setMemberFilter(filter.id)}
-                  className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded text-[11px] sm:text-xs font-mono transition-colors cursor-pointer ${
                     memberFilter === filter.id
                       ? "bg-white text-black font-semibold"
                       : "bg-[#0F0F0F] text-[#888888] hover:text-white border border-white/[0.06]"
@@ -270,8 +284,8 @@ export const TeamsPage = () => {
             </div>
           </div>
 
-          {/* Members Matrix: Dedicated Image-First Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+          {/* Members Matrix: 2 Columns on Mobile, 2 on Tablet, 4 on Desktop */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 xs:gap-3.5 sm:gap-6">
             {filteredMembers.map((member) => (
               <div
                 key={member.id}
@@ -286,24 +300,24 @@ export const TeamsPage = () => {
                   />
 
                   {/* Profile Details */}
-                  <div className="p-4 sm:p-5 space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[11px] text-[#777777] group-hover:text-[#FFBE32] transition-colors shrink-0">
+                  <div className="p-2.5 xs:p-3 sm:p-5 space-y-1.5 sm:space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-1 sm:gap-2">
+                      <span className="font-mono text-[10px] sm:text-[11px] text-[#777777] group-hover:text-[#FFBE32] transition-colors shrink-0">
                         //{member.handle}
                       </span>
 
                       {/* Social Connect Actions */}
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                         {/* LinkedIn Connect (For Developers / Professional Profiles) */}
                         {member.linkedin && (
                           <a
                             href={formatLinkedInUrl(member.linkedin)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0A66C2]/15 hover:bg-[#0A66C2]/30 border border-[#0A66C2]/35 hover:border-[#0A66C2]/80 text-[#70B5F9] hover:text-white transition-all duration-200 text-[10px] font-mono group/linkedin shadow-sm"
+                            className="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 xs:px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-[#0A66C2]/15 hover:bg-[#0A66C2]/30 border border-[#0A66C2]/35 hover:border-[#0A66C2]/80 text-[#70B5F9] hover:text-white transition-all duration-200 text-[9px] sm:text-[10px] font-mono group/linkedin shadow-sm"
                             title={`Connect with ${member.name || member.handle || "Developer"} on LinkedIn`}
                           >
-                            <LinkedInIcon className="h-3 w-3 text-[#0A66C2] group-hover/linkedin:text-[#70B5F9] group-hover/linkedin:scale-110 transition-transform shrink-0" />
+                            <LinkedInIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#0A66C2] group-hover/linkedin:text-[#70B5F9] group-hover/linkedin:scale-110 transition-transform shrink-0" />
                             <span className="font-semibold tracking-wide">Connect</span>
                           </a>
                         )}
@@ -314,38 +328,38 @@ export const TeamsPage = () => {
                             href={formatInstagramUrl(member.instagram)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`inline-flex items-center justify-center rounded-full bg-white/[0.04] hover:bg-gradient-to-r hover:from-[#E1306C]/25 hover:via-[#FD1D1D]/20 hover:to-[#F56040]/25 border border-white/[0.08] hover:border-[#E1306C]/60 text-gray-300 hover:text-white transition-all duration-200 text-[10px] font-mono group/insta shadow-sm ${
-                              member.linkedin ? "p-1.5" : "gap-1.5 px-2.5 py-1"
+                            className={`inline-flex items-center justify-center rounded-full bg-white/[0.04] hover:bg-gradient-to-r hover:from-[#E1306C]/25 hover:via-[#FD1D1D]/20 hover:to-[#F56040]/25 border border-white/[0.08] hover:border-[#E1306C]/60 text-gray-300 hover:text-white transition-all duration-200 text-[9px] sm:text-[10px] font-mono group/insta shadow-sm ${
+                              member.linkedin ? "p-1 sm:p-1.5" : "gap-1 sm:gap-1.5 px-1.5 xs:px-2 sm:px-2.5 py-0.5 sm:py-1"
                             }`}
                             title={`Follow ${member.name || member.handle || "Member"} on Instagram`}
                           >
-                            <InstagramIcon className="h-3 w-3 text-[#E1306C] group-hover/insta:scale-110 transition-transform shrink-0" />
+                            <InstagramIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#E1306C] group-hover/insta:scale-110 transition-transform shrink-0" />
                             {!member.linkedin && <span className="font-semibold tracking-wide">Connect</span>}
                           </a>
                         )}
                       </div>
                     </div>
 
-                    <h4 className="font-heading text-lg font-bold text-white group-hover:text-[#FFBE32] transition-colors">
+                    <h4 className="font-heading text-sm xs:text-base sm:text-lg font-bold text-white group-hover:text-[#FFBE32] transition-colors leading-snug break-words">
                       {member.name || (member.handle ? member.handle.replace(/^[//_]+/, "") : "Member")}
                     </h4>
 
-                    <p className="text-xs text-[#A0A0A0] font-body leading-snug">
+                    <p className="text-[11px] sm:text-xs text-[#A0A0A0] font-body leading-snug break-words">
                       {member.primaryRole}
                     </p>
 
-                    <p className="text-xs text-[#666666] font-body leading-relaxed pt-2 border-t border-white/[0.04]">
+                    <p className="text-[10px] xs:text-[11px] sm:text-xs text-[#666666] font-body leading-relaxed pt-1.5 sm:pt-2 border-t border-white/[0.04] break-words">
                       {member.focus}
                     </p>
                   </div>
                 </div>
 
                 {/* Division Badges */}
-                <div className="p-4 pt-0 flex flex-wrap gap-1.5">
+                <div className="p-2.5 xs:p-3 sm:p-4 pt-0 flex flex-wrap gap-1 sm:gap-1.5">
                   {member.divisions.map((div, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 rounded text-[10px] font-mono text-[#888888] bg-[#121212] border border-white/[0.04]"
+                      className="px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-mono text-[#888888] bg-[#121212] border border-white/[0.04]"
                     >
                       {div}
                     </span>

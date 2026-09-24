@@ -69,7 +69,7 @@ export const Navbar = () => {
           {/* Logo & Brand */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer focus:outline-none shrink-0"
+            className="flex items-center gap-2 sm:gap-3 group cursor-pointer focus:outline-none shrink-0"
           >
             <div className="relative">
               <img
@@ -77,14 +77,14 @@ export const Navbar = () => {
                 alt="LORDZ ESPORTS Official Crest Logo"
                 width={40}
                 height={40}
-                className="h-8 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(255,190,50,0.35)]"
+                className="h-7 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(255,190,50,0.35)]"
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-display text-lg sm:text-xl xl:text-2xl leading-none uppercase tracking-widest text-white">
+              <span className="font-display text-base sm:text-xl xl:text-2xl leading-none uppercase tracking-widest text-white">
                 LORDZ <span className="text-[#FFBE32]">ESPORTS</span>
               </span>
-              <span className="font-heading text-[8px] sm:text-[9px] tracking-[0.25em] text-[#9CA3AF] uppercase">
+              <span className="font-heading text-[7.5px] sm:text-[9px] tracking-[0.25em] text-[#9CA3AF] uppercase">
                 India's Elite Clan
               </span>
             </div>
@@ -266,9 +266,9 @@ export const Navbar = () => {
           <button
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open navigation menu"
-            className="lg:hidden p-2 text-white hover:text-[#FFBE32] transition-colors focus:outline-none cursor-pointer"
+            className="lg:hidden p-1.5 sm:p-2 text-white hover:text-[#FFBE32] transition-colors focus:outline-none cursor-pointer"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
       </header>

@@ -104,7 +104,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                   </div>
 
                   {/* Athlete Visual Anchor / Player Image */}
-                  <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center mb-4 group-hover:border-[#FFBE32]/40 transition-all shadow-inner">
+                  <div className="relative aspect-[4/5] sm:aspect-[3/4] max-h-[320px] sm:max-h-none w-full rounded-xl overflow-hidden bg-black/60 border border-white/5 flex items-center justify-center mb-4 group-hover:border-[#FFBE32]/40 transition-all shadow-inner">
                     {athleteImg ? (
                       <div className="relative h-full w-full">
                         <img

@@ -40,7 +40,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ onNotifi
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 12000); // 12-second live sync
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchNotifications();
+      }
+    }, 30000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 

@@ -20,35 +20,35 @@ export const FooterSection = () => {
           
           {/* Brand Column (lg:col-span-4) */}
           <div className="lg:col-span-4">
-            <Link to="/" className="inline-flex items-center gap-3">
+            <Link to="/" className="inline-flex items-center gap-2.5 sm:gap-3">
               <img
                 src={logoImg}
                 alt="LORDZ ESPORTS Official Crest Logo"
                 width={48}
                 height={48}
-                className="h-12 w-12 object-contain drop-shadow-[0_0_15px_rgba(255,190,50,0.35)]"
+                className="h-9 w-9 sm:h-12 sm:w-12 object-contain drop-shadow-[0_0_15px_rgba(255,190,50,0.35)]"
               />
               <div className="flex flex-col">
-                <span className="font-display text-3xl uppercase tracking-widest text-white">
+                <span className="font-display text-2xl sm:text-3xl uppercase tracking-widest text-white">
                   LORDZ <span className="text-[#FFBE32]">ESPORTS</span>
                 </span>
-                <span className="font-heading text-[10px] tracking-[0.25em] text-[#9CA3AF] uppercase">
+                <span className="font-heading text-[8.5px] sm:text-[10px] tracking-[0.25em] text-[#9CA3AF] uppercase">
                   Indian Competitive Gaming
                 </span>
               </div>
             </Link>
 
-            <p className="mt-4 text-sm text-[#9CA3AF] font-body leading-relaxed max-w-sm">
+            <p className="mt-4 text-xs sm:text-sm text-[#9CA3AF] font-body leading-relaxed max-w-sm">
               "Compete. Improve. Build your legacy." LORDZ ESPORTS is a premier Indian esports organization and gaming platform empowering tournament rosters, daily scrims, and national championship athletes.
             </p>
 
-            <div className="mt-6 flex items-center gap-2 text-xs text-gray-400 font-body">
-              <MapPin className="h-4 w-4 text-[#FFBE32]" />
+            <div className="mt-5 sm:mt-6 flex items-center gap-2 text-xs text-gray-400 font-body">
+              <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#FFBE32]" />
               <span>Chennai, Tamil Nadu • Pan-India Circuit</span>
             </div>
 
             <div className="mt-2 flex items-center gap-2 text-xs text-gray-400 font-body">
-              <Mail className="h-4 w-4 text-[#FFBE32]" />
+              <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#FFBE32]" />
               <a href="mailto:lordesportz75@gmail.com" className="hover:text-[#FFBE32] transition-colors">
                 lordesportz75@gmail.com
               </a>

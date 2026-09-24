@@ -151,9 +151,9 @@ export const PartnersSection = ({
       className="relative py-24 sm:py-28 bg-[#050505] border-t border-white/5 overflow-hidden"
     >
       {/* Dynamic Background Atmosphere */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[450px] bg-radial from-[#FFBE32]/8 via-transparent to-transparent blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-[450px] h-[450px] bg-amber-600/5 blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-purple-600/5 blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[850px] h-[350px] sm:h-[450px] bg-radial from-[#FFBE32]/8 via-transparent to-transparent blur-[90px] pointer-events-none" />
+      <div className="absolute bottom-10 left-10 w-[300px] sm:w-[450px] h-[300px] sm:h-[450px] bg-amber-600/5 blur-[80px] pointer-events-none" />
+      <div className="absolute top-1/2 right-0 w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] bg-purple-600/5 blur-[80px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Heading & Overview */}
@@ -167,9 +167,9 @@ export const PartnersSection = ({
               className="max-w-2xl"
             >
               {/* Tag pill with animated dot */}
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#FFBE32]/10 border border-[#FFBE32]/30 mb-5">
-                <span className="w-2 h-2 rounded-full bg-[#FFBE32] animate-ping" />
-                <span className="font-heading text-xs font-bold tracking-[0.22em] text-[#FFBE32] uppercase">
+              <div className="inline-flex items-center gap-2 sm:gap-2.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#FFBE32]/10 border border-[#FFBE32]/30 mb-5">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#FFBE32] animate-ping" />
+                <span className="font-heading text-[10px] sm:text-xs font-bold tracking-[0.2em] sm:tracking-[0.22em] text-[#FFBE32] uppercase">
                   PARTNERSHIPS &amp; BRAND ALLIANCES
                 </span>
               </div>
@@ -195,9 +195,9 @@ export const PartnersSection = ({
             >
               <button
                 onClick={onPartnerWithUs}
-                className="inline-flex items-center gap-2.5 font-heading text-xs font-bold uppercase tracking-widest text-[#050505] bg-[#FFBE32] hover:bg-[#FFA000] py-3.5 px-7 rounded-xl transition-all duration-200 cursor-pointer shadow-[0_0_25px_rgba(255,190,50,0.35)] hover:shadow-[0_0_35px_rgba(255,190,50,0.5)] group"
+                className="inline-flex items-center gap-2 sm:gap-2.5 font-heading text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#050505] bg-[#FFBE32] hover:bg-[#FFA000] py-3 sm:py-3.5 px-5 sm:px-7 rounded-xl transition-all duration-200 cursor-pointer shadow-[0_0_25px_rgba(255,190,50,0.35)] hover:shadow-[0_0_35px_rgba(255,190,50,0.5)] group"
               >
-                <Handshake className="h-4 w-4 transition-transform group-hover:scale-110" />
+                <Handshake className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:scale-110" />
                 <span>PARTNER WITH US →</span>
               </button>
             </motion.div>
@@ -210,21 +210,21 @@ export const PartnersSection = ({
         <div className="mb-14">
           <div className="flex items-center justify-between mb-5 px-1">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-[#FFBE32]" />
-              <span className="font-heading text-xs font-bold uppercase tracking-widest text-gray-300">
+              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#FFBE32]" />
+              <span className="font-heading text-[10px] sm:text-xs font-bold uppercase tracking-widest text-gray-300">
                 OFFICIAL BRAND SHOWCASE • CONTINUOUS STREAM
               </span>
             </div>
-            <span className="text-[11px] font-mono text-gray-500 uppercase">Hover to pause</span>
+            <span className="text-[10px] sm:text-[11px] font-mono text-gray-500 uppercase">Hover to pause</span>
           </div>
 
           {/* Marquee Track: Seamless Infinite Stream without Background Rectangles */}
-          <div className="relative w-full overflow-hidden py-8">
+          <div className="relative w-full overflow-hidden py-6 sm:py-8">
             {/* Edge Shadow Gradients for smooth fade in/out on dark page background */}
-            <div className="absolute inset-y-0 left-0 w-24 sm:w-44 bg-gradient-to-r from-[#050505] via-[#050505]/90 to-transparent z-10 pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-24 sm:w-44 bg-gradient-to-l from-[#050505] via-[#050505]/90 to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 left-0 w-16 sm:w-44 bg-gradient-to-r from-[#050505] via-[#050505]/90 to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-16 sm:w-44 bg-gradient-to-l from-[#050505] via-[#050505]/90 to-transparent z-10 pointer-events-none" />
 
-            <div className="animate-marquee-smooth flex items-center gap-8 sm:gap-14">
+            <div className="animate-marquee-smooth flex items-center gap-6 sm:gap-14">
               {marqueeList.map((partner, idx) => {
                 const logo = resolveLogo(partner);
 
@@ -233,7 +233,7 @@ export const PartnersSection = ({
                     key={`${partner.id}-mq1-${idx}`}
                     onClick={() => partner.websiteUrl && window.open(partner.websiteUrl, "_blank")}
                     title={partner.name}
-                    className="relative group shrink-0 h-20 sm:h-24 w-44 sm:w-56 flex items-center justify-center cursor-pointer px-4 transition-transform duration-300 hover:scale-110"
+                    className="relative group shrink-0 h-16 sm:h-24 w-36 sm:w-56 flex items-center justify-center cursor-pointer px-3 sm:px-4 transition-transform duration-300 hover:scale-110"
                   >
                     {/* Brand Logo Only - Pure Floating Transparent Logo */}
                     {logo ? (
@@ -242,10 +242,10 @@ export const PartnersSection = ({
                         alt={`${partner.name} - Official Partner of LORDZ ESPORTS`}
                         loading="lazy"
                         decoding="async"
-                        className="max-h-14 sm:max-h-16 max-w-full object-contain filter opacity-75 group-hover:opacity-100 group-hover:drop-shadow-[0_0_20px_rgba(255,190,50,0.45)] transition-all duration-300"
+                        className="max-h-11 sm:max-h-16 max-w-full object-contain filter opacity-75 group-hover:opacity-100 group-hover:drop-shadow-[0_0_20px_rgba(255,190,50,0.45)] transition-all duration-300"
                       />
                     ) : (
-                      <span className="font-heading text-base font-bold text-white/80 group-hover:text-white tracking-wider text-center transition-colors">
+                      <span className="font-heading text-sm sm:text-base font-bold text-white/80 group-hover:text-white tracking-wider text-center transition-colors">
                         {partner.name}
                       </span>
                     )}

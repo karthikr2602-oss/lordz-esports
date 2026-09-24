@@ -35,7 +35,12 @@ export const VideoHighlightsSection = ({
 
     // Re-fetch when switching back to this tab so additions in admin portal reflect immediately
     window.addEventListener("focus", fetchHighlights);
-    const interval = setInterval(fetchHighlights, 10000);
+    // Conservative polling interval, paused when document is hidden
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchHighlights();
+      }
+    }, 45000);
 
     return () => {
       window.removeEventListener("focus", fetchHighlights);
@@ -44,9 +49,9 @@ export const VideoHighlightsSection = ({
   }, []);
 
   return (
-    <section id="highlights" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden">
+    <section id="highlights" className="relative py-20 sm:py-24 px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden">
       {/* Subtle Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[#FFBE32]/6 blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[700px] h-[200px] sm:h-[350px] bg-[#FFBE32]/6 blur-[80px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header with "VIEW ALL HIGHLIGHTS →" CTA on right */}
@@ -56,9 +61,9 @@ export const VideoHighlightsSection = ({
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-xs font-heading font-bold uppercase tracking-[0.2em] text-[#FFBE32] mb-3"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-[10px] sm:text-xs font-heading font-bold uppercase tracking-[0.2em] text-[#FFBE32] mb-3"
             >
-              <Flame className="h-3.5 w-3.5 fill-current" />
+              <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current" />
               CINEMATICS & CLUTCHES
             </motion.div>
 

@@ -37,7 +37,11 @@ export const MediaSection = ({
     fetchMedia();
 
     window.addEventListener("focus", fetchMedia);
-    const interval = setInterval(fetchMedia, 10000);
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchMedia();
+      }
+    }, 45000);
 
     return () => {
       window.removeEventListener("focus", fetchMedia);

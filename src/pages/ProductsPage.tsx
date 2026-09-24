@@ -328,7 +328,11 @@ export const ProductsPage = () => {
 
     // Re-fetch on tab focus so additions in admin portal reflect immediately
     window.addEventListener("focus", loadProducts);
-    const interval = setInterval(loadProducts, 10000);
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        loadProducts();
+      }
+    }, 45000);
 
     return () => {
       window.removeEventListener("focus", loadProducts);
@@ -777,7 +781,7 @@ export const ProductsPage = () => {
               className="group relative rounded-2xl bg-[#0D0D12] border border-white/10 hover:border-[#FFBE32]/60 overflow-hidden flex flex-col justify-between transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.8)] hover:shadow-[0_15px_40px_rgba(255,190,50,0.15)]"
             >
               {/* Product Image Container */}
-              <div className="relative h-72 sm:h-80 w-full overflow-hidden bg-black/60 flex items-center justify-center p-4">
+              <div className="relative h-56 xs:h-64 sm:h-80 w-full overflow-hidden bg-black/60 flex items-center justify-center p-4">
                 <div className="absolute top-4 left-4 z-20">
                   <span className="px-3 py-1 rounded-md bg-black/85 border border-[#FFBE32]/40 text-[10px] font-heading font-bold uppercase tracking-wider text-[#FFBE32]">
                     {product.tag}

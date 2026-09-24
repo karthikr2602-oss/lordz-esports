@@ -24,7 +24,7 @@ export const JerseyShowcaseSection = ({
       className={`relative ${showHeader ? "py-28" : "py-12 sm:py-16"} px-4 sm:px-6 lg:px-8 bg-[#070709] overflow-hidden`}
     >
       {/* Background ambient lighting */}
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-[#FFBE32]/10 blur-[150px] pointer-events-none" />
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[320px] h-[320px] sm:w-[500px] sm:h-[500px] bg-[#FFBE32]/10 blur-[100px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto">
         {showHeader && (
@@ -44,7 +44,7 @@ export const JerseyShowcaseSection = ({
             <div className="flex items-center gap-3 mb-6 p-1.5 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
               <button
                 onClick={() => setActiveView("front")}
-                className={`px-6 py-2 rounded-lg font-heading text-xs font-bold uppercase tracking-widest transition-all cursor-pointer ${
+                className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg font-heading text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all cursor-pointer ${
                   activeView === "front"
                     ? "bg-[#FFBE32] text-black shadow-[0_0_15px_rgba(255,190,50,0.35)]"
                     : "text-gray-400 hover:text-white"
@@ -54,7 +54,7 @@ export const JerseyShowcaseSection = ({
               </button>
               <button
                 onClick={() => setActiveView("back")}
-                className={`px-6 py-2 rounded-lg font-heading text-xs font-bold uppercase tracking-widest transition-all cursor-pointer ${
+                className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg font-heading text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all cursor-pointer ${
                   activeView === "back"
                     ? "bg-[#FFBE32] text-black shadow-[0_0_15px_rgba(255,190,50,0.35)]"
                     : "text-gray-400 hover:text-white"
@@ -65,17 +65,17 @@ export const JerseyShowcaseSection = ({
             </div>
 
             {/* Jersey Card Container */}
-            <div className="relative w-full max-w-[480px] rounded-2xl border border-[#FFBE32]/40 bg-gradient-to-b from-[#121216] to-[#08080A] p-4 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_30px_rgba(255,190,50,0.15)] group overflow-hidden">
+            <div className="relative w-full max-w-[480px] rounded-2xl border border-[#FFBE32]/40 bg-gradient-to-b from-[#121216] to-[#08080A] p-3 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_30px_rgba(255,190,50,0.15)] group overflow-hidden">
               
               {/* Corner Badge */}
-              <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
-                <span className="px-3 py-1 rounded bg-black/80 border border-[#FFBE32]/30 text-[10px] font-heading font-bold text-[#FFBE32] uppercase tracking-wider">
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex items-center gap-2">
+                <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded bg-black/80 border border-[#FFBE32]/30 text-[9px] sm:text-[10px] font-heading font-bold text-[#FFBE32] uppercase tracking-wider">
                   {activeView === "front" ? "SOUTH TEMPLE ART" : "BEAST 00 ATHLETE PRINT"}
                 </span>
               </div>
 
               {/* Jersey Image Switcher with Smooth Crossfade */}
-              <div className="relative h-[420px] sm:h-[480px] w-full flex items-center justify-center overflow-hidden rounded-xl bg-black/50">
+              <div className="relative h-[290px] xs:h-[350px] sm:h-[450px] lg:h-[480px] w-full flex items-center justify-center overflow-hidden rounded-xl bg-black/50">
                 <AnimatePresence mode="wait">
                   {activeView === "front" ? (
                     <motion.img
@@ -87,7 +87,7 @@ export const JerseyShowcaseSection = ({
                       initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.96 }}
-                      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                       className="max-h-full max-w-full object-contain filter drop-shadow-[0_15px_30px_rgba(255,190,50,0.2)]"
                     />
                   ) : (
@@ -100,14 +100,14 @@ export const JerseyShowcaseSection = ({
                       initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.96 }}
-                      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                       className="max-h-full max-w-full object-contain filter drop-shadow-[0_15px_30px_rgba(255,190,50,0.2)]"
                     />
                   )}
                 </AnimatePresence>
               </div>
 
-              <div className="mt-4 flex items-center justify-between text-xs text-gray-400 px-1">
+              <div className="mt-3 sm:mt-4 flex items-center justify-between text-[11px] sm:text-xs text-gray-400 px-1">
                 <span>Official Pro Athlete Spec</span>
                 <span className="text-[#FFBE32] font-mono">100% Breathable Micro-Poly</span>
               </div>
@@ -120,54 +120,54 @@ export const JerseyShowcaseSection = ({
               AUTHENTIC CLAN GEAR
             </div>
 
-            <h3 className="font-display text-4xl sm:text-5xl uppercase tracking-wider text-white leading-tight">
+            <h3 className="font-display text-3xl sm:text-5xl uppercase tracking-wider text-white leading-tight">
               BLACK. GOLD. <br />
               <span className="text-gold-gradient">LORD.</span>
             </h3>
 
-            <p className="mt-4 text-base sm:text-lg text-gray-300 font-body leading-relaxed">
+            <p className="mt-4 text-sm sm:text-lg text-gray-300 font-body leading-relaxed">
               "Built for the ones who keep pushing." The Lord 2026 Pro Jersey unites ancient Dravidian temple gopuram architectural line art with modern competitive esports aggression.
             </p>
 
             {/* Feature Bullet Points */}
-            <div className="mt-6 space-y-3.5 w-full">
+            <div className="mt-6 space-y-3 sm:space-y-3.5 w-full">
               <div className="flex items-start gap-3">
-                <div className="h-6 w-6 rounded bg-[#FFBE32]/15 border border-[#FFBE32]/40 flex items-center justify-center text-[#FFBE32] shrink-0 mt-0.5">
-                  <Compass className="h-3.5 w-3.5" />
+                <div className="h-5 w-5 sm:h-6 sm:w-6 rounded bg-[#FFBE32]/15 border border-[#FFBE32]/40 flex items-center justify-center text-[#FFBE32] shrink-0 mt-0.5">
+                  <Compass className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 </div>
                 <div>
-                  <h4 className="font-heading text-sm font-bold uppercase text-white tracking-wider">
+                  <h4 className="font-heading text-xs sm:text-sm font-bold uppercase text-white tracking-wider">
                     Dravidian Temple Architectural Art
                   </h4>
-                  <p className="text-xs text-gray-400 font-body">
+                  <p className="text-[11px] sm:text-xs text-gray-400 font-body">
                     Gold line art portraying historic Tamil gopuram sanctuaries rising through the flames.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="h-6 w-6 rounded bg-[#FFBE32]/15 border border-[#FFBE32]/40 flex items-center justify-center text-[#FFBE32] shrink-0 mt-0.5">
-                  <Shield className="h-3.5 w-3.5" />
+                <div className="h-5 w-5 sm:h-6 sm:w-6 rounded bg-[#FFBE32]/15 border border-[#FFBE32]/40 flex items-center justify-center text-[#FFBE32] shrink-0 mt-0.5">
+                  <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 </div>
                 <div>
-                  <h4 className="font-heading text-sm font-bold uppercase text-white tracking-wider">
+                  <h4 className="font-heading text-xs sm:text-sm font-bold uppercase text-white tracking-wider">
                     Heritage Sleeve Trim
                   </h4>
-                  <p className="text-xs text-gray-400 font-body">
+                  <p className="text-[11px] sm:text-xs text-gray-400 font-body">
                     Official Tamil script ("தமிழன்") woven into the cuff with the Indian national tricolor.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="h-6 w-6 rounded bg-[#FFBE32]/15 border border-[#FFBE32]/40 flex items-center justify-center text-[#FFBE32] shrink-0 mt-0.5">
-                  <Sparkles className="h-3.5 w-3.5" />
+                <div className="h-5 w-5 sm:h-6 sm:w-6 rounded bg-[#FFBE32]/15 border border-[#FFBE32]/40 flex items-center justify-center text-[#FFBE32] shrink-0 mt-0.5">
+                  <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 </div>
                 <div>
-                  <h4 className="font-heading text-sm font-bold uppercase text-white tracking-wider">
+                  <h4 className="font-heading text-xs sm:text-sm font-bold uppercase text-white tracking-wider">
                     Prismatic Numbering & Custom IGN
                   </h4>
-                  <p className="text-xs text-gray-400 font-body">
+                  <p className="text-[11px] sm:text-xs text-gray-400 font-body">
                     Holographic silver back font that reflects arena broadcast floodlights.
                   </p>
                 </div>
