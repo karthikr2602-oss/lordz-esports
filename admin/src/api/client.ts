@@ -3,7 +3,24 @@
  * Resilient API fetcher with token management and automatic fallback support.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+const defaultBase =
+  typeof window !== "undefined" &&
+  window.location.hostname !== "localhost" &&
+  window.location.hostname !== "127.0.0.1"
+    ? "https://lordz-esportsserver.vercel.app/api"
+    : "/api";
+
+const rawBase = (import.meta.env.VITE_API_URL || defaultBase).trim().replace(/\/+$/, "");
+export const API_BASE =
+  rawBase.startsWith("http") && !rawBase.includes("/api")
+    ? `${rawBase}/api`
+    : rawBase;
+
+export function getApiUrl(endpoint: string): string {
+  if (endpoint.startsWith("http")) return endpoint;
+  const clean = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  return `${API_BASE}${clean}`;
+}
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -41,7 +58,14 @@ export async function apiRequest<T = any>(
       headers,
     });
 
-    const json: ApiResponse<T> = await response.json();
+    const contentType = response.headers.get("content-type") || "";
+    let json: ApiResponse<T>;
+    if (contentType.includes("application/json")) {
+      json = await response.json();
+    } else {
+      const text = await response.text();
+      throw new Error(`Server returned status ${response.status} (${response.statusText}): ${text.slice(0, 120)}`);
+    }
 
     if (!response.ok) {
       throw new Error(json.message || `Request failed with status ${response.status}`);

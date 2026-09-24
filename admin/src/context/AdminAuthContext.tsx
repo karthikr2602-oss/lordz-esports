@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { API_BASE } from "../api/client";
 
 export interface AdminUser {
   id: string;
@@ -44,7 +45,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
 
       try {
-        const res = await fetch("/api/auth/me", {
+        const res = await fetch(`${API_BASE}/auth/me`, {
           headers: { Authorization: `Bearer ${storedToken}` },
         });
 
@@ -84,7 +85,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setUser(null);
     localStorage.removeItem("lordz_admin_token");
     localStorage.removeItem("lordz_admin_user");
-    fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    fetch(`${API_BASE}/auth/logout`, { method: "POST" }).catch(() => {});
   };
 
   return (

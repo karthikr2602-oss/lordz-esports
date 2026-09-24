@@ -310,9 +310,10 @@ app.get("/", (req, res) => {
   });
 });
 
-// API Routes (support both /api and /api/v1)
+// API Routes (support /, /api, and /api/v1 so frontend requests work seamlessly with or without /api prefix)
 app.use("/api/v1", routes);
 app.use("/api", routes);
+app.use("/", routes);
 
 // Base /api status fallback
 app.get(["/api", "/api/v1"], (_req, res) => {

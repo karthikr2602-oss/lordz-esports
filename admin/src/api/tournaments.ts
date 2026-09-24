@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { apiRequest, API_BASE } from "./client";
 import {
   tournamentsData,
   type Tournament,
@@ -179,7 +179,7 @@ export const tournamentsApi = {
     if (status) query.set("status", status);
     const qs = query.toString() ? `?${query.toString()}` : "";
 
-    const url = `/api/tournaments/${tournamentId}/export${qs}`;
+    const url = `${API_BASE}/tournaments/${tournamentId}/export${qs}`;
     const token = localStorage.getItem("lordz_admin_token") || localStorage.getItem("token");
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -391,7 +391,7 @@ export const tournamentsApi = {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    const res = await fetch("/api/upload", {
+    const res = await fetch(`${API_BASE}/upload`, {
       method: "POST",
       headers,
       body: formData,
