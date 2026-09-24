@@ -529,6 +529,7 @@ router.post("/upload", optionalAuth, uploadCtrl.handleUpload);
 // ================= VOTING ROUTES =================
 // Public
 router.get("/voting/active", optionalAuth, votingCtrl.getActiveVotingEvent);
+router.get("/voting/active-events", optionalAuth, votingCtrl.getActiveVotingEvents);
 router.get("/voting/events/:id", optionalAuth, votingCtrl.getVotingEventById);
 router.post("/voting/events/:id/vote", authenticate, votingCtrl.submitVote);
 

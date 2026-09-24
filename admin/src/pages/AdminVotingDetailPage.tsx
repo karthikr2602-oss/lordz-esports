@@ -117,6 +117,14 @@ export const AdminVotingDetailPage: React.FC = () => {
               <span>Voting Management</span>
               <span>/</span>
               <span className="text-[#FFBE32]">Event Analytics</span>
+              {eventData.category && (
+                <>
+                  <span>/</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-heading font-black bg-[#FFBE32]/15 text-[#FFBE32] border border-[#FFBE32]/30">
+                    {eventData.category.replace("_", " ")}
+                  </span>
+                </>
+              )}
             </div>
             <h1 className="text-xl sm:text-2xl font-display font-black text-white uppercase tracking-wider">
               {eventData.title}
@@ -215,12 +223,12 @@ export const AdminVotingDetailPage: React.FC = () => {
         {/* Nominees Count */}
         <div className="bg-[#0D0D12] rounded-2xl border border-white/10 p-5">
           <span className="text-xs font-mono uppercase tracking-wider text-gray-400 block mb-1">
-            Nominated Athletes
+            Nominated Candidates
           </span>
           <p className="text-3xl font-display font-black text-white">
             {eventData.nominees?.length || leaderboard.length || 0}
           </p>
-          <span className="text-[11px] text-gray-500 font-body">Competing for title</span>
+          <span className="text-[11px] text-gray-500 font-body">Competing for award</span>
         </div>
 
         {/* Schedule */}
@@ -279,8 +287,8 @@ export const AdminVotingDetailPage: React.FC = () => {
             {leaderboard.map((entry) => {
               const isWinner = entry.rank === 1 && entry.votes > 0;
               const displayName = entry.name || entry.player?.ign || "Candidate";
-              const roleName = entry.role || entry.player?.role || "ATHLETE";
-              const teamName = entry.team || entry.player?.team || "LORD ESPORTS";
+              const roleName = entry.role || entry.player?.role || "CONTENDER";
+              const platformOrTeam = entry.platform || entry.team || entry.player?.team || "LORD ESPORTS";
               const imgUrl =
                 entry.imageUrl ||
                 entry.player?.avatarUrl ||
@@ -340,7 +348,7 @@ export const AdminVotingDetailPage: React.FC = () => {
                           )}
                         </div>
                         <p className="text-[11px] text-gray-400 font-mono">
-                          {teamName} • <span className="text-[#FFBE32]">{roleName}</span>
+                          {platformOrTeam} • <span className="text-[#FFBE32]">{roleName}</span>
                         </p>
                       </div>
                     </div>

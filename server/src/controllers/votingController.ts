@@ -16,7 +16,7 @@ function formatNomineeHelper(n: any, canExposeResults: boolean, totalVotes: numb
     id: n.id,
     ign: n.name,
     realName: n.name,
-    role: n.role || "ATHLETE",
+    role: n.role || "CREATOR",
     team: n.team || "LORD ESPORTS",
     image: n.imageUrl || "",
     avatarUrl: n.imageUrl || "",
@@ -29,10 +29,12 @@ function formatNomineeHelper(n: any, canExposeResults: boolean, totalVotes: numb
     votingEventId: n.votingEventId,
     playerId: n.playerId || n.id,
     name: n.name,
-    role: n.role || "ATHLETE",
+    role: n.role || "CREATOR",
     team: n.team || "LORD ESPORTS",
     imageUrl: n.imageUrl || "",
     bio: n.bio || "",
+    category: n.category || null,
+    platform: n.platform || null,
     displayOrder: n.displayOrder,
     voteCount,
     percentage,
@@ -43,6 +45,102 @@ function formatNomineeHelper(n: any, canExposeResults: boolean, totalVotes: numb
 // ==========================================
 // PUBLIC ENDPOINTS
 // ==========================================
+
+/**
+ * GET /api/voting/active-events
+ * Fetches ALL currently published community voting events/sections (e.g. Best Player, Best Creator, etc.).
+ * Supports optional authentication to include user's voting status across all sections.
+ */
+export const getActiveVotingEvents = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const now = new Date();
+
+    const events = await prisma.votingEvent.findMany({
+      where: {
+        status: "PUBLISHED",
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        nominees: {
+          orderBy: { displayOrder: "asc" },
+          include: {
+            _count: {
+              select: { votes: true },
+            },
+          },
+        },
+        _count: {
+          select: { votes: true },
+        },
+      },
+    });
+
+    let userVotesMap: Record<string, { nomineeId: string; createdAt: Date }> = {};
+
+    if (req.user?.id && events.length > 0) {
+      const userVotes = await prisma.vote.findMany({
+        where: {
+          userId: req.user.id,
+          votingEventId: { in: events.map((e: any) => e.id) },
+        },
+      });
+      userVotes.forEach((uv: any) => {
+        userVotesMap[uv.votingEventId] = {
+          nomineeId: uv.nomineeId,
+          createdAt: uv.createdAt,
+        };
+      });
+    }
+
+    const formattedEvents = events.map((event: any) => {
+      const isClosedOrExpired = event.status === "CLOSED" || now > event.endDate;
+      const canExposeResults = event.isLiveResults || isClosedOrExpired;
+      const totalVotes = event._count.votes;
+
+      const formattedNominees = event.nominees.map((n: any) =>
+        formatNomineeHelper(n, canExposeResults, totalVotes)
+      );
+
+      const userVote = userVotesMap[event.id];
+
+      return {
+        id: event.id,
+        title: event.title,
+        slug: event.slug,
+        category: event.category || "BEST_PLAYER",
+        description: event.description,
+        bannerImage: event.bannerImage,
+        status: event.status,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        isLiveResults: event.isLiveResults,
+        isExpired: now > event.endDate,
+        isUpcoming: now < event.startDate,
+        isActive: event.status === "PUBLISHED" && now >= event.startDate && now <= event.endDate,
+        totalVotes: canExposeResults ? totalVotes : undefined,
+        nominees: formattedNominees,
+        userVotingStatus: {
+          hasVoted: Boolean(userVote),
+          votedNomineeId: userVote?.nomineeId || null,
+          votedAt: userVote?.createdAt || null,
+        },
+      };
+    });
+
+    res.json({
+      success: true,
+      data: formattedEvents,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * GET /api/voting/active
@@ -57,11 +155,14 @@ export const getActiveVotingEvent = async (
   try {
     const now = new Date();
 
-    // Find the latest published voting event
+    // Support filtering by category or id if query param is passed
+    const whereClause: any = { status: "PUBLISHED" };
+    if (req.query.id) whereClause.id = String(req.query.id);
+    if (req.query.category) whereClause.category = String(req.query.category);
+
+    // Find the published voting event
     const event = await prisma.votingEvent.findFirst({
-      where: {
-        status: "PUBLISHED",
-      },
+      where: whereClause,
       orderBy: {
         createdAt: "desc",
       },
@@ -126,6 +227,7 @@ export const getActiveVotingEvent = async (
         id: event.id,
         title: event.title,
         slug: event.slug,
+        category: event.category || "BEST_PLAYER",
         description: event.description,
         bannerImage: event.bannerImage,
         status: event.status,
@@ -369,16 +471,19 @@ export const submitVote = async (
 const nomineeInputSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Candidate name is required"),
-  role: z.string().optional().default("ATHLETE"),
+  role: z.string().optional().default("CREATOR"),
   team: z.string().optional().default("LORD ESPORTS"),
   imageUrl: z.string().optional().nullable(),
   bio: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  platform: z.string().optional().nullable(),
 });
 
 const createEventSchema = z
   .object({
     title: z.string().min(3, "Title must be at least 3 characters"),
     slug: z.string().optional().nullable(),
+    category: z.string().optional().default("BEST_PLAYER"),
     description: z.string().optional().nullable(),
     bannerImage: z.string().optional().nullable(),
     startDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid start date"),
@@ -396,6 +501,7 @@ const createEventSchema = z
 const updateEventSchema = z.object({
   title: z.string().min(3).optional(),
   slug: z.string().optional().nullable(),
+  category: z.string().optional(),
   description: z.string().optional().nullable(),
   bannerImage: z.string().optional().nullable(),
   startDate: z.string().optional(),
@@ -446,6 +552,7 @@ export const getAllVotingEventsAdmin = async (
         id: e.id,
         title: e.title,
         slug: e.slug,
+        category: e.category || "BEST_PLAYER",
         description: e.description,
         bannerImage: e.bannerImage,
         status: e.status,
@@ -508,6 +615,7 @@ export const getVotingEventAdminById = async (
       success: true,
       data: {
         ...event,
+        category: event.category || "BEST_PLAYER",
         totalVotes,
         nominees: formattedNominees,
       },
@@ -519,7 +627,7 @@ export const getVotingEventAdminById = async (
 
 /**
  * POST /api/admin/voting/events
- * Admin creates a new voting event with manually entered candidate players.
+ * Admin creates a new voting event with manually entered candidate players/creators.
  */
 export const createVotingEventAdmin = async (
   req: AuthenticatedRequest,
@@ -549,11 +657,13 @@ export const createVotingEventAdmin = async (
         team: p.team,
         imageUrl: p.avatarUrl || null,
         bio: p.featuredQuote || null,
+        category: null,
+        platform: null,
       }));
     }
 
     if (candidateList.length === 0) {
-      res.status(400).json({ success: false, message: "At least one candidate player is required." });
+      res.status(400).json({ success: false, message: "At least one candidate is required." });
       return;
     }
 
@@ -570,6 +680,7 @@ export const createVotingEventAdmin = async (
         data: {
           title: parsed.title,
           slug,
+          category: parsed.category || "BEST_PLAYER",
           description: parsed.description || "",
           bannerImage: parsed.bannerImage || null,
           startDate: start,
@@ -586,10 +697,12 @@ export const createVotingEventAdmin = async (
           data: {
             votingEventId: event.id,
             name: nom.name.trim(),
-            role: nom.role?.trim() || "ATHLETE",
+            role: nom.role?.trim() || "CREATOR",
             team: nom.team?.trim() || "LORD ESPORTS",
             imageUrl: nom.imageUrl?.trim() || null,
             bio: nom.bio?.trim() || null,
+            category: nom.category?.trim() || null,
+            platform: nom.platform?.trim() || null,
             displayOrder: i,
           },
         });
@@ -634,6 +747,7 @@ export const updateVotingEventAdmin = async (
     const updateData: any = {};
     if (parsed.title !== undefined) updateData.title = parsed.title;
     if (parsed.slug !== undefined) updateData.slug = parsed.slug;
+    if (parsed.category !== undefined) updateData.category = parsed.category;
     if (parsed.description !== undefined) updateData.description = parsed.description;
     if (parsed.bannerImage !== undefined) updateData.bannerImage = parsed.bannerImage;
     if (parsed.status !== undefined) updateData.status = parsed.status;
@@ -682,10 +796,12 @@ export const updateVotingEventAdmin = async (
               where: { id: nom.id },
               data: {
                 name: nom.name.trim(),
-                role: nom.role?.trim() || "ATHLETE",
+                role: nom.role?.trim() || "CREATOR",
                 team: nom.team?.trim() || "LORD ESPORTS",
                 imageUrl: nom.imageUrl?.trim() || null,
                 bio: nom.bio?.trim() || null,
+                category: nom.category?.trim() || null,
+                platform: nom.platform?.trim() || null,
                 displayOrder: i,
               },
             });
@@ -694,10 +810,12 @@ export const updateVotingEventAdmin = async (
               data: {
                 votingEventId: id,
                 name: nom.name.trim(),
-                role: nom.role?.trim() || "ATHLETE",
+                role: nom.role?.trim() || "CREATOR",
                 team: nom.team?.trim() || "LORD ESPORTS",
                 imageUrl: nom.imageUrl?.trim() || null,
                 bio: nom.bio?.trim() || null,
+                category: nom.category?.trim() || null,
+                platform: nom.platform?.trim() || null,
                 displayOrder: i,
               },
             });
@@ -854,6 +972,7 @@ export const getVotingEventResultsAdmin = async (
       data: {
         eventId: event.id,
         title: event.title,
+        category: event.category || "BEST_PLAYER",
         status: event.status,
         startDate: event.startDate,
         endDate: event.endDate,

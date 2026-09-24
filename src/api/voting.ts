@@ -10,10 +10,12 @@ export interface VotingNominee {
   team?: string;
   imageUrl?: string | null;
   bio?: string | null;
+  category?: string | null;
+  platform?: string | null;
   displayOrder: number;
   voteCount?: number;
   percentage?: number;
-  player: Player;
+  player?: Player;
 }
 
 export interface UserVotingStatus {
@@ -26,6 +28,7 @@ export interface PublicVotingEvent {
   id: string;
   title: string;
   slug?: string | null;
+  category?: string;
   description?: string | null;
   bannerImage?: string | null;
   status: "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED";
@@ -48,8 +51,13 @@ export interface VoteResponse {
 }
 
 export const votingApi = {
-  getActive: async (): Promise<PublicVotingEvent | null> => {
-    return apiRequest<PublicVotingEvent | null>("/voting/active", { method: "GET" }, null);
+  getActive: async (category?: string): Promise<PublicVotingEvent | null> => {
+    const url = category ? `/voting/active?category=${encodeURIComponent(category)}` : "/voting/active";
+    return apiRequest<PublicVotingEvent | null>(url, { method: "GET" }, null);
+  },
+
+  getAllActive: async (): Promise<PublicVotingEvent[]> => {
+    return apiRequest<PublicVotingEvent[]>("/voting/active-events", { method: "GET" }, []);
   },
 
   getById: async (id: string): Promise<PublicVotingEvent> => {

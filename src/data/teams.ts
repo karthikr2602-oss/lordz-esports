@@ -286,6 +286,7 @@ export const collectiveMembers: CollectiveMember[] = [
     divisions: ["Developers"],
     focus: "Distributed systems, web infrastructure, platform security & governance",
     initials: "JP",
+    avatar: "/members/jeremiah-paul.jpg",
   },
   {
     id: "dinesh-s",
@@ -295,6 +296,7 @@ export const collectiveMembers: CollectiveMember[] = [
     divisions: ["Developers"],
     focus: "Transactional flows, bracket scoring automation & data consistency",
     initials: "DS",
+    avatar: "/members/dinesh.jpeg",
   },
   {
     id: "karthik-r",
@@ -304,15 +306,17 @@ export const collectiveMembers: CollectiveMember[] = [
     divisions: ["Developers"],
     focus: "Modern web architecture, user experience, scouting & tactical gameplay",
     initials: "KR",
+    avatar: "/members/karthik-r.jpg",
   },
   {
-    id: "demo-ceo",
-    name: "CEO",
-    handle: "CHIEF_EXEC",
-    primaryRole: "Chief Executive Officer",
+    id: "founder",
+    name: "",
+    handle: "founder",
+    primaryRole: "Founder",
     divisions: ["Community"],
     focus: "Organizational strategy, franchise roadmap, partnerships & clan leadership",
-    initials: "CEO",
+    initials: "JP",
+    avatar: "/members/founder.png",
   },
   {
     id: "demo-community-manager",
@@ -322,15 +326,17 @@ export const collectiveMembers: CollectiveMember[] = [
     divisions: ["Community"],
     focus: "Discord ecosystem, fan safety, community tournaments & member support",
     initials: "CM",
+    avatar: "/members/manager.PNG",
   },
   {
-    id: "demo-operations-lead",
+    id: "operations-lead",
     name: "Operations Lead",
     handle: "OPERATIONS",
     primaryRole: "Clan Operations & Logistics",
     divisions: ["Community"],
     focus: "Event coordination, member onboarding & community tournament operations",
     initials: "OL",
+    avatar: "/members/operations-lead.jpg",
   },
 ];
 

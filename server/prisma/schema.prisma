@@ -650,6 +650,7 @@ model VotingEvent {
   id            String          @id @default(uuid())
   title         String
   slug          String?         @unique
+  category      String?         @default("BEST_PLAYER") // BEST_PLAYER, BEST_CREATOR, RISING_STAR, COMMUNITY, or custom
   description   String?
   bannerImage   String?
   status        String          @default("DRAFT") // DRAFT, PUBLISHED, CLOSED, ARCHIVED
@@ -675,6 +676,8 @@ model VotingNominee {
   team          String?       @default("LORD ESPORTS")
   imageUrl      String?
   bio           String?
+  category      String?
+  platform      String?
   displayOrder  Int           @default(0)
   createdAt     DateTime      @default(now())
   votes         Vote[]

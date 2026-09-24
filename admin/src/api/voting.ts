@@ -7,6 +7,8 @@ export interface VotingCandidateInput {
   team?: string;
   imageUrl?: string | null;
   bio?: string | null;
+  category?: string | null;
+  platform?: string | null;
 }
 
 export interface VotingNominee {
@@ -18,6 +20,8 @@ export interface VotingNominee {
   team?: string;
   imageUrl?: string | null;
   bio?: string | null;
+  category?: string | null;
+  platform?: string | null;
   displayOrder: number;
   voteCount?: number;
   percentage?: number;
@@ -37,6 +41,7 @@ export interface VotingEvent {
   id: string;
   title: string;
   slug?: string | null;
+  category?: string;
   description?: string | null;
   bannerImage?: string | null;
   status: "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED";
@@ -62,6 +67,8 @@ export interface LeaderboardEntry {
   role?: string;
   team?: string;
   imageUrl?: string | null;
+  category?: string | null;
+  platform?: string | null;
   votes: number;
   percentage: number;
   player: {
@@ -79,6 +86,7 @@ export interface LeaderboardEntry {
 export interface VotingResultsData {
   eventId: string;
   title: string;
+  category?: string;
   status: string;
   startDate: string;
   endDate: string;
@@ -90,6 +98,7 @@ export interface VotingResultsData {
 export interface CreateVotingEventPayload {
   title: string;
   slug?: string;
+  category?: string;
   description?: string;
   bannerImage?: string | null;
   startDate: string;

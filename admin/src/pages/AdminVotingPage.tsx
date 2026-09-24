@@ -21,6 +21,8 @@ import {
   Upload,
   Image as ImageIcon,
   UserPlus,
+  Video,
+  Trophy,
 } from "lucide-react";
 
 interface CandidateDraft {
@@ -28,6 +30,7 @@ interface CandidateDraft {
   name: string;
   role: string;
   team: string;
+  platform?: string;
   imageUrl: string;
   bio: string;
 }
@@ -36,6 +39,7 @@ export const AdminVotingPage: React.FC = () => {
   const [events, setEvents] = useState<VotingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Create / Edit Modal State
@@ -53,6 +57,7 @@ export const AdminVotingPage: React.FC = () => {
   const [formData, setFormData] = useState<{
     title: string;
     slug: string;
+    category: string;
     description: string;
     bannerImage: string;
     startDate: string;
@@ -63,6 +68,7 @@ export const AdminVotingPage: React.FC = () => {
   }>({
     title: "",
     slug: "",
+    category: "BEST_PLAYER",
     description: "",
     bannerImage: "",
     startDate: "",
@@ -111,6 +117,7 @@ export const AdminVotingPage: React.FC = () => {
     setFormData({
       title: "",
       slug: "",
+      category: "BEST_PLAYER",
       description: "",
       bannerImage: "",
       startDate: toDatetimeLocal(now.toISOString()),
@@ -120,15 +127,17 @@ export const AdminVotingPage: React.FC = () => {
       nominees: [
         {
           name: "",
-          role: "IGL",
-          team: "LORD ESPORTS",
+          role: "Content Creator",
+          team: "YouTube",
+          platform: "YouTube",
           imageUrl: "",
           bio: "",
         },
         {
           name: "",
-          role: "RUSHER",
+          role: "Esports Athlete",
           team: "LORD ESPORTS",
+          platform: "Competitive Roster",
           imageUrl: "",
           bio: "",
         },
@@ -148,16 +157,18 @@ export const AdminVotingPage: React.FC = () => {
           ? full.nominees.map((n) => ({
               id: n.id,
               name: n.name || n.player?.ign || "",
-              role: n.role || n.player?.role || "ATHLETE",
-              team: n.team || n.player?.team || "LORD ESPORTS",
+              role: n.role || n.player?.role || "CREATOR",
+              team: n.platform || n.team || n.player?.team || "LORD ESPORTS",
+              platform: n.platform || n.team || n.player?.team || "LORD ESPORTS",
               imageUrl: n.imageUrl || n.player?.avatarUrl || n.player?.image || "",
               bio: n.bio || n.player?.bio || "",
             }))
           : [
               {
                 name: "",
-                role: "IGL",
+                role: "CREATOR",
                 team: "LORD ESPORTS",
+                platform: "LORD ESPORTS",
                 imageUrl: "",
                 bio: "",
               },
@@ -166,6 +177,7 @@ export const AdminVotingPage: React.FC = () => {
       setFormData({
         title: full.title,
         slug: full.slug || "",
+        category: full.category || "BEST_PLAYER",
         description: full.description || "",
         bannerImage: full.bannerImage || "",
         startDate: toDatetimeLocal(full.startDate),
@@ -178,6 +190,7 @@ export const AdminVotingPage: React.FC = () => {
       setFormData({
         title: event.title,
         slug: event.slug || "",
+        category: event.category || "BEST_PLAYER",
         description: event.description || "",
         bannerImage: event.bannerImage || "",
         startDate: toDatetimeLocal(event.startDate),
@@ -187,15 +200,15 @@ export const AdminVotingPage: React.FC = () => {
         nominees: [
           {
             name: "",
-            role: "ATHLETE",
+            role: "CREATOR",
             team: "LORD ESPORTS",
+            platform: "LORD ESPORTS",
             imageUrl: "",
             bio: "",
           },
         ],
       });
     }
-
     setModalOpen(true);
   };
 
@@ -303,6 +316,7 @@ export const AdminVotingPage: React.FC = () => {
       const payload = {
         title: formData.title.trim(),
         slug: formData.slug.trim() || undefined,
+        category: formData.category || "BEST_PLAYER",
         description: formData.description.trim() || undefined,
         bannerImage: formData.bannerImage.trim() || undefined,
         startDate: new Date(formData.startDate).toISOString(),
@@ -312,8 +326,10 @@ export const AdminVotingPage: React.FC = () => {
         nominees: formData.nominees.map((c) => ({
           id: c.id,
           name: c.name.trim(),
-          role: c.role.trim() || "ATHLETE",
-          team: c.team.trim() || "LORD ESPORTS",
+          role: c.role.trim() || "CREATOR",
+          team: c.platform?.trim() || c.team.trim() || "LORD ESPORTS",
+          platform: c.platform?.trim() || c.team.trim() || "LORD ESPORTS",
+          category: formData.category || null,
           imageUrl: c.imageUrl.trim() || null,
           bio: c.bio.trim() || null,
         })),
@@ -365,13 +381,16 @@ export const AdminVotingPage: React.FC = () => {
   const filteredEvents = useMemo(() => {
     return events.filter((e) => {
       const matchesStatus = statusFilter === "ALL" || e.status === statusFilter;
+      const matchesCategory =
+        categoryFilter === "ALL" ||
+        (e.category || "BEST_PLAYER").toUpperCase() === categoryFilter.toUpperCase();
       const matchesSearch =
         !searchQuery.trim() ||
         e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (e.description && e.description.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesStatus && matchesSearch;
+      return matchesStatus && matchesCategory && matchesSearch;
     });
-  }, [events, statusFilter, searchQuery]);
+  }, [events, statusFilter, categoryFilter, searchQuery]);
 
   // KPI Calculations
   const totalEventsCount = events.length;
@@ -388,11 +407,11 @@ export const AdminVotingPage: React.FC = () => {
               <Vote className="h-6 w-6" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-display font-black text-white uppercase tracking-wider">
-              Community Voting Management
+              Awards & Voting Management
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-gray-400 font-body">
-            Publish community voting polls, manually add and manage candidate players, and track live fan voting.
+            Manage multi-section awards: Best Creator, Best Player of the Year, and Community Champion polls.
           </p>
         </div>
 
@@ -401,7 +420,7 @@ export const AdminVotingPage: React.FC = () => {
           className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FFBE32] to-[#FFA000] text-black font-heading font-black text-xs uppercase tracking-wider hover:shadow-[0_0_25px_rgba(255,190,50,0.4)] transition-all cursor-pointer"
         >
           <Plus className="h-4 w-4 stroke-[3]" />
-          <span>Create Voting Event</span>
+          <span>Create Award Section</span>
         </button>
       </div>
 
@@ -413,7 +432,7 @@ export const AdminVotingPage: React.FC = () => {
             <Vote className="h-5 w-5 text-gray-400" />
           </div>
           <p className="text-3xl font-display font-black text-white mt-2">{totalEventsCount}</p>
-          <span className="text-[11px] text-gray-500 font-body">Configured voting events</span>
+          <span className="text-[11px] text-gray-500 font-body">Configured voting sections</span>
         </div>
 
         <div className="bg-[#0C0C10] border border-white/10 rounded-2xl p-5 shadow-lg relative overflow-hidden">
@@ -438,30 +457,58 @@ export const AdminVotingPage: React.FC = () => {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#0A0A0D] p-4 rounded-2xl border border-white/10">
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search events by title or description..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#121217] border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
-          />
+      <div className="flex flex-col gap-4 bg-[#0A0A0D] p-4 rounded-2xl border border-white/10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search sections by title or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-[#121217] border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
+            />
+          </div>
+
+          {/* Status Filter Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
+            {(["ALL", "PUBLISHED", "DRAFT", "CLOSED", "ARCHIVED"] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                  statusFilter === status
+                    ? "bg-[#FFBE32] text-black shadow-[0_0_15px_rgba(255,190,50,0.3)]"
+                    : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
-          {(["ALL", "PUBLISHED", "DRAFT", "CLOSED", "ARCHIVED"] as const).map((status) => (
+        {/* Category / Section Quick Filter Chips */}
+        <div className="flex items-center gap-2 overflow-x-auto border-t border-white/5 pt-3">
+          <span className="text-[10px] font-mono uppercase text-gray-500 tracking-wider shrink-0">
+            Award Section:
+          </span>
+          {[
+            { id: "ALL", label: "All Sections" },
+            { id: "BEST_PLAYER", label: "🏆 Best Player" },
+            { id: "BEST_CREATOR", label: "🎬 Best Creator" },
+            { id: "COMMUNITY", label: "🛡️ Community" },
+          ].map((cat) => (
             <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-                statusFilter === status
-                  ? "bg-[#FFBE32] text-black shadow-[0_0_15px_rgba(255,190,50,0.3)]"
-                  : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+              key={cat.id}
+              onClick={() => setCategoryFilter(cat.id)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer whitespace-nowrap ${
+                categoryFilter === cat.id
+                  ? "bg-white/20 text-white font-bold border border-white/30"
+                  : "bg-white/5 text-gray-400 hover:text-gray-200"
               }`}
             >
-              {status}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -530,6 +577,29 @@ export const AdminVotingPage: React.FC = () => {
                   {/* Left Column: Status Badge & Event Identity */}
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2.5 flex-wrap">
+                      {/* Section Category Badge */}
+                      {event.category === "BEST_CREATOR" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-black bg-purple-500/20 text-purple-400 border border-purple-500/40 uppercase tracking-wider">
+                          <Video className="h-3 w-3" />
+                          CREATOR AWARD
+                        </span>
+                      ) : event.category === "COMMUNITY" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
+                          <Users className="h-3 w-3" />
+                          COMMUNITY CHAMPION
+                        </span>
+                      ) : event.category === "RISING_STAR" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-black bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 uppercase tracking-wider">
+                          <Flame className="h-3 w-3" />
+                          RISING STAR
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-black bg-[#FFBE32]/20 text-[#FFBE32] border border-[#FFBE32]/40 uppercase tracking-wider">
+                          <Trophy className="h-3 w-3" />
+                          PLAYER AWARD
+                        </span>
+                      )}
+
                       {isLive && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-heading font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
@@ -689,16 +759,45 @@ export const AdminVotingPage: React.FC = () => {
               {/* Event Title */}
               <div>
                 <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 mb-1.5">
-                  Event Title <span className="text-[#FFBE32]">*</span>
+                  Award Section / Title <span className="text-[#FFBE32]">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. LORD MVP OF THE SEASON 2026"
+                  placeholder="e.g. BEST CREATOR AWARD 2026 or BEST PLAYER OF THE YEAR"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-[#14141A] border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
                 />
+              </div>
+
+              {/* Award Section / Category Selector */}
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 mb-1.5">
+                  Category Type <span className="text-[#FFBE32]">*</span>
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: "BEST_PLAYER", label: "Best Player", icon: Trophy },
+                    { id: "BEST_CREATOR", label: "Best Creator", icon: Video },
+                    { id: "COMMUNITY", label: "Community", icon: Users },
+                    { id: "RISING_STAR", label: "Rising Star", icon: Flame },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, category: cat.id })}
+                      className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-heading font-bold uppercase transition-all cursor-pointer ${
+                        formData.category === cat.id
+                          ? "bg-[#FFBE32] text-black border-[#FFBE32] shadow-[0_0_15px_rgba(255,190,50,0.3)]"
+                          : "bg-[#14141A] text-gray-400 border-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <cat.icon className="h-3.5 w-3.5" />
+                      <span>{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Description */}
@@ -708,7 +807,7 @@ export const AdminVotingPage: React.FC = () => {
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Vote for the champion athlete who delivered the most decisive clutch rounds this season."
+                  placeholder="Vote for the champion athlete, viral content creator, or community pillar."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3.5 py-2 bg-[#14141A] border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
@@ -813,21 +912,21 @@ export const AdminVotingPage: React.FC = () => {
               </div>
 
               {/* ======================================================== */}
-              {/* MANUAL CANDIDATE PLAYERS SECTION (NO SHOWCASE DEPENDENCY) */}
+              {/* CANDIDATES & NOMINEES SECTION (ALL ROLES) */}
               {/* ======================================================== */}
               <div className="border-t border-white/10 pt-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono uppercase tracking-wider text-white font-bold block">
-                        Candidate Players / Nominees <span className="text-[#FFBE32]">*</span>
+                        Nominees & Candidates (All Roles) <span className="text-[#FFBE32]">*</span>
                       </span>
                       <span className="px-2 py-0.5 rounded bg-[#FFBE32]/10 text-[#FFBE32] text-[10px] font-mono border border-[#FFBE32]/30">
-                        Manual Entry
+                        Open for All
                       </span>
                     </div>
                     <span className="text-[11px] text-gray-400">
-                      Enter athlete names, roles, and images manually for this poll.
+                      Add creators, streamers, esports players, or community members for this section.
                     </span>
                   </div>
 
@@ -837,7 +936,7 @@ export const AdminVotingPage: React.FC = () => {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFBE32]/15 hover:bg-[#FFBE32] text-[#FFBE32] hover:text-black font-heading font-bold text-xs uppercase tracking-wider transition-all cursor-pointer border border-[#FFBE32]/30"
                   >
                     <UserPlus className="h-3.5 w-3.5" />
-                    <span>+ Add Player</span>
+                    <span>+ Add Candidate</span>
                   </button>
                 </div>
 
@@ -858,7 +957,7 @@ export const AdminVotingPage: React.FC = () => {
                               #{idx + 1}
                             </span>
                             <span className="text-xs font-heading font-bold text-white uppercase tracking-wider">
-                              Candidate #{idx + 1}
+                              Nominee #{idx + 1}
                             </span>
                           </div>
 
@@ -923,16 +1022,16 @@ export const AdminVotingPage: React.FC = () => {
                             </div>
                           </div>
 
-                          {/* Candidate Name & Role & Team */}
+                          {/* Candidate Name & Role & Platform */}
                           <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                             <div>
                               <label className="block text-[10px] font-mono uppercase text-gray-400 mb-1">
-                                Player Name / IGN <span className="text-[#FFBE32]">*</span>
+                                Candidate Name / Handle <span className="text-[#FFBE32]">*</span>
                               </label>
                               <input
                                 type="text"
                                 required
-                                placeholder="e.g. LORD ZORO"
+                                placeholder="e.g. Frost Gaming / Beast"
                                 value={candidate.name}
                                 onChange={(e) => handleCandidateChange(idx, "name", e.target.value)}
                                 className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
@@ -941,11 +1040,11 @@ export const AdminVotingPage: React.FC = () => {
 
                             <div>
                               <label className="block text-[10px] font-mono uppercase text-gray-400 mb-1">
-                                Role / Subtitle
+                                Role / Speciality
                               </label>
                               <input
                                 type="text"
-                                placeholder="e.g. IGL / RUSHER"
+                                placeholder="e.g. YouTube Creator / Sniper"
                                 value={candidate.role}
                                 onChange={(e) => handleCandidateChange(idx, "role", e.target.value)}
                                 className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
@@ -954,13 +1053,16 @@ export const AdminVotingPage: React.FC = () => {
 
                             <div>
                               <label className="block text-[10px] font-mono uppercase text-gray-400 mb-1">
-                                Team / Club
+                                Platform / Team
                               </label>
                               <input
                                 type="text"
-                                placeholder="e.g. LORD ESPORTS"
-                                value={candidate.team}
-                                onChange={(e) => handleCandidateChange(idx, "team", e.target.value)}
+                                placeholder="e.g. YouTube / Twitch / Discord"
+                                value={candidate.platform || candidate.team}
+                                onChange={(e) => {
+                                  handleCandidateChange(idx, "platform", e.target.value);
+                                  handleCandidateChange(idx, "team", e.target.value);
+                                }}
                                 className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
                               />
                             </div>
@@ -981,7 +1083,7 @@ export const AdminVotingPage: React.FC = () => {
                           <div>
                             <input
                               type="text"
-                              placeholder="Athlete quote / achievement note (optional)"
+                              placeholder="Candidate bio / notable achievement (optional)"
                               value={candidate.bio}
                               onChange={(e) => handleCandidateChange(idx, "bio", e.target.value)}
                               className="w-full px-3 py-1.5 bg-[#171720] border border-white/10 rounded-lg text-[11px] text-gray-300 placeholder-gray-500 focus:outline-none focus:border-[#FFBE32]"
@@ -1000,7 +1102,7 @@ export const AdminVotingPage: React.FC = () => {
                   className="w-full py-2.5 rounded-xl border border-dashed border-white/20 hover:border-[#FFBE32]/60 bg-white/5 hover:bg-[#FFBE32]/5 text-gray-300 hover:text-[#FFBE32] text-xs font-heading font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Add Another Candidate Player</span>
+                  <span>Add Another Candidate (Creator / Player / Community)</span>
                 </button>
               </div>
 

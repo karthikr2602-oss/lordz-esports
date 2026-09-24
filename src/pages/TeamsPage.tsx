@@ -35,15 +35,40 @@ export const TeamsPage = () => {
     aspectRatio?: string;
     large?: boolean;
   }) => {
+    const [imgSrc, setImgSrc] = useState<string | undefined>(member.avatar);
+    const [hasError, setHasError] = useState(false);
+
+    useEffect(() => {
+      setImgSrc(member.avatar);
+      setHasError(false);
+    }, [member.avatar]);
+
+    const handleImgError = () => {
+      if (imgSrc) {
+        if (imgSrc.endsWith(".jpg")) {
+          setImgSrc(imgSrc.replace(/\.jpg$/, ".png"));
+        } else if (imgSrc.endsWith(".png")) {
+          setImgSrc(imgSrc.replace(/\.png$/, ".webp"));
+        } else if (imgSrc.endsWith(".webp")) {
+          setImgSrc(imgSrc.replace(/\.webp$/, ".jpeg"));
+        } else {
+          setHasError(true);
+        }
+      } else {
+        setHasError(true);
+      }
+    };
+
     return (
       <div
         className={`relative overflow-hidden rounded-md bg-[#0A0A0A] border border-white/[0.08] ${aspectRatio} ${className}`}
       >
-        {member.avatar ? (
+        {!hasError && imgSrc ? (
           <img
-            src={member.avatar}
-            alt={member.name}
-            className="w-full h-full object-cover grayscale contrast-110 brightness-95 hover:grayscale-0 hover:scale-105 transition-all duration-500 ease-out"
+            src={imgSrc}
+            alt={member.name || member.handle || "Member"}
+            onError={handleImgError}
+            className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-500 ease-out"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#111111] via-[#0B0B0B] to-[#070707] relative group">
@@ -121,7 +146,7 @@ export const TeamsPage = () => {
                 <img
                   src={teamPhoto}
                   alt="Lord Esports Collective"
-                  className="w-full h-72 sm:h-80 object-cover grayscale contrast-110 brightness-90 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"
+                  className="w-full h-72 sm:h-80 object-cover hover:scale-105 transition-transform duration-700 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/20 to-transparent pointer-events-none" />
 
