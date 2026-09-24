@@ -110,8 +110,6 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                         <img
                           src={athleteImg}
                           alt={`${player.ign} (${player.realName}) - Pro Free Fire Athlete for LORDZ ESPORTS`}
-                          loading="lazy"
-                          decoding="async"
                           onError={() => setFailedImages((prev) => ({ ...prev, [player.id]: true }))}
                           loading="lazy"
                           decoding="async"

@@ -113,8 +113,6 @@ export const TeamsPage = () => {
           <img
             src={imgSrc}
             alt={`${member.name} (${member.primaryRole || member.handle || "Team Member"}) - LORDZ ESPORTS`}
-            loading="lazy"
-            decoding="async"
             onError={handleImgError}
             loading="lazy"
             decoding="async"
