@@ -37,6 +37,8 @@ export interface CollectiveMember {
   focus: string;
   avatar?: string;
   initials: string;
+  instagram?: string;
+  linkedin?: string;
 }
 
 export const teamDivisions: TeamDivision[] = [
@@ -278,65 +280,86 @@ export const teamDivisions: TeamDivision[] = [
 ];
 
 export const collectiveMembers: CollectiveMember[] = [
-  {
-    id: "jeremiah-paul",
-    name: "Jeremiah Paul",
-    handle: "LZ_ARCHITECT",
-    primaryRole: "Founder & Lead Systems Architect",
-    divisions: ["Developers"],
-    focus: "Distributed systems, web infrastructure, platform security & governance",
-    initials: "JP",
-    avatar: "/members/jeremiah-paul.jpg",
-  },
+ 
   {
     id: "dinesh-s",
     name: "Dinesh S",
-    handle: "LZ_SYSTEMS",
-    primaryRole: "Backend & Systems Specialist",
+    handle: "Developer",
+    primaryRole: "Co Founder of Just Three Solutions & Backend,Systems Specialist",
     divisions: ["Developers"],
     focus: "Transactional flows, bracket scoring automation & data consistency",
     initials: "DS",
     avatar: "/members/dinesh.jpeg",
+    instagram: "https://www.instagram.com/__dinesh__s_?stkn=MXFsMWdkaWRuZHJnaw==",
+    linkedin: "https://www.linkedin.com/in/dinesh-s",
+  },
+   {
+    id: "jeremiah-paul",
+    name: "Jeremiah Paul",
+    handle: "Developer",
+    primaryRole: "Co Founder of Just Three Solutions & Lead Systems Architect",
+    divisions: ["Developers"],
+    focus: "Distributed systems, web infrastructure, platform security & governance",
+    initials: "JP",
+    avatar: "/members/jer 2].jpeg",
+    instagram: "https://www.instagram.com/iam_jeremiahpaul_?stkn=OTJka25yYWhkOWRk",
+    linkedin: "https://www.linkedin.com/in/jeremiah-paul",
   },
   {
     id: "karthik-r",
     name: "Karthik R",
-    handle: "FALCON",
-    primaryRole: "Senior Frontend Engineer & Player Performance",
+    handle: "Developer",
+    primaryRole: "Co Founder of Just Three Solutions Senior Frontend Engineer",
     divisions: ["Developers"],
     focus: "Modern web architecture, user experience, scouting & tactical gameplay",
     initials: "KR",
-    avatar: "/members/karthik-r.jpg",
+    avatar: "/members/kart.jpeg",
+    instagram: "https://www.instagram.com/karthi.z7?stkn=MTZsbG4yY25keGk3Mg==",
+    linkedin: "https://www.linkedin.com/in/karthik-r",
   },
   {
     id: "founder",
-    name: "",
+    name: "Ram",
     handle: "founder",
     primaryRole: "Founder",
-    divisions: ["Community"],
+    divisions: ["Leadership"],
     focus: "Organizational strategy, franchise roadmap, partnerships & clan leadership",
-    initials: "JP",
+    initials: "",
     avatar: "/members/founder.png",
+    instagram: "https://www.instagram.com/ramm.lifts_?stkn=b3pndzczMm0zZmZo",
   },
   {
     id: "demo-community-manager",
-    name: "Community Manager",
+    name: "VARSHINI",
     handle: "COMMUNITY_LEAD",
     primaryRole: "Head of Community & Relations",
     divisions: ["Community"],
     focus: "Discord ecosystem, fan safety, community tournaments & member support",
-    initials: "CM",
+    initials: "WQ",
     avatar: "/members/manager.PNG",
+    instagram: "https://www.instagram.com/warqueen.ff?stkn=MXV1OWEzM2V1dmZhYw==",
   },
   {
-    id: "operations-lead",
-    name: "Operations Lead",
-    handle: "OPERATIONS",
-    primaryRole: "Clan Operations & Logistics",
+    id: "CEO",
+    name: "Jaya Surya",
+    handle: "CEO",
+    primaryRole: "Chief Executive Officer",
+    divisions: ["Leadership"],
+    focus: "Brand identity, media outreach, franchise operations & content strategy",
+    initials: "JS",
+    avatar: "/members/jai.jpeg",
+    instagram: "https://www.instagram.com/smiley__surya__07?stkn=dnQzZWt2MDJqcDdy",
+  },
+  {
+    id: "editor",
+    name: "KARAN",
+    handle: "Editor",
+    primaryRole: "Editor",
     divisions: ["Community"],
-    focus: "Event coordination, member onboarding & community tournament operations",
-    initials: "OL",
-    avatar: "/members/operations-lead.jpg",
+    focus: "Discord ecosystem, fan safety, community tournaments & member support",
+    initials: "WQ",
+    avatar: "/members/EDTIOR.jpeg",
+    instagram: "https://www.instagram.com/warqueen.ff?stkn=MXV1OWEzM2V1dmZhYw==",
   },
 ];
 

@@ -7,6 +7,52 @@ import {
   Sparkles,
 } from "lucide-react";
 
+// Social SVG Icon for Instagram
+const InstagramIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
+
+// Social SVG Icon for LinkedIn
+const LinkedInIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+  >
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451c.979 0 1.778-.773 1.778-1.729V1.73C24 .774 23.205 0 22.225 0z" />
+  </svg>
+);
+
+const formatInstagramUrl = (handleOrUrl?: string) => {
+  if (!handleOrUrl || !handleOrUrl.trim()) return "https://www.instagram.com/lord.esportz";
+  const trimmed = handleOrUrl.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  return `https://www.instagram.com/${trimmed.replace(/^@/, "")}`;
+};
+
+const formatLinkedInUrl = (handleOrUrl?: string) => {
+  if (!handleOrUrl || !handleOrUrl.trim()) return "https://www.linkedin.com";
+  const trimmed = handleOrUrl.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  return `https://www.linkedin.com/in/${trimmed.replace(/^@/, "")}`;
+};
+
 export const TeamsPage = () => {
   const [memberFilter, setMemberFilter] = useState<string>("all");
 
@@ -194,6 +240,7 @@ export const TeamsPage = () => {
               {[
                 { id: "all", label: "All" },
                 { id: "developers", label: "Developers" },
+                { id: "leadership", label: "Leadership" },
                 { id: "community", label: "Community" },
               ].map((filter) => (
                 <button
@@ -228,14 +275,47 @@ export const TeamsPage = () => {
 
                   {/* Profile Details */}
                   <div className="p-4 sm:p-5 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[11px] text-[#777777] group-hover:text-[#FFBE32] transition-colors">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-[11px] text-[#777777] group-hover:text-[#FFBE32] transition-colors shrink-0">
                         //{member.handle}
                       </span>
+
+                      {/* Social Connect Actions */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* LinkedIn Connect (For Developers / Professional Profiles) */}
+                        {member.linkedin && (
+                          <a
+                            href={formatLinkedInUrl(member.linkedin)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0A66C2]/15 hover:bg-[#0A66C2]/30 border border-[#0A66C2]/35 hover:border-[#0A66C2]/80 text-[#70B5F9] hover:text-white transition-all duration-200 text-[10px] font-mono group/linkedin shadow-sm"
+                            title={`Connect with ${member.name || member.handle || "Developer"} on LinkedIn`}
+                          >
+                            <LinkedInIcon className="h-3 w-3 text-[#0A66C2] group-hover/linkedin:text-[#70B5F9] group-hover/linkedin:scale-110 transition-transform shrink-0" />
+                            <span className="font-semibold tracking-wide">Connect</span>
+                          </a>
+                        )}
+
+                        {/* Instagram Link */}
+                        {member.instagram && (
+                          <a
+                            href={formatInstagramUrl(member.instagram)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`inline-flex items-center justify-center rounded-full bg-white/[0.04] hover:bg-gradient-to-r hover:from-[#E1306C]/25 hover:via-[#FD1D1D]/20 hover:to-[#F56040]/25 border border-white/[0.08] hover:border-[#E1306C]/60 text-gray-300 hover:text-white transition-all duration-200 text-[10px] font-mono group/insta shadow-sm ${
+                              member.linkedin ? "p-1.5" : "gap-1.5 px-2.5 py-1"
+                            }`}
+                            title={`Follow ${member.name || member.handle || "Member"} on Instagram`}
+                          >
+                            <InstagramIcon className="h-3 w-3 text-[#E1306C] group-hover/insta:scale-110 transition-transform shrink-0" />
+                            {!member.linkedin && <span className="font-semibold tracking-wide">Connect</span>}
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     <h4 className="font-heading text-lg font-bold text-white group-hover:text-[#FFBE32] transition-colors">
-                      {member.name}
+                      {member.name || (member.handle ? member.handle.replace(/^[//_]+/, "") : "Member")}
                     </h4>
 
                     <p className="text-xs text-[#A0A0A0] font-body leading-snug">
@@ -295,6 +375,17 @@ export const TeamsPage = () => {
               className="inline-flex items-center gap-2 px-6 py-3 rounded text-xs font-heading font-semibold uppercase tracking-wider bg-white text-black hover:bg-[#FFBE32] transition-colors cursor-pointer"
             >
               <span>Connect on WhatsApp</span>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+
+            <a
+              href="https://www.instagram.com/lord.esportz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded text-xs font-heading font-semibold uppercase tracking-wider bg-gradient-to-r from-[#E1306C]/15 via-[#FD1D1D]/10 to-[#F56040]/15 hover:from-[#E1306C] hover:to-[#F56040] text-[#FF5B84] hover:text-white border border-[#E1306C]/40 hover:border-transparent transition-all cursor-pointer shadow-[0_0_20px_rgba(225,48,108,0.15)] group"
+            >
+              <InstagramIcon className="h-3.5 w-3.5 text-[#E1306C] group-hover:text-white transition-colors" />
+              <span>Connect on Instagram</span>
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
 
