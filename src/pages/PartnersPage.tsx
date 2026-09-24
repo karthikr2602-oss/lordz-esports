@@ -17,6 +17,7 @@ import {
 import confetti from "canvas-confetti";
 import { partnerPlansApi, type PartnerPlanItem, fallbackPlans } from "../api/partners";
 import { PartnersSection } from "../sections/PartnersSection";
+import { SEO } from "../components/common/SEO";
 
 export const PartnersPage = () => {
   const [plans, setPlans] = useState<PartnerPlanItem[]>(fallbackPlans);
@@ -37,7 +38,6 @@ export const PartnersPage = () => {
   });
 
   useEffect(() => {
-    document.title = "Partner with Us — Find the Perfect Plan | LORD ESPORTS";
     partnerPlansApi
       .getAll()
       .then((data) => {
@@ -105,6 +105,16 @@ export const PartnersPage = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-28 pb-20">
+      <SEO
+        title="Partner With Us | Esports Sponsorship &amp; Collaboration | LORDZ ESPORTS"
+        description="Collaborate with LORDZ ESPORTS. Choose from customized sponsorship tiers, brand integration in premier tournaments, community activations, and broadcast features."
+        canonicalPath="/partner-with-us"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Partner With Us", item: "/partner-with-us" },
+        ]}
+      />
+
       {/* Background Ambience */}
       <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-radial from-[#FFBE32]/10 via-transparent to-transparent blur-[160px] pointer-events-none" />
       <div className="absolute top-96 right-10 w-[450px] h-[450px] bg-purple-600/5 blur-[150px] pointer-events-none" />

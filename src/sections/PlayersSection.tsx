@@ -109,7 +109,9 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                       <div className="relative h-full w-full">
                         <img
                           src={athleteImg}
-                          alt={`${player.ign} - Lord Esports`}
+                          alt={`${player.ign} (${player.realName}) - Pro Free Fire Athlete for LORDZ ESPORTS`}
+                          loading="lazy"
+                          decoding="async"
                           onError={() => setFailedImages((prev) => ({ ...prev, [player.id]: true }))}
                           className="h-full w-full object-cover object-top filter contrast-105 group-hover:scale-105 transition-transform duration-500"
                         />
@@ -126,7 +128,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                               {player.role}
                             </span>
                           )}
-                          <img src={logoImg} alt="Lord Esports" className="h-5 w-5 object-contain drop-shadow" />
+                          <img src={logoImg} alt="LORDZ ESPORTS" width={20} height={20} className="h-5 w-5 object-contain drop-shadow" />
                         </div>
                       </div>
                     ) : (

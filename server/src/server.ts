@@ -16,6 +16,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
 
+const allowedOrigins = [
+  "https://lordzesports.com",
+  "https://www.lordzesports.com",
+  CORS_ORIGIN,
+].filter(Boolean);
+
 // Security headers
 app.use(
   helmet({
@@ -27,11 +33,17 @@ app.use(
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g., mobile apps, curl) or matching dev host
-      if (!origin || origin.includes("localhost") || origin === CORS_ORIGIN) {
+      // Allow requests with no origin (e.g., mobile apps, curl) or matching production/preview/dev hosts
+      if (
+        !origin ||
+        origin.includes("localhost") ||
+        origin.includes("127.0.0.1") ||
+        origin.endsWith(".vercel.app") ||
+        allowedOrigins.includes(origin)
+      ) {
         callback(null, true);
       } else {
-        callback(null, true); // Dev permissive
+        callback(null, true);
       }
     },
     credentials: true,
@@ -61,11 +73,85 @@ app.use("/uploads", express.static(uploadDir));
 const playersDir = path.join(process.cwd(), "..", "public", "players");
 app.use("/players", express.static(playersDir));
 
+// Dynamic XML Sitemap Generator
+const handleSitemapRequest = async (_req: express.Request, res: express.Response) => {
+  try {
+    const siteUrl = (process.env.SITE_URL || "https://lordzesports.com").trim().replace(/\/+$/, "");
+
+    // Fetch published public tournaments from database
+    const tournaments = await prisma.tournament.findMany({
+      where: {
+        isPublished: true,
+        isDraft: false,
+        status: { notIn: ["DRAFT", "ARCHIVED", "CANCELLED"] },
+      },
+      select: {
+        id: true,
+        slug: true,
+        updatedAt: true,
+      },
+    });
+
+    const staticRoutes = [
+      { path: "", changefreq: "daily", priority: "1.0" },
+      { path: "/tournaments", changefreq: "daily", priority: "0.9" },
+      { path: "/players", changefreq: "weekly", priority: "0.8" },
+      { path: "/teams", changefreq: "monthly", priority: "0.7" },
+      { path: "/products", changefreq: "weekly", priority: "0.8" },
+      { path: "/news", changefreq: "daily", priority: "0.8" },
+      { path: "/media", changefreq: "weekly", priority: "0.7" },
+      { path: "/community", changefreq: "monthly", priority: "0.7" },
+      { path: "/about", changefreq: "monthly", priority: "0.7" },
+      { path: "/partners", changefreq: "monthly", priority: "0.6" },
+      { path: "/partner-with-us", changefreq: "monthly", priority: "0.6" },
+      { path: "/voting", changefreq: "weekly", priority: "0.7" },
+    ];
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${staticRoutes
+  .map(
+    (r) => `  <url>
+    <loc>${siteUrl}${r.path ? r.path : "/"}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${r.changefreq}</changefreq>
+    <priority>${r.priority}</priority>
+  </url>`
+  )
+  .join("\n")}
+${tournaments
+  .map(
+    (t: { id: string; slug?: string | null; updatedAt?: Date | null }) => {
+      const path = t.slug || t.id;
+      return `  <url>
+    <loc>${siteUrl}/tournaments/${path}</loc>
+    <lastmod>${t.updatedAt ? new Date(t.updatedAt).toISOString().split("T")[0] : today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+    }
+  )
+  .join("\n")}
+</urlset>`;
+
+    res.header("Content-Type", "application/xml; charset=utf-8");
+    res.send(xml);
+  } catch (error) {
+    console.error("Error generating sitemap:", error);
+    res.status(500).send("Error generating sitemap");
+  }
+};
+
+app.get("/sitemap.xml", handleSitemapRequest);
+app.get("/api/sitemap.xml", handleSitemapRequest);
+
 // Health check endpoint
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
-    service: "Lord Esports Shared REST API",
+    service: "LORDZ ESPORTS Shared REST API",
     timestamp: new Date().toISOString(),
   });
 });

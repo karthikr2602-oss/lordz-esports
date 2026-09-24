@@ -23,12 +23,14 @@ export const FooterSection = () => {
             <Link to="/" className="inline-flex items-center gap-3">
               <img
                 src={logoImg}
-                alt="Lord Esports"
+                alt="LORDZ ESPORTS Official Crest Logo"
+                width={48}
+                height={48}
                 className="h-12 w-12 object-contain drop-shadow-[0_0_15px_rgba(255,190,50,0.35)]"
               />
               <div className="flex flex-col">
                 <span className="font-display text-3xl uppercase tracking-widest text-white">
-                  LORD <span className="text-[#FFBE32]">ESPORTS</span>
+                  LORDZ <span className="text-[#FFBE32]">ESPORTS</span>
                 </span>
                 <span className="font-heading text-[10px] tracking-[0.25em] text-[#9CA3AF] uppercase">
                   Indian Competitive Gaming
@@ -37,7 +39,7 @@ export const FooterSection = () => {
             </Link>
 
             <p className="mt-4 text-sm text-[#9CA3AF] font-body leading-relaxed max-w-sm">
-              "Compete. Improve. Build your legacy." Lord Esports is a premier Indian esports organization and gaming platform empowering tournament rosters, daily scrims, and national championship athletes.
+              "Compete. Improve. Build your legacy." LORDZ ESPORTS is a premier Indian esports organization and gaming platform empowering tournament rosters, daily scrims, and national championship athletes.
             </p>
 
             <div className="mt-6 flex items-center gap-2 text-xs text-gray-400 font-body">

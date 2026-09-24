@@ -28,6 +28,8 @@ import {
 import confetti from "canvas-confetti";
 import { merchandiseApi, type ProductItem as ApiProductItem, type OrderItem } from "../api/merchandise";
 import { useAuth } from "../context/AuthContext";
+import { SEO } from "../components/common/SEO";
+import { SITE_URL } from "../config/seo";
 
 // Fallback Product Assets
 import jerseyFrontImg from "../assets/jersey-front.jpg";
@@ -322,7 +324,6 @@ export const ProductsPage = () => {
   };
 
   useEffect(() => {
-    document.title = "Official Clan Gear & Products — LORD ESPORTS";
     loadProducts();
 
     // Re-fetch on tab focus so additions in admin portal reflect immediately
@@ -657,8 +658,40 @@ export const ProductsPage = () => {
       activeUpiId
     )}%26pn=Lord%20Esports%26am=${selectedProduct?.price || 1299}%26cu=INR`;
 
+  const productsSchema = useMemo(() => {
+    return products.slice(0, 10).map((p) => ({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: p.name,
+      description: p.description,
+      image: p.image?.startsWith("http") ? p.image : `${SITE_URL}${p.image}`,
+      brand: {
+        "@type": "Brand",
+        name: "LORDZ ESPORTS",
+      },
+      offers: {
+        "@type": "Offer",
+        price: p.price,
+        priceCurrency: "INR",
+        availability: "https://schema.org/InStock",
+        url: `${SITE_URL}/products`,
+      },
+    }));
+  }, [products]);
+
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-28 pb-24">
+      <SEO
+        title="LORDZ ESPORTS Official Merchandise | Pro Combat Jerseys &amp; Gaming Gear"
+        description="Shop official LORDZ ESPORTS pro merchandise. High-performance tournament combat jerseys with custom gamer tags, heavyweight hoodies, XXL gaming mousepads, and esports gear."
+        canonicalPath="/products"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Products", item: "/products" },
+        ]}
+        structuredData={productsSchema}
+      />
+
       {/* Ambient Lighting */}
       <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-radial from-[#FFBE32]/10 via-transparent to-transparent blur-[160px] pointer-events-none" />
 

@@ -46,7 +46,9 @@ export const AboutSection = ({ showHeader = true }: AboutSectionProps) => {
             >
               <img
                 src={logoImg}
-                alt="Lord LE"
+                alt="LORDZ ESPORTS Official Crest"
+                width={56}
+                height={56}
                 className="h-full w-full object-contain drop-shadow-[0_0_20px_rgba(255,190,50,0.35)]"
               />
             </motion.div>
@@ -63,7 +65,7 @@ export const AboutSection = ({ showHeader = true }: AboutSectionProps) => {
             </motion.div>
 
             <h2 className="font-display text-3xl sm:text-5xl uppercase tracking-wider text-white">
-              ABOUT <span className="text-gold-gradient">LORD ESPORTS</span>
+              ABOUT <span className="text-gold-gradient">LORDZ ESPORTS</span>
             </h2>
           </div>
         )}
@@ -87,7 +89,9 @@ export const AboutSection = ({ showHeader = true }: AboutSectionProps) => {
               <div className="aspect-[4/3] w-full overflow-hidden relative">
                 <motion.img
                   src={aboutTeamImg}
-                  alt="Lord Esports Champions on Stage with Trophy"
+                  alt="LORDZ ESPORTS Pro Champions on Stage with Trophy"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover object-center filter brightness-[1.02] contrast-[1.05] transition-transform duration-700 ease-out group-hover:scale-105"
                 />
 

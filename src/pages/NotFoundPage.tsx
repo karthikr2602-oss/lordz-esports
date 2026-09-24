@@ -1,18 +1,21 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShieldAlert, ArrowLeft } from "lucide-react";
+import { ShieldAlert, ArrowLeft, Trophy, Users, ShoppingBag, Newspaper } from "lucide-react";
 import { GoldButton } from "../components/common/GoldButton";
 import { TemplePattern } from "../components/common/TemplePattern";
+import { SEO } from "../components/common/SEO";
 import logoImg from "../assets/lordz-logo.png";
 
 export const NotFoundPage = () => {
-  useEffect(() => {
-    document.title = "404 — Signal Lost | LORD ESPORTS";
-  }, []);
-
   return (
-    <div className="relative min-h-[85vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden">
+    <div className="relative min-h-[85vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden py-20">
+      <SEO
+        title="404 — Signal Lost | LORDZ ESPORTS"
+        description="The arena coordinates you requested do not exist or have been retired. Return to LORDZ ESPORTS homepage or browse active tournaments."
+        noindex
+        nofollow
+      />
+
       {/* Background Architectural Patterns */}
       <div className="absolute inset-0 bg-esports-grid opacity-25 pointer-events-none" />
       <TemplePattern className="opacity-[0.05] scale-150" />
@@ -30,7 +33,9 @@ export const NotFoundPage = () => {
         >
           <img
             src={logoImg}
-            alt="Lord Esports"
+            alt="LORDZ ESPORTS Emblem"
+            width={56}
+            height={56}
             className="h-full w-full object-contain drop-shadow-[0_0_10px_#FFBE32]"
           />
         </motion.div>
@@ -80,6 +85,26 @@ export const NotFoundPage = () => {
             </GoldButton>
           </Link>
         </motion.div>
+
+        {/* Quick Nav Recovery Links */}
+        <div className="mt-10 pt-6 border-t border-white/10 flex flex-wrap justify-center gap-3 text-xs font-heading uppercase text-gray-400">
+          <Link to="/tournaments" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 hover:text-[#FFBE32] transition-colors">
+            <Trophy className="h-3.5 w-3.5 text-[#FFBE32]" />
+            <span>Tournaments</span>
+          </Link>
+          <Link to="/players" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 hover:text-[#FFBE32] transition-colors">
+            <Users className="h-3.5 w-3.5 text-[#FFBE32]" />
+            <span>Players</span>
+          </Link>
+          <Link to="/products" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 hover:text-[#FFBE32] transition-colors">
+            <ShoppingBag className="h-3.5 w-3.5 text-[#FFBE32]" />
+            <span>Merchandise</span>
+          </Link>
+          <Link to="/news" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 hover:text-[#FFBE32] transition-colors">
+            <Newspaper className="h-3.5 w-3.5 text-[#FFBE32]" />
+            <span>News</span>
+          </Link>
+        </div>
       </div>
     </div>
   );

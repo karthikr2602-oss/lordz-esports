@@ -239,7 +239,9 @@ export const PartnersSection = ({
                     {logo ? (
                       <img
                         src={logo}
-                        alt={partner.name}
+                        alt={`${partner.name} - Official Partner of LORDZ ESPORTS`}
+                        loading="lazy"
+                        decoding="async"
                         className="max-h-14 sm:max-h-16 max-w-full object-contain filter opacity-75 group-hover:opacity-100 group-hover:drop-shadow-[0_0_20px_rgba(255,190,50,0.45)] transition-all duration-300"
                       />
                     ) : (
@@ -264,7 +266,7 @@ export const PartnersSection = ({
             </div>
             <div>
               <h4 className="font-display text-lg uppercase tracking-wider text-white">
-                Want to Sponsor Lord Esports Tournaments?
+                Want to Sponsor LORDZ ESPORTS Tournaments?
               </h4>
               <p className="text-xs text-gray-400 font-body mt-0.5">
                 Reach over 500,000+ passionate competitive battle royale esports fans across YouTube &amp; Discord.

@@ -1,0 +1,24 @@
+{
+  "name": "LORDZ ESPORTS",
+  "short_name": "LORDZ",
+  "description": "Premier Indian competitive esports organization and gaming tournament platform.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    {
+      "src": "/lordz-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lordz-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

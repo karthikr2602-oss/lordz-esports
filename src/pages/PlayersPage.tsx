@@ -1,16 +1,51 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PageHero } from "../components/common/PageHero";
 import { PlayersSection } from "../sections/PlayersSection";
 import { Vote, ArrowRight } from "lucide-react";
+import { SEO } from "../components/common/SEO";
+import { SITE_URL } from "../config/seo";
+import { playersData } from "../data/players";
 
 export const PlayersPage = () => {
-  useEffect(() => {
-    document.title = "LORD ESPORTS — Pro Athlete Roster";
-  }, []);
+  const playersSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "LORDZ ESPORTS Official Athlete Roster",
+    description: "Championship esports athletes representing LORDZ ESPORTS.",
+    url: `${SITE_URL}/players`,
+    numberOfItems: playersData.length,
+    itemListElement: playersData.map((p, idx) => ({
+      "@type": "ListItem",
+      position: idx + 1,
+      item: {
+        "@type": "Person",
+        name: p.realName,
+        alternateName: p.ign,
+        jobTitle: `${p.role} - Pro Free Fire Athlete`,
+        description: p.about,
+        image: p.image?.startsWith("http") ? p.image : `${SITE_URL}${p.image || "/players/player-beast.jpg"}`,
+        worksFor: {
+          "@type": "SportsOrganization",
+          name: "LORDZ ESPORTS",
+          url: SITE_URL,
+        },
+      },
+    })),
+  };
 
   return (
     <div className="min-h-screen bg-[#050505]">
+      <SEO
+        title="LORDZ ESPORTS Players | Official Pro Athlete Roster"
+        description="Meet the championship esports athletes of LORDZ ESPORTS competing across national Free Fire and Free Fire MAX circuits: BEAST, SHADOW, FALCON, and VIPER."
+        canonicalPath="/players"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Players", item: "/players" },
+        ]}
+        structuredData={playersSchema}
+      />
+
       <PageHero
         badge="PRO ATHLETE ROSTER"
         title="MEET THE"
