@@ -273,7 +273,7 @@ export const MyTournamentsPage: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen pt-32 pb-20 px-4 flex flex-col items-center justify-center text-center">
-        <SEO title="My Tournaments | LORDZ ESPORTS Player Hub" noindex nofollow />
+        <SEO title="My Tournaments | LORD ESPORTS Player Hub" noindex nofollow />
         <div className="w-16 h-16 rounded-2xl bg-[#FFBE32]/10 border border-[#FFBE32]/30 flex items-center justify-center mb-6 text-[#FFBE32] shadow-[0_0_20px_rgba(255,190,50,0.2)]">
           <Trophy className="w-8 h-8" />
         </div>
@@ -295,7 +295,7 @@ export const MyTournamentsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-28 sm:pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <SEO title="My Tournaments | LORDZ ESPORTS Player Hub" noindex nofollow />
+      <SEO title="My Tournaments | LORD ESPORTS Player Hub" noindex nofollow />
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 border-b border-white/10">
         <div>

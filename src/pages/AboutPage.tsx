@@ -8,7 +8,7 @@ export const AboutPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <SEO
-        title="About LORDZ ESPORTS | Organization History, Manifesto &amp; Achievements"
+        title="About LORD ESPORTS | Organization History, Manifesto &amp; Achievements"
         description="Learn about LORDZ ESPORTS, India's premier competitive mobile esports organization. Built on discipline, South Indian cultural identity, and championship-tier tournament performance."
         canonicalPath="/about"
         breadcrumbs={[

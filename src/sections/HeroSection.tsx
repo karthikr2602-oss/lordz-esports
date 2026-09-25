@@ -4,7 +4,7 @@ import { GoldButton } from "../components/common/GoldButton";
 import { OutlineButton } from "../components/common/OutlineButton";
 import { TemplePattern } from "../components/common/TemplePattern";
 import logoImg from "../assets/lordz-logo.png";
-import freeFireFlameImg from "../assets/free-fire-flame-character.png";
+import trophyImg from "../assets/lord-championship-trophy.png";
 import { Trophy, ChevronDown, Sparkles } from "lucide-react";
 
 // Subtle floating energy particles for the Free Fire character
@@ -260,8 +260,8 @@ export const HeroSection = ({
                 }}
               >
                 <motion.img
-                  src={freeFireFlameImg}
-                  alt="LORDZ ESPORTS Free Fire Flame Character"
+                  src={trophyImg}
+                  alt="LORDZ ESPORTS Lord Championship Cup Trophy"
                   fetchPriority="high"
                   className="max-h-[460px] sm:max-h-[560px] lg:max-h-[640px] xl:max-h-[680px] w-auto object-contain select-none pointer-events-none filter contrast-[1.06] brightness-[1.04]"
                   animate={{

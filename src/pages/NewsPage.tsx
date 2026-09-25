@@ -41,7 +41,7 @@ export const NewsPage = () => {
   return (
     <div className="min-h-screen bg-[#070709]">
       <SEO
-        title="LORDZ ESPORTS News | Official Reports, Tournament Briefs &amp; Roster Updates"
+        title="LORD ESPORTS News | Official Reports, Tournament Briefs &amp; Roster Updates"
         description="Stay up to date with the latest dispatches, competitive match debriefs, tournament announcements, and roster updates from LORDZ ESPORTS."
         canonicalPath="/news"
         breadcrumbs={[

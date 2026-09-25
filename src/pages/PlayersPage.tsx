@@ -36,7 +36,7 @@ export const PlayersPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <SEO
-        title="LORDZ ESPORTS Players | Official Pro Athlete Roster"
+        title="LORD ESPORTS Players | Official Pro Athlete Roster"
         description="Meet the championship esports athletes of LORDZ ESPORTS competing across national Free Fire and Free Fire MAX circuits: BEAST, SHADOW, FALCON, and VIPER."
         canonicalPath="/players"
         breadcrumbs={[

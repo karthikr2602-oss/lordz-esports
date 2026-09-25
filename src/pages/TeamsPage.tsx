@@ -146,7 +146,7 @@ export const TeamsPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-[#E0E0E0] selection:bg-[#FFBE32] selection:text-black font-sans">
       <SEO
-        title="LORDZ ESPORTS Team | Founders, Leadership &amp; Operations Collective"
+        title="LORD ESPORTS Team | Founders, Leadership &amp; Operations Collective"
         description="Meet the core team and leadership powering LORDZ ESPORTS across technology, tournament operations, management, creative media, and community."
         canonicalPath="/teams"
         breadcrumbs={[

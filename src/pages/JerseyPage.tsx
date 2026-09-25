@@ -9,7 +9,7 @@ export const JerseyPage = () => {
   return (
     <div className="min-h-screen bg-[#070709]">
       <SEO
-        title="LORDZ ESPORTS Official Combat Merchandise &amp; Jersey"
+        title="LORD ESPORTS Official Combat Merchandise &amp; Jersey"
         description="Engineered for high-pressure competition. Crafted with Dravidian temple heritage, athlete IGN sublimation, and battle flame aesthetics."
         canonicalPath="/products"
       />

@@ -152,7 +152,7 @@ export const TournamentDetailPage: React.FC = () => {
   if (!tournament) {
     return (
       <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 text-center">
-        <SEO title="Tournament Not Found | LORDZ ESPORTS" noindex nofollow />
+        <SEO title="Tournament Not Found | LORD ESPORTS" noindex nofollow />
         <Trophy className="h-16 w-16 text-gray-600 mb-4" />
         <h1 className="font-display text-3xl uppercase tracking-wider">Tournament Not Found</h1>
         <p className="text-sm text-gray-400 mt-2">The tournament arena you are looking for may have concluded or been archived.</p>
@@ -336,7 +336,7 @@ export const TournamentDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FFBE32] selection:text-black">
       <SEO
-        title={`${tournament.title} | LORDZ ESPORTS Tournament`}
+        title={`${tournament.title} | LORD ESPORTS Tournament`}
         description={
           tournament.shortDescription ||
           tournament.description ||
