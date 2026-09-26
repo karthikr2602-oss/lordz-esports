@@ -1,3 +1,23 @@
+export const DEFAULT_TOURNAMENT_BANNER = "https://res.cloudinary.com/jonhcrfa/image/upload/v1790420645/lordz-esports/tournaments/default-tournament-banner.png";
+export const FLAME_OF_GLORY_BANNER = "https://res.cloudinary.com/jonhcrfa/image/upload/v1790420643/lordz-esports/tournaments/flame-of-glory-finals.jpg";
+export const CLUTCH_CUP_BANNER = "https://res.cloudinary.com/jonhcrfa/image/upload/v1790420644/lordz-esports/tournaments/lordz-clutch-cup-s1.png";
+
+export function getTournamentBannerUrl(bannerImage?: string | null, title?: string): string {
+  if (
+    !bannerImage ||
+    typeof bannerImage !== "string" ||
+    bannerImage.trim() === "" ||
+    bannerImage.includes("partner-freefire") ||
+    bannerImage.includes("partner-esportspro")
+  ) {
+    const t = (title || "").toUpperCase();
+    if (t.includes("FLAME") || t.includes("GLORY")) return FLAME_OF_GLORY_BANNER;
+    if (t.includes("CLUTCH")) return CLUTCH_CUP_BANNER;
+    return DEFAULT_TOURNAMENT_BANNER;
+  }
+  return bannerImage;
+}
+
 export interface PrizeTier {
   id: string;
   place: string; // e.g. "1st", "2nd", "3rd", "4th-10th", "Top Fragger"
@@ -332,7 +352,7 @@ export const tournamentsData: Tournament[] = [
     shortDescription: "India's top tier Free Fire MAX squads battling across Bermuda and Purgatory for the prestigious championship crown.",
     description: "Flame of Glory Finals Season 2 brings together 128 vetted competitive squads. Featuring multi-stage qualifiers from Round 1 through Quarter Finals, Semi Finals, and the legendary Grand Finals broadcasted live.",
     streamUrl: "https://www.youtube.com",
-    bannerImage: "/uploads/partner-freefire.png",
+    bannerImage: "https://res.cloudinary.com/jonhcrfa/image/upload/v1790420643/lordz-esports/tournaments/flame-of-glory-finals.jpg",
     rules: "1. Emulators strictly banned.\n2. In-game anti-cheat recordings must be kept for 24h.\n3. Squads must check in on Discord 30 mins before match start.\n4. Minimum level 40 Free Fire account required.",
     termsConditions: "Registration fees are strictly non-refundable once slots are locked. Decisions by Lord Tournament Marshals are final.",
     upiId: "lordzesports@upi",
@@ -378,7 +398,7 @@ export const tournamentsData: Tournament[] = [
     shortDescription: "High-octane national tournament featuring premier tier-1 invited clans and open qualifier champions.",
     description: "64 squads battle in hardcore bracket stages with verified live anti-cheat observer review.",
     streamUrl: "https://www.youtube.com",
-    bannerImage: "/uploads/partner-esportspro.png",
+    bannerImage: "https://res.cloudinary.com/jonhcrfa/image/upload/v1790420644/lordz-esports/tournaments/lordz-clutch-cup-s1.png",
     rules: "Default competitive Free Fire MAX esports rulebook applies.",
     termsConditions: "All players must be present on official voice channels during matches.",
     upiId: "lordzesports@upi",

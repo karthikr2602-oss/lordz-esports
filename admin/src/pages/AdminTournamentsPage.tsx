@@ -6,6 +6,8 @@ import {
   type PrizeTier,
   type SponsorItem,
   tournamentsData,
+  getTournamentBannerUrl,
+  DEFAULT_TOURNAMENT_BANNER,
 } from "../data/tournaments";
 import { formatCurrency, formatDate } from "../utils/formatters";
 import {
@@ -135,7 +137,7 @@ export const AdminTournamentsPage: React.FC = () => {
     shortDescription: "Top teams battle across Bermuda & Purgatory for the championship trophy.",
     description: "",
     streamUrl: "https://youtube.com/@lordzesports",
-    bannerImage: "/uploads/partner-freefire.png" as string | null,
+    bannerImage: DEFAULT_TOURNAMENT_BANNER as string | null,
     logoImage: null as string | null,
     rules: "1. Mobile devices only. Emulators are strictly prohibited.\n2. In-game recording is mandatory for top-tier rounds.\n3. Toxic behavior or abusing officials leads to immediate DQ.\n4. All players must join the official Lordz Discord.",
     scoringRules: "Win: 12 pts | Kill: 1 pt | 2nd: 9 pts | 3rd: 8 pts",
@@ -430,7 +432,7 @@ export const AdminTournamentsPage: React.FC = () => {
       shortDescription: "High-stakes Free Fire MAX championship with live broadcast.",
       description: "",
       streamUrl: "https://youtube.com/@lordzesports",
-      bannerImage: "/uploads/partner-freefire.png",
+      bannerImage: DEFAULT_TOURNAMENT_BANNER,
       logoImage: null,
       rules: "1. Mobile devices only. Emulators are strictly prohibited.\n2. In-game recording is mandatory.\n3. Discord check-in is mandatory before matches.",
       scoringRules: "Win: 12 pts | Kill: 1 pt",
@@ -730,8 +732,13 @@ export const AdminTournamentsPage: React.FC = () => {
                 <div className="relative lg:w-72 h-44 lg:h-auto bg-[#141419] shrink-0 overflow-hidden">
                   {t.bannerImage ? (
                     <img
-                      src={t.bannerImage}
+                      src={getTournamentBannerUrl(t.bannerImage, t.title)}
                       alt={t.title}
+                      loading="eager"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = DEFAULT_TOURNAMENT_BANNER;
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (

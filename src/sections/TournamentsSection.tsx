@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionHeading } from "../components/common/SectionHeading";
-import { tournamentsData, type Tournament } from "../data/tournaments";
+import { tournamentsData, type Tournament, getTournamentBannerUrl, DEFAULT_TOURNAMENT_BANNER } from "../data/tournaments";
 import { tournamentsApi, getMyTournaments } from "../api/tournaments";
 import { useAuth } from "../context/AuthContext";
 import { Trophy, Calendar, Shield, ArrowRight, CheckCircle2 } from "lucide-react";
@@ -165,19 +165,19 @@ export const TournamentsSection = ({
                     className="group relative flex flex-col justify-between rounded-xl bg-[#0C0C0E] border border-white/10 hover:border-[#FFBE32]/60 hover:-translate-y-1.5 transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:shadow-[0_15px_35px_rgba(255,190,50,0.15)] overflow-hidden"
                   >
                     {/* Top Banner Image / Accent */}
-                    <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-black via-[#141419] to-black">
-                      {t.bannerImage ? (
-                        <img
-                          src={t.bannerImage}
-                          alt={t.title}
-                          loading="lazy"
-                          decoding="async"
-                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60 filter saturate-150"
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-[radial-gradient(ellipse_at_top,#FFBE32_0%,transparent_70%)] opacity-20" />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E] via-transparent to-black/60" />
+                    <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-[#121218] via-[#1a1a24] to-black">
+                      <img
+                        src={getTournamentBannerUrl(t.bannerImage, t.title)}
+                        alt={t.title}
+                        loading="eager"
+                        decoding="async"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = DEFAULT_TOURNAMENT_BANNER;
+                        }}
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-75 filter saturate-125"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E] via-transparent to-black/60 pointer-events-none" />
 
                       {/* Top Badges */}
                       <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">

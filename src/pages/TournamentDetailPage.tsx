@@ -8,6 +8,8 @@ import {
   type RegistrationItem,
   type LeaderboardEntry,
   tournamentsData,
+  getTournamentBannerUrl,
+  DEFAULT_TOURNAMENT_BANNER,
 } from "../data/tournaments";
 import {
   Trophy,
@@ -383,16 +385,18 @@ export const TournamentDetailPage: React.FC = () => {
       {/* Top Banner Hero */}
       <div className="relative border-b border-white/10 bg-[#08080A] overflow-hidden">
         {/* Background Banner Image */}
-        <div className="absolute inset-0 h-96 w-full opacity-35">
-          {tournament.bannerImage ? (
-            <img
-              src={tournament.bannerImage}
-              alt={tournament.title}
-              className="w-full h-full object-cover filter saturate-150 brightness-75"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-r from-black via-[#171720] to-black" />
-          )}
+        <div className="absolute inset-0 h-96 w-full opacity-35 bg-gradient-to-r from-black via-[#171720] to-black">
+          <img
+            src={getTournamentBannerUrl(tournament.bannerImage, tournament.title)}
+            alt={tournament.title}
+            loading="eager"
+            decoding="async"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = DEFAULT_TOURNAMENT_BANNER;
+            }}
+            className="w-full h-full object-cover filter saturate-150 brightness-75"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-transparent to-[#050505]" />
         </div>

@@ -31,12 +31,16 @@ if (fs.existsSync(adminDist)) {
   process.exit(1);
 }
 
-// Ensure public uploads are copied to dist/uploads
+// Ensure public uploads are copied to dist/uploads and admin directories
 const publicUploads = path.resolve("public", "uploads");
 const distUploads = path.resolve("dist", "uploads");
+const adminPublicUploads = path.resolve("admin", "public", "uploads");
+const adminDistUploads = path.resolve("dist", "admin", "uploads");
 if (fs.existsSync(publicUploads)) {
   fs.cpSync(publicUploads, distUploads, { recursive: true });
-  console.log("✅ Partner and media uploads synchronized to dist/uploads!");
+  fs.cpSync(publicUploads, adminPublicUploads, { recursive: true });
+  fs.cpSync(publicUploads, adminDistUploads, { recursive: true });
+  console.log("✅ Partner and media uploads synchronized to dist/uploads and admin dist!");
 }
 
 console.log("🎉 Full production build completed successfully!");

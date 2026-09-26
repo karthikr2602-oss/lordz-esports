@@ -8,6 +8,8 @@ import {
   type RegistrationItem,
   type LeaderboardEntry,
   tournamentsData,
+  getTournamentBannerUrl,
+  DEFAULT_TOURNAMENT_BANNER,
 } from "../data/tournaments";
 import { formatCurrency, formatDate } from "../utils/formatters";
 import {
@@ -884,15 +886,16 @@ export const AdminTournamentDetailPage: React.FC = () => {
       <div className="relative rounded-2xl border border-white/10 bg-[#0C0C0E] overflow-hidden shadow-2xl">
         {/* Banner Backdrop */}
         <div className="relative h-44 sm:h-52 w-full bg-gradient-to-r from-black via-[#141419] to-black overflow-hidden">
-          {tournament.bannerImage ? (
-            <img
-              src={tournament.bannerImage}
-              alt={tournament.title}
-              className="h-full w-full object-cover opacity-40 filter saturate-150"
-            />
-          ) : (
-            <div className="h-full w-full bg-[radial-gradient(ellipse_at_top,#FFBE32_0%,transparent_70%)] opacity-15" />
-          )}
+          <img
+            src={getTournamentBannerUrl(tournament.bannerImage, tournament.title)}
+            alt={tournament.title}
+            loading="eager"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = DEFAULT_TOURNAMENT_BANNER;
+            }}
+            className="h-full w-full object-cover opacity-50 filter saturate-150"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0C0C0E] via-[#0C0C0E]/70 to-transparent" />
 
           {/* Top Info overlay */}
