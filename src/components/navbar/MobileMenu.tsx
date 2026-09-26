@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import {
   X,
   Trophy,
-  Users,
   Shirt,
   Newspaper,
   Video,
@@ -30,13 +29,11 @@ interface MobileMenuProps {
 const navLinks = [
   { name: "HOME", path: "/", icon: Home },
   { name: "TOURNAMENTS", path: "/tournaments", icon: Trophy },
-  { name: "PLAYERS", path: "/players", icon: Users },
   { name: "VOTING", path: "/voting", icon: Vote },
-  { name: "TEAMS", path: "/teams", icon: Users },
   { name: "PRODUCTS", path: "/products", icon: Shirt },
   { name: "BRAND PARTNERS", path: "/partners", icon: Handshake },
   { name: "PARTNER WITH US", path: "/partner-with-us", icon: Award },
-  { name: "ABOUT LORDZ", path: "/about", icon: Info },
+  { name: "ABOUT (ROSTER & TEAMS)", path: "/about", icon: Info },
   { name: "NEWS", path: "/news", icon: Newspaper },
   { name: "MEDIA", path: "/media", icon: Video },
   { name: "COMMUNITY", path: "/community", icon: MessageSquare },
@@ -83,7 +80,10 @@ export const MobileMenu = ({
           {/* Navigation Items Staggered */}
           <div className="py-3 sm:py-4 space-y-1 overflow-y-auto flex-1 my-1 sm:my-2">
             {navLinks.map((link, index) => {
-              const isActive = currentPath === link.path;
+              const isActive =
+                link.path === "/about"
+                  ? currentPath === "/about" || currentPath === "/players" || currentPath === "/teams"
+                  : currentPath === link.path;
               const Icon = link.icon;
 
               return (

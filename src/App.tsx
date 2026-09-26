@@ -14,7 +14,6 @@ import { HomePage } from "./pages/HomePage";
 // Code-split secondary routes for Core Web Vitals optimization
 const TournamentsPage = lazy(() => import("./pages/TournamentsPage").then((m) => ({ default: m.TournamentsPage })));
 const TournamentDetailPage = lazy(() => import("./pages/TournamentDetailPage").then((m) => ({ default: m.TournamentDetailPage })));
-const PlayersPage = lazy(() => import("./pages/PlayersPage").then((m) => ({ default: m.PlayersPage })));
 const ProductsPage = lazy(() => import("./pages/ProductsPage").then((m) => ({ default: m.ProductsPage })));
 const AboutPage = lazy(() => import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })));
 const NewsPage = lazy(() => import("./pages/NewsPage").then((m) => ({ default: m.NewsPage })));
@@ -24,7 +23,6 @@ const BrandPartnersPage = lazy(() => import("./pages/BrandPartnersPage").then((m
 const PartnersPage = lazy(() => import("./pages/PartnersPage").then((m) => ({ default: m.PartnersPage })));
 const MyTournamentsPage = lazy(() => import("./pages/MyTournamentsPage").then((m) => ({ default: m.MyTournamentsPage })));
 const VotingPage = lazy(() => import("./pages/VotingPage").then((m) => ({ default: m.VotingPage })));
-const TeamsPage = lazy(() => import("./pages/TeamsPage").then((m) => ({ default: m.TeamsPage })));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
 
 /**
@@ -65,9 +63,9 @@ export function App() {
               <Route path="/tournaments" element={<TournamentsPage />} />
               <Route path="/tournaments/:slug" element={<TournamentDetailPage />} />
               <Route path="/my-tournaments" element={<MyTournamentsPage />} />
-              <Route path="/players" element={<PlayersPage />} />
+              <Route path="/players" element={<Navigate to="/about#players" replace />} />
               <Route path="/voting" element={<VotingPage />} />
-              <Route path="/teams" element={<TeamsPage />} />
+              <Route path="/teams" element={<Navigate to="/about#teams" replace />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/jersey" element={<Navigate to="/products" replace />} />
               <Route path="/about" element={<AboutPage />} />

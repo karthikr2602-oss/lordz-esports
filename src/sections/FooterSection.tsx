@@ -153,8 +153,13 @@ export const FooterSection = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/players" className="hover:text-[#FFBE32] transition-colors">
+                <Link to="/about#players" className="hover:text-[#FFBE32] transition-colors">
                   Pro Roster
+                </Link>
+              </li>
+              <li>
+                <Link to="/about#teams" className="hover:text-[#FFBE32] transition-colors">
+                  The Collective Team
                 </Link>
               </li>
               <li>

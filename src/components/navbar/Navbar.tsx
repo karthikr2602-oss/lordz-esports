@@ -19,13 +19,11 @@ import { useModals } from "../../context/useModals";
 import { useAuth } from "../../context/AuthContext";
 import { NotificationCenter } from "../notifications/NotificationCenter";
 
-// Straight Desktop Nav Items (No 'MORE' dropdown, 'JERSEY' replaced with 'PRODUCTS', 'HALL OF GLORY' removed)
+// Straight Desktop Nav Items (PLAYERS & TEAMS consolidated into ABOUT)
 const straightNavItems = [
   { label: "HOME", path: "/" },
   { label: "TOURNAMENTS", path: "/tournaments" },
-  { label: "PLAYERS", path: "/players" },
   { label: "VOTING", path: "/voting" },
-  { label: "TEAMS", path: "/teams" },
   { label: "PRODUCTS", path: "/products" },
   { label: "PARTNERS", path: "/partners" },
   { label: "PARTNER WITH US", path: "/partner-with-us" },
@@ -93,7 +91,10 @@ export const Navbar = () => {
           {/* Desktop Navigation Links — Straight Row Layout (No dropdown) */}
           <nav className="hidden lg:flex items-center gap-2.5 xl:gap-4 2xl:gap-5 text-[11px] xl:text-xs font-heading font-bold uppercase tracking-wider text-gray-300">
             {straightNavItems.map((item) => {
-              const isActive = pathname === item.path;
+              const isActive =
+                item.path === "/about"
+                  ? pathname === "/about" || pathname === "/players" || pathname === "/teams"
+                  : pathname === item.path;
               return (
                 <Link
                   key={item.label}

@@ -33,6 +33,10 @@ const router = Router();
 // ================= AUTH ROUTES =================
 router.post("/auth/login", authCtrl.login);
 router.post("/auth/register", authCtrl.register);
+router.get("/auth/google", authCtrl.initiateGoogleLogin);
+router.get("/auth/google/login", authCtrl.initiateGoogleLogin);
+router.get("/auth/google/callback", authCtrl.handleGoogleCallback);
+router.post("/auth/google/exchange", authCtrl.exchangeGoogleCode);
 router.post("/auth/google", authCtrl.googleAuth);
 router.post("/auth/logout", authCtrl.logout);
 router.get("/auth/me", authenticate, authCtrl.getMe);

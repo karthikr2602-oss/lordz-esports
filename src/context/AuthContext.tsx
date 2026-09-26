@@ -68,6 +68,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
+    // Check if redirected from Google OAuth with success token
+    const urlParams = new URLSearchParams(window.location.search);
+    const googleAuthStatus = urlParams.get("google_auth");
+    const tokenParam = urlParams.get("token");
+    const userParam = urlParams.get("user");
+    const codeParam = urlParams.get("code");
+
+    if (googleAuthStatus === "success" && tokenParam && userParam) {
+      try {
+        const parsedUser = JSON.parse(decodeURIComponent(userParam));
+        saveAuthSession(tokenParam, parsedUser);
+
+        // Clean query parameters from URL without reloading page
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("google_auth");
+        cleanUrl.searchParams.delete("token");
+        cleanUrl.searchParams.delete("user");
+        window.history.replaceState(null, "", cleanUrl.pathname + cleanUrl.hash);
+      } catch (e) {
+        console.warn("Failed to parse Google user from URL:", e);
+      }
+    } else if (codeParam) {
+      // Exchange authorization code with backend if returned directly to client
+      fetch("/api/auth/google/exchange", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: codeParam,
+          redirectUri: window.location.origin + window.location.pathname,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.token && data.user) {
+            saveAuthSession(data.token, data.user);
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete("code");
+            cleanUrl.searchParams.delete("scope");
+            cleanUrl.searchParams.delete("authuser");
+            cleanUrl.searchParams.delete("prompt");
+            cleanUrl.searchParams.delete("state");
+            window.history.replaceState(null, "", cleanUrl.pathname + cleanUrl.hash);
+          }
+        })
+        .catch((err) => console.warn("Google code exchange failed:", err));
+    }
+
     refreshUser();
   }, [refreshUser]);
 

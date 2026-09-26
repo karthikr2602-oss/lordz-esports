@@ -4,13 +4,13 @@ import { useAdminAuth } from "../context/AdminAuthContext";
 import { getApiUrl } from "../api/client";
 import logoImg from "../assets/lordz-logo.png";
 import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
+import { redirectToGoogleAccounts } from "../utils/googleAuth";
 
 export const AdminLoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { login } = useAdminAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,44 +70,10 @@ export const AdminLoginPage: React.FC = () => {
     setError(null);
   };
 
-  const handleGoogleAdminLogin = async () => {
+  const handleGoogleAdminLogin = () => {
     setError(null);
     setIsSubmitting(true);
-    try {
-      const googleEmail = window.prompt("Enter your Google Account email for admin login:", "admin@lordz.gg");
-      if (!googleEmail || !googleEmail.trim()) {
-        setIsSubmitting(false);
-        return;
-      }
-      const res = await fetch(getApiUrl("/auth/google"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: googleEmail.trim().toLowerCase(), name: "Lord Administrator" }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.success) {
-        login(data.token, { ...data.user, role: "ADMIN" });
-        navigate(from, { replace: true });
-        return;
-      }
-      login("google-admin-token", {
-        id: "google-admin-id",
-        email: googleEmail,
-        role: "ADMIN",
-        fullName: "Administrator",
-      });
-      navigate(from, { replace: true });
-    } catch {
-      login("google-admin-token", {
-        id: "google-admin-id",
-        email: "admin@lordz.gg",
-        role: "ADMIN",
-        fullName: "Administrator",
-      });
-      navigate(from, { replace: true });
-    } finally {
-      setIsSubmitting(false);
-    }
+    redirectToGoogleAccounts(window.location.href, "ADMIN");
   };
 
   return (

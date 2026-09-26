@@ -28,6 +28,7 @@ import logoImg from "../../assets/lordz-logo.png";
 import { useAuth } from "../../context/AuthContext";
 import { authApi } from "../../api/auth";
 import { merchandiseApi, type OrderItem } from "../../api/merchandise";
+import { redirectToGoogleAccounts } from "../../utils/googleAuth";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
-  const { user, isAuthenticated, login, loginWithGoogle, register, logout, updateUser } = useAuth();
+  const { user, isAuthenticated, login, register, logout, updateUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [loading, setLoading] = useState(false);
@@ -137,37 +138,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     setErrorMessage(null);
     setGoogleLoading(true);
-
-    try {
-      // Prompt user for Google account email
-      const googleEmail = window.prompt("Enter your Google Account email to sign in:", "athlete@gmail.com");
-      if (!googleEmail || !googleEmail.trim()) {
-        setGoogleLoading(false);
-        return;
-      }
-
-      const emailTrimmed = googleEmail.trim().toLowerCase();
-      const defaultName = emailTrimmed.split("@")[0].replace(/[^a-zA-Z0-9]/g, " ").toUpperCase();
-
-      const signedInUser = await loginWithGoogle({
-        email: emailTrimmed,
-        name: defaultName,
-        picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${emailTrimmed}`,
-      });
-
-      setSuccessMessage(`Welcome ${signedInUser.fullName || signedInUser.ign || "Athlete"}! Signed in with Google.`);
-      setTimeout(() => {
-        handleClose();
-      }, 1200);
-    } catch (err: any) {
-      setErrorMessage(err.message || "Google Sign-In failed. Please try again.");
-    } finally {
-      setGoogleLoading(false);
-    }
+    redirectToGoogleAccounts(window.location.href, "PLAYER");
   };
+
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

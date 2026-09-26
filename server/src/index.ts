@@ -1,8 +1,3 @@
-/**
- * Local development entry point.
- * This file runs when you do `npm run dev` locally.
- * Vercel uses vercel.json + server.ts (which exports the Express app directly).
- */
 import app from "./server.js";
 
 const DEFAULT_PORT = Number(process.env.PORT) || 5000;
