@@ -7,6 +7,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<PlayerUser>;
+  loginWithGoogle: (payload: { token?: string; credential?: string; email?: string; name?: string; picture?: string }) => Promise<PlayerUser>;
   register: (payload: RegisterPayload) => Promise<PlayerUser>;
   logout: () => Promise<void>;
   updateUser: (data: Partial<PlayerUser>) => void;
@@ -76,6 +77,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return res.user;
   };
 
+  const loginWithGoogle = async (payload: { token?: string; credential?: string; email?: string; name?: string; picture?: string }): Promise<PlayerUser> => {
+    const res = await authApi.googleLogin(payload);
+    saveAuthSession(res.token, res.user);
+    return res.user;
+  };
+
   const register = async (payload: RegisterPayload): Promise<PlayerUser> => {
     const res = await authApi.register(payload);
     saveAuthSession(res.token, res.user);
@@ -107,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user && !!token,
         isLoading,
         login,
+        loginWithGoogle,
         register,
         logout,
         updateUser,

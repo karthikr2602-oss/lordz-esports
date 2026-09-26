@@ -366,13 +366,13 @@ export const AdminTournamentDetailPage: React.FC = () => {
 
   // Calculate live statistics
   const statsTotal = registrations.length;
-  const statsApproved = registrations.filter((r) => r.status === "APPROVED").length;
+  const statsApproved = registrations.filter((r) => r.status === "APPROVED" || r.status === "CONFIRMED").length;
   const statsPending = registrations.filter((r) => r.status === "PENDING" || r.status === "UNDER_REVIEW").length;
   const statsPaymentPending = registrations.filter(
     (r) => r.status === "PAYMENT_PENDING" || r.paymentStatus === "PENDING"
   ).length;
   const statsPaymentVerified = registrations.filter((r) => r.paymentStatus === "VERIFIED").length;
-  const statsRejected = registrations.filter((r) => r.status === "REJECTED").length;
+  const statsRejected = registrations.filter((r) => r.status === "REJECTED" || r.status === "PAYMENT_FAILED").length;
 
   // Handlers for Registration actions
   const handleUpdateRegStatus = async (regId: string, status: string) => {
@@ -393,6 +393,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
     try {
       if (paymentStatus === "VERIFIED") {
         await tournamentsApi.verifyPayment(regId);
+        alert("Payment verified and squad approved successfully!");
       } else if (paymentStatus === "REJECTED") {
         const reason = window.prompt("Enter rejection reason for player (e.g. Invalid UTR, transaction mismatch):", "Invalid UTR reference code");
         if (reason === null) return; // cancelled prompt
@@ -407,7 +408,8 @@ export const AdminTournamentDetailPage: React.FC = () => {
             return {
               ...r,
               paymentStatus,
-              status: paymentStatus === "VERIFIED" ? "CONFIRMED" : paymentStatus === "REJECTED" ? "PAYMENT_FAILED" : r.status,
+              status: paymentStatus === "VERIFIED" ? "APPROVED" : paymentStatus === "REJECTED" ? "REJECTED" : r.status,
+              approvedAt: paymentStatus === "VERIFIED" ? new Date().toISOString() : r.approvedAt,
               payment: r.payment ? { ...r.payment, status: paymentStatus } : null,
             };
           }
@@ -420,7 +422,8 @@ export const AdminTournamentDetailPage: React.FC = () => {
             ? {
                 ...prev,
                 paymentStatus,
-                status: paymentStatus === "VERIFIED" ? "CONFIRMED" : paymentStatus === "REJECTED" ? "PAYMENT_FAILED" : prev.status,
+                status: paymentStatus === "VERIFIED" ? "APPROVED" : paymentStatus === "REJECTED" ? "REJECTED" : prev.status,
+                approvedAt: paymentStatus === "VERIFIED" ? new Date().toISOString() : prev.approvedAt,
                 payment: prev.payment ? { ...prev.payment, status: paymentStatus } : null,
               }
             : null
@@ -543,18 +546,46 @@ export const AdminTournamentDetailPage: React.FC = () => {
   const handleOpenAdvanceModal = (sourceRoundId: string) => {
     const roundIdx = rounds.findIndex((r) => r.id === sourceRoundId);
     const nextRound = rounds[roundIdx + 1];
+
+    // Filter out eliminated / disqualified teams before opening modal
+    const currentRound = rounds.find((r) => r.id === sourceRoundId);
+    const roundTeams = currentRound?.roundTeams || [];
+    const validIds = selectedAdvanceTeamIds.filter((id) => {
+      const rt = roundTeams.find((team) => team.teamId === id);
+      return rt && rt.status !== "ELIMINATED" && rt.status !== "DISQUALIFIED";
+    });
+
+    if (validIds.length === 0) {
+      alert("Please select at least one qualified squad for advancement. Eliminated or disqualified squads cannot be promoted.");
+      return;
+    }
+
+    setSelectedAdvanceTeamIds(validIds);
     setAdvanceSourceRoundId(sourceRoundId);
     setAdvanceTargetRoundId(nextRound?.id || "");
     setAdvanceModalOpen(true);
   };
 
   const handleConfirmAdvance = async () => {
-    if (!tournamentId || !advanceSourceRoundId || !advanceTargetRoundId || selectedAdvanceTeamIds.length === 0) {
+    if (!tournamentId || !advanceSourceRoundId || !advanceTargetRoundId) {
       alert("Please select target round and at least one team");
       return;
     }
+
+    const currentRound = rounds.find((r) => r.id === advanceSourceRoundId);
+    const roundTeams = currentRound?.roundTeams || [];
+    const validTeamsToAdvance = selectedAdvanceTeamIds.filter((id) => {
+      const rt = roundTeams.find((t) => t.teamId === id);
+      return !rt || (rt.status !== "ELIMINATED" && rt.status !== "DISQUALIFIED");
+    });
+
+    if (validTeamsToAdvance.length === 0) {
+      alert("No qualified teams selected for promotion. Eliminated squads cannot be advanced.");
+      return;
+    }
+
     try {
-      await tournamentsApi.advanceTeams(tournamentId, advanceSourceRoundId, selectedAdvanceTeamIds, advanceTargetRoundId);
+      await tournamentsApi.advanceTeams(tournamentId, advanceSourceRoundId, validTeamsToAdvance, advanceTargetRoundId);
       const updatedRounds = await tournamentsApi.getRounds(tournamentId);
       if (updatedRounds && updatedRounds.length > 0) setRounds(updatedRounds);
       setAdvanceModalOpen(false);
@@ -567,6 +598,9 @@ export const AdminTournamentDetailPage: React.FC = () => {
 
   const handleUpdateRoundTeam = async (roundId: string, teamId: string, data: { status?: string; score?: number }) => {
     if (!tournamentId) return;
+    if (data.status === "ELIMINATED" || data.status === "DISQUALIFIED") {
+      setSelectedAdvanceTeamIds((prev) => prev.filter((id) => id !== teamId));
+    }
     try {
       await tournamentsApi.updateRoundTeamStatus(tournamentId, roundId, teamId, data);
       setRounds((prev) =>
@@ -1752,7 +1786,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {registrations
-              .filter((r) => r.status === "APPROVED")
+              .filter((r) => r.status === "APPROVED" || r.status === "CONFIRMED")
               .map((team) => (
                 <div
                   key={team.id}
@@ -1910,9 +1944,12 @@ export const AdminTournamentDetailPage: React.FC = () => {
                 if (!currentRound) return null;
 
                 const roundTeams = currentRound.roundTeams || [];
+                const eligibleTeams = roundTeams.filter(
+                  (rt) => rt.status !== "ELIMINATED" && rt.status !== "DISQUALIFIED"
+                );
                 const allSelected =
-                  roundTeams.length > 0 &&
-                  roundTeams.every((rt) => selectedAdvanceTeamIds.includes(rt.teamId));
+                  eligibleTeams.length > 0 &&
+                  eligibleTeams.every((rt) => selectedAdvanceTeamIds.includes(rt.teamId));
 
                 return (
                   <div className="rounded-2xl border border-white/10 bg-[#0C0C0E] overflow-hidden shadow-2xl space-y-4">
@@ -2000,14 +2037,16 @@ export const AdminTournamentDetailPage: React.FC = () => {
                                 <input
                                   type="checkbox"
                                   checked={allSelected}
+                                  disabled={eligibleTeams.length === 0}
+                                  title={eligibleTeams.length === 0 ? "No eligible squads to advance" : "Select all eligible squads"}
                                   onChange={(e) => {
                                     if (e.target.checked) {
-                                      setSelectedAdvanceTeamIds(roundTeams.map((rt) => rt.teamId));
+                                      setSelectedAdvanceTeamIds(eligibleTeams.map((rt) => rt.teamId));
                                     } else {
                                       setSelectedAdvanceTeamIds([]);
                                     }
                                   }}
-                                  className="cursor-pointer"
+                                  className={eligibleTeams.length === 0 ? "cursor-not-allowed opacity-30" : "cursor-pointer"}
                                 />
                               </th>
                               <th className="py-3 px-3 w-16">SEED</th>
@@ -2020,19 +2059,23 @@ export const AdminTournamentDetailPage: React.FC = () => {
                           </thead>
                           <tbody className="divide-y divide-white/5">
                             {roundTeams.map((team, idx) => {
-                              const isChecked = selectedAdvanceTeamIds.includes(team.teamId);
+                              const isEliminated = team.status === "ELIMINATED" || team.status === "DISQUALIFIED";
+                              const isChecked = selectedAdvanceTeamIds.includes(team.teamId) && !isEliminated;
                               return (
                                 <tr
                                   key={team.id || team.teamId}
                                   className={`hover:bg-white/[0.02] transition-colors ${
-                                    isChecked ? "bg-[#FFBE32]/5" : ""
+                                    isChecked ? "bg-[#FFBE32]/5" : isEliminated ? "opacity-60 bg-red-950/10" : ""
                                   }`}
                                 >
                                   <td className="py-3 px-3 text-center">
                                     <input
                                       type="checkbox"
                                       checked={isChecked}
+                                      disabled={isEliminated}
+                                      title={isEliminated ? "Eliminated or disqualified squads cannot be advanced" : undefined}
                                       onChange={(e) => {
+                                        if (isEliminated) return;
                                         if (e.target.checked) {
                                           setSelectedAdvanceTeamIds((prev) => [...prev, team.teamId]);
                                         } else {
@@ -2041,7 +2084,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
                                           );
                                         }
                                       }}
-                                      className="cursor-pointer"
+                                      className={isEliminated ? "cursor-not-allowed opacity-30" : "cursor-pointer"}
                                     />
                                   </td>
                                   <td className="py-3 px-3 font-mono text-gray-400">
@@ -2460,10 +2503,15 @@ export const AdminTournamentDetailPage: React.FC = () => {
                       {selectedAdvanceTeamIds.map((tId) => {
                         const roundTeams = rounds.find((r) => r.id === advanceSourceRoundId)?.roundTeams || [];
                         const match = roundTeams.find((rt) => rt.teamId === tId);
+                        const isEliminated = match?.status === "ELIMINATED" || match?.status === "DISQUALIFIED";
                         return (
                           <div key={tId} className="py-1 flex items-center justify-between">
                             <span className="text-white font-bold">{match?.teamName || tId}</span>
-                            <span className="text-emerald-400 text-[10px]">QUALIFY</span>
+                            {isEliminated ? (
+                              <span className="text-rose-400 text-[10px] font-bold">ELIMINATED (INELIGIBLE)</span>
+                            ) : (
+                              <span className="text-emerald-400 text-[10px] font-bold">QUALIFIED</span>
+                            )}
                           </div>
                         );
                       })}

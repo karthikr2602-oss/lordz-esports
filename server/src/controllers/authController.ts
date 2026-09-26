@@ -321,3 +321,127 @@ export const logout = (_req: Request, res: Response): void => {
   res.clearCookie("token");
   res.json({ success: true, message: "Logged out successfully" });
 };
+
+export const googleAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { token, credential, email, name, picture, googleId } = req.body;
+
+    let userEmail = email?.toLowerCase().trim();
+    let userName = name?.trim();
+    let avatarUrl = picture;
+
+    // Decode JWT payload if credential/token is a Google ID token
+    if (credential || token) {
+      const rawToken = credential || token;
+      try {
+        const decoded: any = jwt.decode(rawToken);
+        if (decoded && decoded.email) {
+          userEmail = decoded.email.toLowerCase().trim();
+          userName = userName || decoded.name || decoded.given_name;
+          avatarUrl = avatarUrl || decoded.picture;
+        }
+      } catch (err) {
+        console.warn("Google token decode failed:", err);
+      }
+    }
+
+    if (!userEmail) {
+      res.status(400).json({ success: false, message: "Valid Google account email is required" });
+      return;
+    }
+
+    let user: any = null;
+
+    try {
+      user = await prisma.user.findFirst({
+        where: { email: userEmail },
+      });
+    } catch (e) {
+      console.warn("DB user find error:", e);
+    }
+
+    if (!user) {
+      // Create new player user with Google credentials
+      const baseUsername = userEmail.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "").slice(0, 18);
+      const uniqueUsername = `${baseUsername}_${Math.floor(100 + Math.random() * 900)}`;
+      const randomPassword = await bcrypt.hash(`Google_${Date.now()}_${Math.random()}`, 10);
+      const defaultIgn = userName ? userName.replace(/\s+/g, "_").toUpperCase().slice(0, 15) : uniqueUsername.toUpperCase();
+
+      try {
+        user = await prisma.user.create({
+          data: {
+            email: userEmail,
+            username: uniqueUsername,
+            fullName: userName || "Lordz Athlete",
+            ign: defaultIgn,
+            passwordHash: randomPassword,
+            role: "PLAYER",
+            avatarUrl: avatarUrl || null,
+            primaryGame: "FREE FIRE MAX",
+            gamingExperience: "1-2 Years (Semi-Pro)",
+            status: "ACTIVE",
+          },
+        });
+      } catch (createErr) {
+        console.warn("DB user create error, using memory fallback:", createErr);
+        user = {
+          id: `usr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          email: userEmail,
+          username: uniqueUsername,
+          fullName: userName || "Lordz Athlete",
+          ign: defaultIgn,
+          role: "PLAYER",
+          avatarUrl: avatarUrl || null,
+          primaryGame: "FREE FIRE MAX",
+          gamingExperience: "1-2 Years (Semi-Pro)",
+          status: "ACTIVE",
+          createdAt: new Date(),
+        };
+      }
+    }
+
+    const payload = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      ign: user.ign,
+    };
+
+    const jwtToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+
+    res.cookie("token", jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: "lax",
+    });
+
+    res.json({
+      success: true,
+      message: "Google sign-in successful",
+      token: jwtToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        ign: user.ign,
+        gameUid: user.gameUid,
+        fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
+        phone: user.phone,
+        discord: user.discord,
+        gamingExperience: user.gamingExperience,
+        primaryGame: user.primaryGame,
+        device: user.device,
+        bio: user.bio,
+        status: user.status,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

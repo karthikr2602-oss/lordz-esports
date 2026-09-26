@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import path from "path";
 import os from "os";
+import fs from "fs";
 import dotenv from "dotenv";
 import compression from "compression";
 import routes from "./routes/index.js";
@@ -78,11 +79,29 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// Serve static uploaded files
-const uploadDir = process.env.VERCEL
-  ? path.join(os.tmpdir(), "uploads")
-  : path.join(process.cwd(), "uploads");
-app.use("/uploads", express.static(uploadDir));
+// Serve static uploaded files with 30-day immutable browser & CDN caching
+const primaryUploadDir = path.join(process.cwd(), "uploads");
+const fallbackTmpUploadDir = path.join(os.tmpdir(), "uploads");
+
+app.use("/uploads", express.static(primaryUploadDir, {
+  maxAge: "30d",
+  immutable: true,
+  etag: true,
+  setHeaders: (res) => {
+    res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  },
+}));
+
+if (fs.existsSync(fallbackTmpUploadDir)) {
+  app.use("/uploads", express.static(fallbackTmpUploadDir, {
+    maxAge: "7d",
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "public, max-age=604800");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+    },
+  }));
+}
 
 const playersDir = path.join(process.cwd(), "..", "public", "players");
 app.use("/players", express.static(playersDir));

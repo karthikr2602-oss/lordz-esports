@@ -22,6 +22,8 @@ import cardFreeFireMax from "../assets/card_free_fire_max.png";
 import cardFusionCrystals from "../assets/card_fusion_crystals.png";
 import cardEsportsWorldCup from "../assets/card_esports_world_cup.png";
 
+import { getApiUrl } from "../api/client";
+
 export interface PartnerItem {
   id: string;
   name: string;
@@ -41,6 +43,43 @@ const defaultFallbackLogos: Record<string, string> = {
   "free-fire-max": logoCleanFreeFireMax,
   "fusion-crystals": logoCleanFusionCrystals,
   "esports-world-cup": logoCleanEsportsWorldCup,
+};
+
+const KNOWN_PARTNER_LOGOS: Record<string, string> = {
+  "free-fire-max": logoCleanFreeFireMax,
+  "freefire": logoCleanFreeFireMax,
+  "ffmax": logoCleanFreeFireMax,
+  "free-fire": logoCleanFreeFireMax,
+  "fusion-crystals": logoCleanFusionCrystals,
+  "fusion": logoCleanFusionCrystals,
+  "fusioncrystals": logoCleanFusionCrystals,
+  "esports-world-cup": logoCleanEsportsWorldCup,
+  "ewc": logoCleanEsportsWorldCup,
+  "worldcup": logoCleanEsportsWorldCup,
+  "world-cup": logoCleanEsportsWorldCup,
+  "esports-pro": logoCleanEsportsPro,
+  "esportspro": logoCleanEsportsPro,
+  "espotz-live": logoCleanEspotzLive,
+  "espotz": logoCleanEspotzLive,
+  "infinix": logoCleanInfinix,
+};
+
+export const getKnownPartnerLogo = (nameOrId: string = ""): string | null => {
+  if (!nameOrId) return null;
+  const lower = nameOrId.toLowerCase().trim();
+  const clean = lower.replace(/[^a-z0-9]/g, "");
+
+  if (KNOWN_PARTNER_LOGOS[lower]) return KNOWN_PARTNER_LOGOS[lower];
+  if (KNOWN_PARTNER_LOGOS[clean]) return KNOWN_PARTNER_LOGOS[clean];
+
+  if (clean.includes("freefire") || clean.includes("garena")) return logoCleanFreeFireMax;
+  if (clean.includes("fusion")) return logoCleanFusionCrystals;
+  if (clean.includes("worldcup") || clean.includes("ewc")) return logoCleanEsportsWorldCup;
+  if (clean.includes("esportspro")) return logoCleanEsportsPro;
+  if (clean.includes("espotz")) return logoCleanEspotzLive;
+  if (clean.includes("infinix")) return logoCleanInfinix;
+
+  return null;
 };
 
 const defaultFallbackCards: Record<string, string> = {
@@ -137,10 +176,45 @@ export const PartnersSection = ({
     }
   }, [initialPartners]);
 
-  // Resolve logo helper - prioritizes database uploaded logo first
+  // Resolve logo helper - prioritizes instant bundled vector assets for core partners and validates URLs
   const resolveLogo = (partner: PartnerItem): string | null => {
-    return partner.logoImage || defaultFallbackLogos[partner.id] || null;
+    // 1. If it's a known brand, its bundled SVG is already present in-app (0ms instant load, vector crispness)
+    const known = getKnownPartnerLogo(partner.name) || getKnownPartnerLogo(partner.id);
+
+    // 2. If it's an external CDN or Cloudinary URL (like Red Bull), prioritize it
+    if (
+      partner.logoImage &&
+      (partner.logoImage.startsWith("http://") ||
+        partner.logoImage.startsWith("https://") ||
+        partner.logoImage.startsWith("data:"))
+    ) {
+      return partner.logoImage;
+    }
+
+    // 3. If we have a bundled vector asset for this brand, use it directly (super fast, 0ms, zero network failure)
+    if (known) {
+      return known;
+    }
+
+    // 4. If an uploaded relative path exists, resolve it via getApiUrl or direct public path
+    if (partner.logoImage) {
+      return getApiUrl(partner.logoImage);
+    }
+
+    return defaultFallbackLogos[partner.id] || null;
   };
+
+  // Preload all partner logos into memory for zero-lag marquee rendering
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    partnerList.forEach((p) => {
+      const src = resolveLogo(p);
+      if (src) {
+        const img = new Image();
+        img.src = src;
+      }
+    });
+  }, [partnerList]);
 
   // Duplicate partner list for seamless infinite loop marquee
   const marqueeList = [...partnerList, ...partnerList];
@@ -240,9 +314,18 @@ export const PartnersSection = ({
                       <img
                         src={logo}
                         alt={`${partner.name} - Official Partner of LORDZ ESPORTS`}
-                        loading="lazy"
+                        loading="eager"
                         decoding="async"
-                        className="max-h-11 sm:max-h-16 max-w-full object-contain filter opacity-75 group-hover:opacity-100 group-hover:drop-shadow-[0_0_20px_rgba(255,190,50,0.45)] transition-all duration-300"
+                        onError={(e) => {
+                          const fallback =
+                            getKnownPartnerLogo(partner.name) ||
+                            getKnownPartnerLogo(partner.id) ||
+                            defaultFallbackLogos[partner.id];
+                          if (fallback && e.currentTarget.src !== fallback) {
+                            e.currentTarget.src = fallback;
+                          }
+                        }}
+                        className="max-h-11 sm:max-h-16 max-w-full object-contain filter opacity-85 group-hover:opacity-100 group-hover:drop-shadow-[0_0_20px_rgba(255,190,50,0.45)] transition-all duration-300"
                       />
                     ) : (
                       <span className="font-heading text-sm sm:text-base font-bold text-white/80 group-hover:text-white tracking-wider text-center transition-colors">

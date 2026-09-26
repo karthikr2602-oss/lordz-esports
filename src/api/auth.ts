@@ -60,6 +60,13 @@ export const authApi = {
     });
   },
 
+  googleLogin: async (payload: { token?: string; credential?: string; email?: string; name?: string; picture?: string }): Promise<AuthResponse> => {
+    return apiRequest<AuthResponse>("/auth/google", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   getMe: async (): Promise<{ success: boolean; user: PlayerUser }> => {
     return apiRequest<{ success: boolean; user: PlayerUser }>("/auth/me");
   },

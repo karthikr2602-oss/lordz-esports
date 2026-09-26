@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { partnersApi, type PartnerItem } from "../api/partners";
 import { SEO } from "../components/common/SEO";
+import { getKnownPartnerLogo } from "../sections/PartnersSection";
 
 // Default local logos
 import logoInfinix from "../assets/partner-infinix.png";
@@ -161,9 +162,10 @@ export const BrandPartnersPage = () => {
         (p) => p.id === cp.id || p.name.toLowerCase() === cp.name.toLowerCase()
       );
       if (dbMatch) {
+        const hasExternalLogo = dbMatch.logoImage && (dbMatch.logoImage.startsWith("http") || dbMatch.logoImage.startsWith("data:"));
         return {
           ...cp,
-          logo: dbMatch.logoImage || cp.logo,
+          logo: (hasExternalLogo && dbMatch.logoImage ? dbMatch.logoImage : cp.logo) || cp.logo,
           name: dbMatch.name || cp.name,
           category: dbMatch.category || cp.category,
           tier: dbMatch.tier || cp.tier,
@@ -179,22 +181,27 @@ export const BrandPartnersPage = () => {
             (cp) => cp.id === p.id || cp.name.toLowerCase() === p.name.toLowerCase()
           ) && p.isActive !== false
       )
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        tier: p.tier || "OFFICIAL PARTNER",
-        category: p.category || "Esports Partner",
-        logo: p.logoImage || p.cardImage || logoInfinix,
-        website: p.websiteUrl || "https://lordz.gg",
-        description: `Official brand partner collaborating with Lord Esports to advance competitive gaming excellence and fan engagement across India.`,
-        highlights: [
-          "Official Partner Collaboration",
-          "Brand Integration in Tournaments",
-          "Direct Community Reach",
-          "Active 2026 Season"
-        ],
-        since: "2026"
-      }))
+      .map((p) => {
+        const hasExternalLogo = p.logoImage && (p.logoImage.startsWith("http") || p.logoImage.startsWith("data:"));
+        const knownFallback = getKnownPartnerLogo(p.name) || getKnownPartnerLogo(p.id);
+        const resolvedLogo = (hasExternalLogo && p.logoImage ? p.logoImage : (knownFallback || p.logoImage || p.cardImage || logoInfinix)) || logoInfinix;
+        return {
+          id: p.id,
+          name: p.name,
+          tier: p.tier || "OFFICIAL PARTNER",
+          category: p.category || "Esports Partner",
+          logo: resolvedLogo,
+          website: p.websiteUrl || "https://lordz.gg",
+          description: `Official brand partner collaborating with Lord Esports to advance competitive gaming excellence and fan engagement across India.`,
+          highlights: [
+            "Official Partner Collaboration",
+            "Brand Integration in Tournaments",
+            "Direct Community Reach",
+            "Active 2026 Season"
+          ],
+          since: "2026"
+        };
+      })
   ];
 
   const categories = [
@@ -340,6 +347,14 @@ export const BrandPartnersPage = () => {
                       <img
                         src={partner.logo}
                         alt={partner.name}
+                        loading="eager"
+                        decoding="async"
+                        onError={(e) => {
+                          const fb = getKnownPartnerLogo(partner.name) || logoInfinix;
+                          if (e.currentTarget.src !== fb) {
+                            e.currentTarget.src = fb;
+                          }
+                        }}
                         className="max-h-16 max-w-[90%] object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] group-hover:scale-110 transition-transform duration-300"
                       />
                     </div>

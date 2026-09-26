@@ -31,4 +31,12 @@ if (fs.existsSync(adminDist)) {
   process.exit(1);
 }
 
+// Ensure public uploads are copied to dist/uploads
+const publicUploads = path.resolve("public", "uploads");
+const distUploads = path.resolve("dist", "uploads");
+if (fs.existsSync(publicUploads)) {
+  fs.cpSync(publicUploads, distUploads, { recursive: true });
+  console.log("✅ Partner and media uploads synchronized to dist/uploads!");
+}
+
 console.log("🎉 Full production build completed successfully!");
