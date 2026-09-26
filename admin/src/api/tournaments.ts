@@ -292,11 +292,30 @@ export const tournamentsApi = {
     tournamentId: string,
     roundId: string,
     teamIds: string[],
-    nextRoundId: string
+    nextRoundId: string,
+    markUnselectedAsEliminated?: boolean
   ): Promise<{ success: boolean; message: string }> => {
     return apiRequest(`/tournaments/${tournamentId}/rounds/${roundId}/advance`, {
       method: "POST",
-      body: JSON.stringify({ teamIds, nextRoundId }),
+      body: JSON.stringify({ teamIds, nextRoundId, markUnselectedAsEliminated: Boolean(markUnselectedAsEliminated) }),
+    });
+  },
+
+  updateRoundCredentials: async (
+    tournamentId: string,
+    roundId: string,
+    credentials: {
+      roomId?: string;
+      roomPassword?: string;
+      map?: string;
+      roomTime?: string;
+      credentialsPublished?: boolean;
+      customNotes?: string;
+    }
+  ): Promise<{ success: boolean; message: string; data?: any }> => {
+    return apiRequest(`/tournaments/${tournamentId}/rounds/${roundId}/credentials`, {
+      method: "PUT",
+      body: JSON.stringify(credentials),
     });
   },
 

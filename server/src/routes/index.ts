@@ -220,6 +220,17 @@ router.put(
   requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
   tournamentCtrl.updateRoundTeamStatus
 );
+router.put(
+  "/tournaments/:id/rounds/:roundId/credentials",
+  authenticate,
+  requireRole("SUPER_ADMIN", "TOURNAMENT_ADMIN"),
+  tournamentCtrl.updateRoundCredentials
+);
+router.get(
+  "/tournaments/:id/my-room-access",
+  authenticate,
+  tournamentCtrl.getMyRoomAccess
+);
 router.get(
   "/tournaments/:id/teams/:teamId/round-history",
   tournamentCtrl.getTeamRoundHistory

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { tournamentsApi, getMyTournaments } from "../api/tournaments";
+import { tournamentsApi, getMyTournaments, getMyRoomAccess } from "../api/tournaments";
 import { useAuth } from "../context/AuthContext";
 import {
   type Tournament,
@@ -22,6 +22,12 @@ import {
   BookOpen,
   Send,
   AlertCircle,
+  Copy,
+  Check,
+  Key,
+  Clock,
+  MapPin,
+  XCircle,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { formatCurrency, formatDate } from "../utils/formatters";
@@ -37,10 +43,18 @@ export const TournamentDetailPage: React.FC = () => {
   const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [userTournaments, setUserTournaments] = useState<any[]>([]);
+  const [roomAccess, setRoomAccess] = useState<any | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
     "ABOUT" | "REGISTRATION" | "TEAMS" | "STAGES" | "LEADERBOARD" | "RULES"
   >("ABOUT");
+
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   // Registration Form State
   const [teamName, setTeamName] = useState("");
@@ -124,6 +138,20 @@ export const TournamentDetailPage: React.FC = () => {
       setUserTournaments([]);
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (isAuthenticated && tournament?.id) {
+      getMyRoomAccess(tournament.id)
+        .then((res) => {
+          if (res?.success && res?.data) {
+            setRoomAccess(res.data);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setRoomAccess(null);
+    }
+  }, [isAuthenticated, tournament?.id]);
 
   // Check if current user is registered in this tournament
   const userRegistration = useMemo(() => {
@@ -386,7 +414,17 @@ export const TournamentDetailPage: React.FC = () => {
                   {tournament.game}
                 </span>
 
-                {isUserRegistered ? (
+                {roomAccess?.isEliminated ? (
+                  <span className="px-3 py-1 rounded-md text-[10px] font-heading font-black uppercase tracking-wider backdrop-blur-md flex items-center gap-1.5 bg-red-500/20 text-red-400 border border-red-500/40">
+                    <XCircle className="w-3 h-3" />
+                    TOURNAMENT ENDED (ELIMINATED)
+                  </span>
+                ) : roomAccess?.hasAccess ? (
+                  <span className="px-3 py-1 rounded-md text-[10px] font-heading font-black uppercase tracking-wider backdrop-blur-md flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 animate-pulse">
+                    <Key className="w-3 h-3" />
+                    ROOM READY • SLOT #{roomAccess.slotNumber}
+                  </span>
+                ) : isUserRegistered ? (
                   <span
                     className={`px-3 py-1 rounded-md text-[10px] font-heading font-black uppercase tracking-wider backdrop-blur-md flex items-center gap-1.5 ${
                       isConfirmed
@@ -480,25 +518,54 @@ export const TournamentDetailPage: React.FC = () => {
 
               {isUserRegistered ? (
                 <div className="mt-5 space-y-2">
-                  <div className="p-2.5 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] text-center">
-                    <div className="flex items-center justify-center gap-1.5 font-heading text-xs font-bold uppercase tracking-wider">
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>
-                        {isConfirmed
-                          ? "YOU ARE REGISTERED ✓"
-                          : isPendingInvitation
-                          ? "INVITATION PENDING"
-                          : isPaymentUnderReview
-                          ? "PAYMENT UNDER REVIEW"
-                          : "REGISTRATION PENDING"}
-                      </span>
+                  {roomAccess?.isEliminated ? (
+                    <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-center">
+                      <div className="flex items-center justify-center gap-1.5 font-heading text-xs font-bold uppercase tracking-wider">
+                        <XCircle className="w-4 h-4 text-red-500" />
+                        <span>TOURNAMENT ENDED</span>
+                      </div>
+                      <div className="text-[10px] font-mono text-red-300 mt-1">
+                        Eliminated in {roomAccess.eliminatedRound || "earlier round"}
+                      </div>
                     </div>
-                  </div>
+                  ) : roomAccess?.hasAccess ? (
+                    <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-center">
+                      <div className="flex items-center justify-center gap-1.5 font-heading text-xs font-black uppercase tracking-wider">
+                        <Key className="w-4 h-4 text-emerald-400" />
+                        <span>ROOM READY • SLOT #{roomAccess.slotNumber}</span>
+                      </div>
+                      <div className="text-[10px] font-mono text-gray-300 mt-1">
+                        {roomAccess.roundName}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/30 text-[#22C55E] text-center">
+                      <div className="flex items-center justify-center gap-1.5 font-heading text-xs font-bold uppercase tracking-wider">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>
+                          {isConfirmed
+                            ? "YOU ARE REGISTERED ✓"
+                            : isPendingInvitation
+                            ? "INVITATION PENDING"
+                            : isPaymentUnderReview
+                            ? "PAYMENT UNDER REVIEW"
+                            : "REGISTRATION PENDING"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   <Link
                     to="/my-tournaments"
-                    className="block w-full py-3 rounded-xl font-heading text-xs font-extrabold uppercase tracking-wider bg-[#22C55E] hover:bg-[#16a34a] text-black text-center shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-all"
+                    className={`block w-full py-3 rounded-xl font-heading text-xs font-extrabold uppercase tracking-wider text-black text-center transition-all ${
+                      roomAccess?.isEliminated
+                        ? "bg-white/10 hover:bg-white/20 text-white"
+                        : roomAccess?.hasAccess
+                        ? "bg-[#FFBE32] hover:bg-[#FFA000] shadow-[0_0_15px_rgba(255,190,50,0.3)]"
+                        : "bg-[#22C55E] hover:bg-[#16a34a] shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                    }`}
                   >
-                    View in My Tournaments
+                    {roomAccess?.hasAccess ? "Open Match Lobby Pass" : "View in My Tournaments"}
                   </Link>
                 </div>
               ) : (
@@ -522,6 +589,164 @@ export const TournamentDetailPage: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* PLAYER ROOM ACCESS & ELIMINATION ENGINE BANNER */}
+          {roomAccess && (
+            <div className="mt-8 pt-6 border-t border-white/10">
+              {roomAccess.isEliminated ? (
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-red-950/60 via-red-900/30 to-black border-2 border-red-500/50 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0">
+                      <XCircle className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-heading font-black uppercase tracking-wider text-red-400">
+                          TOURNAMENT ENDED — YOUR SQUAD HAS BEEN ELIMINATED
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-red-500/20 text-red-300 border border-red-500/30">
+                          STAGE CONCLUDED
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-300 font-mono mt-1">
+                        Squad <strong className="text-white">"{roomAccess.teamName}"</strong> did not qualify from <strong className="text-red-400">{roomAccess.eliminatedRound || "the previous round"}</strong>. Room credentials for subsequent stages are closed. Thank you for competing in LORDZ ESPORTS!
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-4 py-2 rounded-xl text-xs font-heading font-black uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/40 shrink-0">
+                    ELIMINATED
+                  </span>
+                </div>
+              ) : roomAccess.hasAccess ? (
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-[#FFBE32]/15 via-[#121218] to-black border-2 border-[#FFBE32]/60 shadow-[0_0_35px_rgba(255,190,50,0.2)] space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#FFBE32]/20 border border-[#FFBE32]/50 flex items-center justify-center text-[#FFBE32]">
+                        <Key className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-heading font-black uppercase tracking-widest text-[#FFBE32]">
+                            FREE FIRE CUSTOM ROOM CREDENTIALS
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            LIVE ACCESS
+                          </span>
+                        </div>
+                        <div className="text-base font-display uppercase tracking-wider text-white mt-0.5">
+                          {roomAccess.roundName} • SQUAD: {roomAccess.teamName}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-black bg-[#FFBE32] text-black shadow-lg">
+                        LOBBY SLOT #{roomAccess.slotNumber}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {/* Room ID */}
+                    <div className="p-3.5 rounded-xl bg-black/70 border border-white/15 flex items-center justify-between">
+                      <div>
+                        <div className="text-[10px] font-mono uppercase text-gray-400">ROOM ID</div>
+                        <div className="font-mono text-lg font-bold text-white tracking-widest mt-0.5">
+                          {roomAccess.roomId || "PENDING"}
+                        </div>
+                      </div>
+                      {roomAccess.roomId && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(roomAccess.roomId, "detail-roomId")}
+                          className="p-2 rounded-lg bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                          title="Copy Room ID"
+                        >
+                          {copiedField === "detail-roomId" ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Room Password */}
+                    <div className="p-3.5 rounded-xl bg-black/70 border border-white/15 flex items-center justify-between">
+                      <div>
+                        <div className="text-[10px] font-mono uppercase text-gray-400">PASSWORD</div>
+                        <div className="font-mono text-lg font-bold text-amber-400 tracking-widest mt-0.5">
+                          {roomAccess.roomPassword || "NONE"}
+                        </div>
+                      </div>
+                      {roomAccess.roomPassword && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(roomAccess.roomPassword, "detail-roomPassword")}
+                          className="p-2 rounded-lg bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                          title="Copy Password"
+                        >
+                          {copiedField === "detail-roomPassword" ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Map */}
+                    <div className="p-3.5 rounded-xl bg-black/70 border border-white/15 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-[#FFBE32]/10 border border-[#FFBE32]/20 flex items-center justify-center text-[#FFBE32]">
+                        <MapPin className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-mono uppercase text-gray-400">MAP</div>
+                        <div className="font-mono text-sm font-bold text-white uppercase mt-0.5">
+                          {roomAccess.map || "BERMUDA"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Match Time */}
+                    <div className="p-3.5 rounded-xl bg-black/70 border border-white/15 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-[#FFBE32]/10 border border-[#FFBE32]/20 flex items-center justify-center text-[#FFBE32]">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-mono uppercase text-gray-400">MATCH SCHEDULE</div>
+                        <div className="font-mono text-sm font-bold text-white mt-0.5">
+                          {roomAccess.roomTime || "SEE SCHEDULE"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {roomAccess.notes && (
+                    <div className="p-3 rounded-xl bg-black/50 border border-white/10 text-xs font-mono text-gray-300 flex items-start gap-2">
+                      <span className="text-[#FFBE32] font-bold shrink-0">ADMIN INSTRUCTIONS:</span>
+                      <span>{roomAccess.notes}</span>
+                    </div>
+                  )}
+
+                  <div className="text-[11px] font-mono text-amber-300/80 flex items-center gap-1.5">
+                    <span>⚠️</span>
+                    <span>Free Fire Custom Room Rule: Each lobby is capped at 12 squads. Join specifically into <strong>Slot #{roomAccess.slotNumber}</strong>. Non-assigned squads will be removed.</span>
+                  </div>
+                </div>
+              ) : roomAccess.isRegistered && roomAccess.roundName ? (
+                <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                      <Clock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-heading font-black uppercase tracking-wider text-amber-400">
+                        SQUAD ALLOCATED: {roomAccess.roundName} (SLOT #{roomAccess.slotNumber})
+                      </div>
+                      <p className="text-xs text-gray-300 font-mono mt-1">
+                        Your squad is selected for {roomAccess.roundName}. Room ID and password are kept hidden until the tournament admin publishes them before match kick-off.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3.5 py-1.5 rounded-xl text-xs font-heading font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                    SLOT #{roomAccess.slotNumber} RESERVED
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          )}
         </div>
 
         {/* Navigation Tabs */}

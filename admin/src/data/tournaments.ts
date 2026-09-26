@@ -155,6 +155,13 @@ export interface TournamentRound {
   maxTeams: number;
   selectionMethod: "MANUAL" | "TOP_POINTS" | "QUALIFIED" | string;
   status: "UPCOMING" | "ONGOING" | "COMPLETED" | string;
+  roomId?: string;
+  roomPassword?: string;
+  map?: string;
+  roomTime?: string;
+  credentialsPublished?: boolean;
+  customNotes?: string;
+  cleanDescription?: string;
   roundTeams?: RoundTeam[];
   createdAt?: string;
   updatedAt?: string;

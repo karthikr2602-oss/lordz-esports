@@ -102,6 +102,18 @@ export const AdminTournamentDetailPage: React.FC = () => {
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // Custom Room Credentials state per round
+  const [markUnselectedAsEliminated, setMarkUnselectedAsEliminated] = useState(true);
+  const [roomForm, setRoomForm] = useState({
+    roomId: "",
+    roomPassword: "",
+    map: "BERMUDA",
+    roomTime: "",
+    credentialsPublished: false,
+    customNotes: "",
+  });
+  const [savingRoomCredentials, setSavingRoomCredentials] = useState(false);
+
   // Leaderboard state
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [savingLb, setSavingLb] = useState(false);
@@ -513,19 +525,96 @@ export const AdminTournamentDetailPage: React.FC = () => {
     }
   };
 
+  // Sync active round credentials into roomForm
+  useEffect(() => {
+    const cur = rounds.find((r) => r.id === activeRoundId) || rounds[0];
+    if (cur) {
+      setRoomForm({
+        roomId: cur.roomId || "",
+        roomPassword: cur.roomPassword || "",
+        map: cur.map || "BERMUDA",
+        roomTime: cur.roomTime || cur.startTime || "",
+        credentialsPublished: Boolean(cur.credentialsPublished),
+        customNotes: cur.customNotes || "",
+      });
+    }
+  }, [activeRoundId, rounds]);
+
+  const handleSaveRoomCredentials = async () => {
+    if (!tournamentId || !activeRoundId) return;
+    setSavingRoomCredentials(true);
+    try {
+      const res = await tournamentsApi.updateRoundCredentials(tournamentId, activeRoundId, roomForm);
+      if (res?.success) {
+        const updatedRounds = await tournamentsApi.getRounds(tournamentId);
+        if (updatedRounds) setRounds(updatedRounds);
+        alert("Custom Room credentials saved successfully!");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to save room credentials");
+    } finally {
+      setSavingRoomCredentials(false);
+    }
+  };
+
   const handleOpenSelectTeams = async (roundId: string) => {
     if (!tournamentId) return;
+    setActiveRoundId(roundId);
     setEligibleLoading(true);
     setEligibleModalOpen(true);
     try {
       const res = await tournamentsApi.getEligibleTeamsForRound(tournamentId, roundId);
-      if (res && res.data) {
+      if (res && res.data && res.data.length > 0) {
         setEligibleTeams(res.data);
         const alreadySelected = res.data.filter((t: any) => t.alreadySelected).map((t: any) => t.teamId || t.id);
         setSelectedEligibleIds(alreadySelected);
+      } else {
+        // Fallback to registrations loaded on this page
+        const roundObj = rounds.find((r) => r.id === roundId);
+        const currentRoundTeamIds = (roundObj?.roundTeams || []).map((rt) => rt.teamId);
+        const fallback = (registrations || []).map((r) => {
+          const tKey = (r as any).teamId || r.id;
+          const isSelected = currentRoundTeamIds.includes(tKey) || currentRoundTeamIds.includes(r.id);
+          return {
+            id: r.id,
+            teamId: tKey,
+            teamName: r.teamName,
+            captainName: r.captainName || r.captainIgn || "Captain",
+            captainPhone: r.captainPhone || r.whatsapp,
+            status: r.status,
+            paymentStatus: r.paymentStatus,
+            alreadySelected: Boolean(isSelected),
+            assignedRoundName: null,
+            previousRoundStatus: "CONFIRMED_REGISTRATION",
+            previousRoundName: "All Registrations",
+          };
+        });
+        setEligibleTeams(fallback);
+        setSelectedEligibleIds(fallback.filter((t) => t.alreadySelected).map((t) => t.teamId || t.id));
       }
     } catch (err: any) {
-      alert(err.message || "Failed to load eligible teams");
+      console.warn("Failed to load eligible teams via API, falling back to local registrations:", err);
+      const roundObj = rounds.find((r) => r.id === roundId);
+      const currentRoundTeamIds = (roundObj?.roundTeams || []).map((rt) => rt.teamId);
+      const fallback = (registrations || []).map((r) => {
+        const tKey = (r as any).teamId || r.id;
+        const isSelected = currentRoundTeamIds.includes(tKey) || currentRoundTeamIds.includes(r.id);
+        return {
+          id: r.id,
+          teamId: tKey,
+          teamName: r.teamName,
+          captainName: r.captainName || r.captainIgn || "Captain",
+          captainPhone: r.captainPhone || r.whatsapp,
+          status: r.status,
+          paymentStatus: r.paymentStatus,
+          alreadySelected: Boolean(isSelected),
+          assignedRoundName: null,
+          previousRoundStatus: "CONFIRMED_REGISTRATION",
+          previousRoundName: "All Registrations",
+        };
+      });
+      setEligibleTeams(fallback);
+      setSelectedEligibleIds(fallback.filter((t) => t.alreadySelected).map((t) => t.teamId || t.id));
     } finally {
       setEligibleLoading(false);
     }
@@ -585,7 +674,13 @@ export const AdminTournamentDetailPage: React.FC = () => {
     }
 
     try {
-      await tournamentsApi.advanceTeams(tournamentId, advanceSourceRoundId, validTeamsToAdvance, advanceTargetRoundId);
+      await tournamentsApi.advanceTeams(
+        tournamentId,
+        advanceSourceRoundId,
+        validTeamsToAdvance,
+        advanceTargetRoundId,
+        markUnselectedAsEliminated
+      );
       const updatedRounds = await tournamentsApi.getRounds(tournamentId);
       if (updatedRounds && updatedRounds.length > 0) setRounds(updatedRounds);
       setAdvanceModalOpen(false);
@@ -2029,6 +2124,140 @@ export const AdminTournamentDetailPage: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* ================= CUSTOM ROOM CREDENTIALS CARD ================= */}
+                    <div className="p-4 mx-5 my-2 rounded-xl bg-gradient-to-r from-amber-500/10 via-[#FFBE32]/5 to-black border border-[#FFBE32]/30 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/10">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-2 rounded-lg bg-[#FFBE32]/10 border border-[#FFBE32]/30 text-[#FFBE32]">
+                            <Key className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <h4 className="font-display text-sm uppercase text-white tracking-wider flex items-center gap-2">
+                              <span>Custom Room Credentials</span>
+                              <span className="text-[10px] font-mono text-[#FFBE32] font-normal">
+                                ({currentRound.name})
+                              </span>
+                            </h4>
+                            <p className="text-[11px] text-gray-400 font-body">
+                              Set Room ID & Password. Only squads selected in this round will see these credentials.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase border flex items-center gap-1.5 ${
+                              roomForm.credentialsPublished
+                                ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
+                                : "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                            }`}
+                          >
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full ${
+                                roomForm.credentialsPublished ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+                              }`}
+                            />
+                            {roomForm.credentialsPublished ? "Published to Squads ✓" : "Hidden (Draft)"}
+                          </span>
+
+                          <button
+                            type="button"
+                            disabled={savingRoomCredentials}
+                            onClick={handleSaveRoomCredentials}
+                            className="px-3.5 py-1.5 rounded-xl bg-[#FFBE32] hover:bg-[#FFA000] text-black font-heading font-black text-xs uppercase tracking-wider shadow-[0_0_12px_rgba(255,190,50,0.3)] transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                          >
+                            <Save className="h-3.5 w-3.5" />
+                            <span>{savingRoomCredentials ? "Saving..." : "Save Credentials"}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1 text-xs">
+                        <div>
+                          <label className="block text-gray-300 font-heading font-bold uppercase tracking-wider mb-1 text-[11px]">
+                            Room ID
+                          </label>
+                          <input
+                            type="text"
+                            value={roomForm.roomId}
+                            onChange={(e) => setRoomForm({ ...roomForm, roomId: e.target.value })}
+                            placeholder="e.g. 8492019"
+                            className="w-full px-3 py-1.5 rounded-lg bg-black/60 border border-white/15 text-white font-mono focus:border-[#FFBE32] focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-300 font-heading font-bold uppercase tracking-wider mb-1 text-[11px]">
+                            Room Password
+                          </label>
+                          <input
+                            type="text"
+                            value={roomForm.roomPassword}
+                            onChange={(e) => setRoomForm({ ...roomForm, roomPassword: e.target.value })}
+                            placeholder="e.g. 1234"
+                            className="w-full px-3 py-1.5 rounded-lg bg-black/60 border border-white/15 text-white font-mono focus:border-[#FFBE32] focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-300 font-heading font-bold uppercase tracking-wider mb-1 text-[11px]">
+                            Map
+                          </label>
+                          <select
+                            value={roomForm.map}
+                            onChange={(e) => setRoomForm({ ...roomForm, map: e.target.value })}
+                            className="w-full px-3 py-1.5 rounded-lg bg-black/60 border border-white/15 text-white font-heading font-bold uppercase focus:border-[#FFBE32] focus:outline-none cursor-pointer"
+                          >
+                            <option value="BERMUDA">BERMUDA</option>
+                            <option value="PURGATORY">PURGATORY</option>
+                            <option value="KALAHARI">KALAHARI</option>
+                            <option value="ALPINE">ALPINE</option>
+                            <option value="NEXTERRA">NEXTERRA</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-300 font-heading font-bold uppercase tracking-wider mb-1 text-[11px]">
+                            Match Time
+                          </label>
+                          <input
+                            type="text"
+                            value={roomForm.roomTime}
+                            onChange={(e) => setRoomForm({ ...roomForm, roomTime: e.target.value })}
+                            placeholder="e.g. 18:30 IST"
+                            className="w-full px-3 py-1.5 rounded-lg bg-black/60 border border-white/15 text-white font-mono focus:border-[#FFBE32] focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="flex flex-col justify-end">
+                          <label className="flex items-center gap-2 p-2 rounded-lg bg-black/40 border border-white/10 cursor-pointer hover:border-[#FFBE32]/40 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={roomForm.credentialsPublished}
+                              onChange={(e) => setRoomForm({ ...roomForm, credentialsPublished: e.target.checked })}
+                              className="rounded text-[#FFBE32] focus:ring-[#FFBE32] h-4 w-4 cursor-pointer"
+                            />
+                            <span className="font-heading font-bold uppercase text-[10px] text-gray-200">
+                              Publish to Squads
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-400 font-heading font-bold uppercase tracking-wider mb-1 text-[10px]">
+                          Custom Notes / Lobby Instructions for Squads
+                        </label>
+                        <input
+                          type="text"
+                          value={roomForm.customNotes}
+                          onChange={(e) => setRoomForm({ ...roomForm, customNotes: e.target.value })}
+                          placeholder="e.g. Strictly join your assigned Free Fire Slot # (1 to 12). Non-assigned slot players will be kicked."
+                          className="w-full px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs text-gray-300 font-body focus:border-[#FFBE32] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
                     {/* Round Teams Table */}
                     <div className="overflow-x-auto">
                       {roundTeams.length > 0 ? (
@@ -2051,7 +2280,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
                                   className={eligibleTeams.length === 0 ? "cursor-not-allowed opacity-30" : "cursor-pointer"}
                                 />
                               </th>
-                              <th className="py-3 px-3 w-16">SEED</th>
+                              <th className="py-3 px-3 w-24">SLOT #</th>
                               <th className="py-3 px-4">TEAM NAME</th>
                               <th className="py-3 px-3">CAPTAIN / LEADER</th>
                               <th className="py-3 px-3">STATUS IN ROUND</th>
@@ -2089,8 +2318,10 @@ export const AdminTournamentDetailPage: React.FC = () => {
                                       className={isEliminated ? "cursor-not-allowed opacity-30" : "cursor-pointer"}
                                     />
                                   </td>
-                                  <td className="py-3 px-3 font-mono text-gray-400">
-                                    #{team.seed || idx + 1}
+                                  <td className="py-3 px-3">
+                                    <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 font-mono text-[11px] font-bold text-[#FFBE32]">
+                                      SLOT #{team.seed || idx + 1}
+                                    </span>
                                   </td>
                                   <td className="py-3 px-4">
                                     <div className="font-bold text-white uppercase text-sm">
@@ -2124,7 +2355,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
                                       <option value="QUALIFIED">QUALIFIED</option>
                                       <option value="ADVANCED">ADVANCED</option>
                                       <option value="PENDING">PENDING</option>
-                                      <option value="ELIMINATED">ELIMINATED</option>
+                                      <option value="ELIMINATED">ELIMINATED (ENDED)</option>
                                       <option value="DISQUALIFIED">DISQUALIFIED</option>
                                     </select>
                                   </td>
@@ -2194,6 +2425,40 @@ export const AdminTournamentDetailPage: React.FC = () => {
                 </div>
 
                 <form onSubmit={handleCreateRound} className="space-y-4 text-xs">
+                  {/* Quick Preset Buttons */}
+                  <div>
+                    <span className="text-gray-400 font-heading font-bold uppercase text-[10px] block mb-1.5">
+                      Quick Group / Round Presets (12 Squads per Room):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        "ROUND 1 - GROUP A",
+                        "ROUND 1 - GROUP B",
+                        "ROUND 1 - GROUP C",
+                        "ROUND 2",
+                        "SEMI FINALS",
+                        "GRAND FINALS",
+                      ].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => {
+                            const rNum = preset.includes("ROUND 2") ? 2 : preset.includes("SEMI") ? 3 : preset.includes("GRAND") ? 4 : 1;
+                            setNewRoundData((prev) => ({
+                              ...prev,
+                              name: preset,
+                              roundNumber: rNum,
+                              maxTeams: 12,
+                            }));
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-[#FFBE32]/20 hover:text-[#FFBE32] border border-white/10 text-[10px] font-heading font-bold uppercase transition-colors cursor-pointer"
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-gray-300 font-heading font-bold uppercase tracking-wider mb-1">
@@ -2204,7 +2469,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
                         required
                         value={newRoundData.name}
                         onChange={(e) => setNewRoundData({ ...newRoundData, name: e.target.value })}
-                        placeholder="e.g. ROUND 1 or SEMI FINAL"
+                        placeholder="e.g. ROUND 1 - GROUP A"
                         className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/15 text-white font-heading font-bold uppercase focus:border-[#FFBE32] focus:outline-none"
                       />
                     </div>
@@ -2245,7 +2510,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-gray-300 font-heading font-bold uppercase tracking-wider mb-1">
-                        Max Teams Capacity
+                        Max Teams Capacity (Free Fire Lobby = 12)
                       </label>
                       <input
                         type="number"
@@ -2255,7 +2520,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
                         onChange={(e) =>
                           setNewRoundData({
                             ...newRoundData,
-                            maxTeams: parseInt(e.target.value) || 32,
+                            maxTeams: parseInt(e.target.value) || 12,
                           })
                         }
                         className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/15 text-white font-mono focus:border-[#FFBE32] focus:outline-none"
@@ -2360,27 +2625,46 @@ export const AdminTournamentDetailPage: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between py-1 shrink-0 text-xs font-heading">
-                      <span className="text-gray-400">
-                        {selectedEligibleIds.length} of {eligibleTeams.length} squads selected
-                      </span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1 shrink-0 text-xs font-heading gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-300 font-bold">
+                          {selectedEligibleIds.length} of {eligibleTeams.length} squads selected
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#FFBE32]/10 text-[#FFBE32] border border-[#FFBE32]/30">
+                          Room Capacity: {selectedEligibleIds.length}/12 Squads
+                        </span>
+                      </div>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
+                          onClick={() => setSelectedEligibleIds(eligibleTeams.slice(0, 12).map((t) => t.teamId || t.id))}
+                          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold uppercase cursor-pointer"
+                        >
+                          Select 12 (Max)
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setSelectedEligibleIds(eligibleTeams.map((t) => t.teamId || t.id))}
-                          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold uppercase"
+                          className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 text-[11px] font-bold uppercase cursor-pointer"
                         >
                           Select All
                         </button>
                         <button
                           type="button"
                           onClick={() => setSelectedEligibleIds([])}
-                          className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 text-[11px] font-bold uppercase"
+                          className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 text-[11px] font-bold uppercase cursor-pointer"
                         >
                           Clear
                         </button>
                       </div>
                     </div>
+
+                    {selectedEligibleIds.length > 12 && (
+                      <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-mono flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                        <span>Warning: Free Fire custom rooms support 12 squads max (48 players).</span>
+                      </div>
+                    )}
 
                     <div className="flex-1 overflow-y-auto rounded-xl border border-white/10 bg-black/40 divide-y divide-white/5">
                       {eligibleTeams.map((team) => {
@@ -2407,9 +2691,16 @@ export const AdminTournamentDetailPage: React.FC = () => {
                                 className="cursor-pointer"
                               />
                               <div>
-                                <span className="font-heading font-bold text-white text-sm uppercase block">
-                                  {team.teamName}
-                                </span>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-heading font-bold text-white text-sm uppercase">
+                                    {team.teamName}
+                                  </span>
+                                  {team.assignedRoundName && (
+                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                                      Assigned: {team.assignedRoundName}
+                                    </span>
+                                  )}
+                                </div>
                                 <span className="text-[11px] text-gray-400 font-mono">
                                   Captain: {team.captainName} {team.captainPhone ? `• ${team.captainPhone}` : ""}
                                 </span>
@@ -2520,11 +2811,28 @@ export const AdminTournamentDetailPage: React.FC = () => {
                     </div>
                   </div>
 
+                  <label className="flex items-start gap-2.5 p-3 rounded-xl bg-red-950/20 border border-red-500/30 text-red-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={markUnselectedAsEliminated}
+                      onChange={(e) => setMarkUnselectedAsEliminated(e.target.checked)}
+                      className="mt-0.5 rounded text-red-500 focus:ring-red-400 h-4 w-4 cursor-pointer"
+                    />
+                    <div>
+                      <span className="font-heading font-bold uppercase tracking-wider text-[11px] block text-red-200">
+                        Mark unselected squads as ELIMINATED (Tournament Ended)
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-body">
+                        Unselected squads will see &ldquo;Tournament Ended - Eliminated&rdquo; on their dashboard and will not receive subsequent room credentials.
+                      </span>
+                    </div>
+                  </label>
+
                   <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                     <button
                       type="button"
                       onClick={() => setAdvanceModalOpen(false)}
-                      className="px-4 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white font-heading font-bold uppercase tracking-wider text-xs"
+                      className="px-4 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white font-heading font-bold uppercase tracking-wider text-xs cursor-pointer"
                     >
                       Cancel
                     </button>

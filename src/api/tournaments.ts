@@ -174,6 +174,14 @@ export const tournamentsApi = {
       method: "GET",
     });
   },
+
+  getMyRoomAccess: async (tournamentId: string): Promise<{ success: boolean; data: any }> => {
+    return apiRequest<{ success: boolean; data: any }>(
+      `/tournaments/${tournamentId}/my-room-access`,
+      { method: "GET" },
+      { success: false, data: null }
+    );
+  },
 };
 
 export const getMyTournaments = tournamentsApi.getMyTournaments;
@@ -188,4 +196,6 @@ export const respondToInvitation = tournamentsApi.respondToInvitation;
 export const getTournamentTeams = tournamentsApi.getTournamentTeams;
 export const checkInTeam = tournamentsApi.checkInTeam;
 export const getMatchCredentials = tournamentsApi.getMatchCredentials;
+export const getMyRoomAccess = tournamentsApi.getMyRoomAccess;
+
 

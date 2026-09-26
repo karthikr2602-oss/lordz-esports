@@ -3071,6 +3071,52 @@ export const deleteLeaderboardEntry = async (req: AuthenticatedRequest, res: Res
 
 // ================= TOURNAMENT ROUNDS & TEAM SELECTION =================
 
+export function parseRoundWithCredentials(round: any) {
+  if (!round) return null;
+  let roomId = "";
+  let roomPassword = "";
+  let map = "BERMUDA";
+  let roomTime = round.startTime || "";
+  let credentialsPublished = false;
+  let customNotes = "";
+  let cleanDescription = round.description || "";
+
+  if (round.description && typeof round.description === "string" && round.description.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(round.description);
+      roomId = parsed.roomId || "";
+      roomPassword = parsed.roomPassword || "";
+      map = parsed.map || "BERMUDA";
+      roomTime = parsed.roomTime || round.startTime || "";
+      credentialsPublished = Boolean(parsed.credentialsPublished);
+      customNotes = parsed.customNotes || "";
+      cleanDescription = parsed.description || "";
+    } catch (e) {
+      // not JSON
+    }
+  }
+
+  const formattedTeams = (round.roundTeams || []).map((rt: any, idx: number) => {
+    return {
+      ...rt,
+      seed: rt.seed || idx + 1,
+      teamName: rt.team?.teamName || rt.team?.name || rt.teamName || rt.teamId,
+    };
+  });
+
+  return {
+    ...round,
+    cleanDescription,
+    roomId,
+    roomPassword,
+    map,
+    roomTime,
+    credentialsPublished,
+    customNotes,
+    roundTeams: formattedTeams,
+  };
+}
+
 /**
  * GET /api/tournaments/:id/rounds
  */
@@ -3113,7 +3159,8 @@ export const getRounds = async (req: Request, res: Response, next: NextFunction)
         });
     }
 
-    res.json({ success: true, data: rounds });
+    const parsedRounds = rounds.map(parseRoundWithCredentials);
+    res.json({ success: true, data: parsedRounds });
   } catch (error) {
     next(error);
   }
@@ -3125,7 +3172,23 @@ export const getRounds = async (req: Request, res: Response, next: NextFunction)
 export const createRound = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, roundNumber, roundType, startDate, startTime, description, maxTeams, selectionMethod, status } = req.body;
+    const {
+      name,
+      roundNumber,
+      roundType,
+      startDate,
+      startTime,
+      description,
+      maxTeams,
+      selectionMethod,
+      status,
+      roomId,
+      roomPassword,
+      map,
+      roomTime,
+      credentialsPublished,
+      customNotes,
+    } = req.body;
 
     if (!name) {
       res.status(400).json({ success: false, message: "Round name is required" });
@@ -3135,14 +3198,25 @@ export const createRound = async (req: AuthenticatedRequest, res: Response, next
     const count = memoryRounds.filter((r) => r.tournamentId === id).length;
     const computedNumber = roundNumber ? Number(roundNumber) : count + 1;
 
+    // Pack credentials into description JSON
+    const metadata = {
+      description: description || "",
+      roomId: roomId || "",
+      roomPassword: roomPassword || "",
+      map: map || "BERMUDA",
+      roomTime: roomTime || startTime || "",
+      credentialsPublished: Boolean(credentialsPublished),
+      customNotes: customNotes || "",
+    };
+
     const roundData = {
       name: name.trim().toUpperCase(),
       roundNumber: computedNumber,
       roundType: roundType || "BATTLE_ROYALE",
       startDate: startDate || null,
-      startTime: startTime || null,
-      description: description || null,
-      maxTeams: maxTeams ? Number(maxTeams) : 32,
+      startTime: roomTime || startTime || null,
+      description: JSON.stringify(metadata),
+      maxTeams: maxTeams ? Number(maxTeams) : 12,
       selectionMethod: selectionMethod || "MANUAL",
       status: status || "UPCOMING",
     };
@@ -3172,7 +3246,11 @@ export const createRound = async (req: AuthenticatedRequest, res: Response, next
       memoryRounds.push(createdRound);
     }
 
-    res.status(201).json({ success: true, data: createdRound, message: "Round created successfully" });
+    res.status(201).json({
+      success: true,
+      data: parseRoundWithCredentials(createdRound),
+      message: "Round created successfully",
+    });
   } catch (error) {
     next(error);
   }
@@ -3184,25 +3262,66 @@ export const createRound = async (req: AuthenticatedRequest, res: Response, next
 export const updateRound = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id, roundId } = req.params;
-    const { name, roundNumber, roundType, startDate, startTime, description, maxTeams, selectionMethod, status } = req.body;
+    const {
+      name,
+      roundNumber,
+      roundType,
+      startDate,
+      startTime,
+      description,
+      maxTeams,
+      selectionMethod,
+      status,
+      roomId,
+      roomPassword,
+      map,
+      roomTime,
+      credentialsPublished,
+      customNotes,
+    } = req.body;
+
+    // Fetch existing
+    let existing: any = null;
+    try {
+      existing = await (prisma as any).tournamentRound.findUnique({ where: { id: roundId } });
+    } catch (e) {}
+
+    let meta: any = {};
+    if (existing?.description && existing.description.startsWith("{")) {
+      try {
+        meta = JSON.parse(existing.description);
+      } catch (e) {}
+    }
+
+    if (roomId !== undefined) meta.roomId = roomId;
+    if (roomPassword !== undefined) meta.roomPassword = roomPassword;
+    if (map !== undefined) meta.map = map;
+    if (roomTime !== undefined) meta.roomTime = roomTime;
+    if (credentialsPublished !== undefined) meta.credentialsPublished = Boolean(credentialsPublished);
+    if (customNotes !== undefined) meta.customNotes = customNotes;
+    if (description !== undefined) meta.description = description;
 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name.trim().toUpperCase();
     if (roundNumber !== undefined) updateData.roundNumber = Number(roundNumber);
     if (roundType !== undefined) updateData.roundType = roundType;
     if (startDate !== undefined) updateData.startDate = startDate;
-    if (startTime !== undefined) updateData.startTime = startTime;
-    if (description !== undefined) updateData.description = description;
+    if (startTime !== undefined || roomTime !== undefined) updateData.startTime = roomTime || startTime;
     if (maxTeams !== undefined) updateData.maxTeams = Number(maxTeams);
     if (selectionMethod !== undefined) updateData.selectionMethod = selectionMethod;
     if (status !== undefined) updateData.status = status;
+    updateData.description = JSON.stringify(meta);
 
     let updatedRound: any = null;
     try {
       updatedRound = await (prisma as any).tournamentRound.update({
         where: { id: roundId },
         data: updateData,
-        include: { roundTeams: true },
+        include: {
+          roundTeams: {
+            include: { team: true },
+          },
+        },
       });
     } catch (e) {
       console.warn("Prisma updateRound fallback to memory:", e);
@@ -3214,7 +3333,11 @@ export const updateRound = async (req: AuthenticatedRequest, res: Response, next
       if (!updatedRound) updatedRound = memoryRounds[memIdx];
     }
 
-    res.json({ success: true, data: updatedRound, message: "Round updated successfully" });
+    res.json({
+      success: true,
+      data: parseRoundWithCredentials(updatedRound),
+      message: "Round updated successfully",
+    });
   } catch (error) {
     next(error);
   }
@@ -3253,104 +3376,162 @@ export const getEligibleTeamsForRound = async (req: Request, res: Response, next
     try {
       rounds = await (prisma as any).tournamentRound.findMany({
         where: { tournamentId: id },
-        include: { roundTeams: true },
+        include: {
+          roundTeams: {
+            include: { team: true },
+          },
+        },
         orderBy: { roundNumber: "asc" },
       });
-    } catch (e) {
-      // fallback
-    }
+    } catch (e) {}
 
     if (!rounds || rounds.length === 0) {
       rounds = memoryRounds.filter((r) => r.tournamentId === id).sort((a, b) => a.roundNumber - b.roundNumber);
     }
 
     const currentRoundIndex = rounds.findIndex((r) => r.id === roundId);
-    const currentRound = rounds[currentRoundIndex];
+    const currentRound = rounds[currentRoundIndex] || memoryRounds.find((r) => r.id === roundId);
 
     if (!currentRound) {
       res.status(404).json({ success: false, message: "Round not found" });
       return;
     }
 
-    let currentRoundTeamIds: string[] = [];
-    if (currentRound.roundTeams) {
-      currentRoundTeamIds = currentRound.roundTeams.map((rt: any) => rt.teamId);
-    } else {
-      currentRoundTeamIds = memoryRoundTeams.filter((rt) => rt.roundId === roundId).map((rt) => rt.teamId);
+    // 1. Fetch all confirmed/approved tournament registrations
+    let regs: any[] = [];
+    try {
+      regs = await prisma.tournamentRegistration.findMany({
+        where: {
+          tournamentId: id,
+          OR: [
+            { status: "CONFIRMED" },
+            { status: "APPROVED" },
+            { status: "PENDING" },
+            { paymentStatus: "VERIFIED" },
+            { paymentStatus: "PAID" },
+            { paymentStatus: "UNDER_REVIEW" },
+          ],
+        },
+        include: { team: true },
+      });
+    } catch (e) {}
+
+    if (!regs || regs.length === 0) {
+      regs = memoryRegistrations.filter((r) => r.tournamentId === id);
     }
+
+    // 2. Track squad assignments across all rounds
+    const teamAssignmentMap: Record<string, string> = {};
+    for (const r of rounds) {
+      if (r.roundTeams) {
+        for (const rt of r.roundTeams) {
+          const reg = regs.find((regItem) => regItem.teamId === rt.teamId || regItem.id === rt.teamId);
+          teamAssignmentMap[rt.teamId] = r.name;
+          if (reg) {
+            teamAssignmentMap[reg.id] = r.name;
+            if (reg.teamId) teamAssignmentMap[reg.teamId] = r.name;
+          }
+        }
+      }
+    }
+
+    const currentRoundTeamIds = (currentRound.roundTeams || []).map((rt: any) => rt.teamId);
+
+    // 3. Determine if this round is an entry round (Round 1 / Group stage) or if prior rounds have qualified teams
+    const isRound1 =
+      currentRound.roundNumber === 1 ||
+      currentRound.name.includes("ROUND 1") ||
+      currentRound.name.includes("GROUP") ||
+      currentRoundIndex === 0;
+
+    const priorRounds = rounds.filter((r) => r.roundNumber < currentRound.roundNumber && r.id !== roundId);
+    const hasPriorQualifiedTeams = priorRounds.some((r) =>
+      (r.roundTeams || []).some((rt: any) => rt.status === "QUALIFIED" || rt.status === "ADVANCED")
+    );
 
     let eligibleTeams: any[] = [];
 
-    if (currentRoundIndex === 0 || currentRound.roundNumber === 1) {
-      let regs: any[] = [];
-      try {
-        regs = await prisma.tournamentRegistration.findMany({
-          where: {
-            tournamentId: id,
-            OR: [
-              { status: "CONFIRMED" },
-              { status: "APPROVED" },
-              { paymentStatus: "VERIFIED" },
-            ],
-          },
-          include: { team: true },
-        });
-      } catch (e) {
-        // fallback
-      }
+    if (isRound1 || !hasPriorQualifiedTeams) {
+      // In Round 1 or Group rounds, all approved squads are eligible to be assigned
+      eligibleTeams = regs.map((r) => {
+        const teamKey = r.teamId || r.id;
+        const assignedRound = teamAssignmentMap[teamKey] || teamAssignmentMap[r.id];
+        const isSelected =
+          currentRoundTeamIds.includes(teamKey) ||
+          currentRoundTeamIds.includes(r.id) ||
+          (r.teamId && currentRoundTeamIds.includes(r.teamId));
 
-      if (!regs || regs.length === 0) {
-        regs = memoryRegistrations.filter(
-          (r) =>
-            r.tournamentId === id &&
-            (r.status === "CONFIRMED" || r.status === "APPROVED" || r.paymentStatus === "VERIFIED")
-        );
-      }
-
-      eligibleTeams = regs.map((r) => ({
-        id: r.id,
-        teamId: r.teamId || r.id,
-        teamName: r.teamName,
-        captainName: r.captainName || r.captainIgn,
-        captainPhone: r.captainPhone || r.whatsapp,
-        status: r.status,
-        paymentStatus: r.paymentStatus,
-        alreadySelected: currentRoundTeamIds.includes(r.id) || (r.teamId && currentRoundTeamIds.includes(r.teamId)),
-        previousRoundStatus: "CONFIRMED_REGISTRATION",
-      }));
-    } else {
-      const prevRound = rounds[currentRoundIndex - 1];
-      let prevRoundTeams: any[] = [];
-
-      if (prevRound && prevRound.roundTeams && prevRound.roundTeams.length > 0) {
-        prevRoundTeams = prevRound.roundTeams.filter(
-          (rt: any) => rt.status === "QUALIFIED" || rt.status === "ADVANCED" || rt.status === "PENDING"
-        );
-      } else if (prevRound) {
-        prevRoundTeams = memoryRoundTeams.filter(
-          (rt) =>
-            rt.roundId === prevRound.id &&
-            (rt.status === "QUALIFIED" || rt.status === "ADVANCED" || rt.status === "PENDING")
-        );
-      }
-
-      eligibleTeams = prevRoundTeams.map((rt) => {
-        const reg = memoryRegistrations.find((r) => r.id === rt.teamId || r.teamName === rt.teamId);
         return {
-          id: rt.teamId,
-          teamId: rt.teamId,
-          teamName: rt.team?.name || (reg ? reg.teamName : (rt.teamName || rt.teamId)),
-          captainName: reg ? (reg.captainName || reg.captainIgn) : "Captain",
-          status: rt.status,
-          score: rt.score || 0,
-          alreadySelected: currentRoundTeamIds.includes(rt.teamId),
-          previousRoundStatus: rt.status,
-          previousRoundName: prevRound ? prevRound.name : "Previous Round",
+          id: r.id,
+          teamId: teamKey,
+          teamName: r.teamName,
+          captainName: r.captainName || r.captainIgn || "Captain",
+          captainPhone: r.captainPhone || r.whatsapp,
+          status: r.status,
+          paymentStatus: r.paymentStatus,
+          alreadySelected: Boolean(isSelected),
+          assignedRoundName: assignedRound || null,
+          previousRoundStatus: "CONFIRMED_REGISTRATION",
+          previousRoundName: "Registrations",
         };
       });
+    } else {
+      // Round 2+ with prior qualified teams:
+      const qualifiedTeamsFromPrior: any[] = [];
+      for (const pRound of priorRounds) {
+        for (const rt of pRound.roundTeams || []) {
+          if (rt.status === "QUALIFIED" || rt.status === "ADVANCED") {
+            const reg = regs.find((r) => r.teamId === rt.teamId || r.id === rt.teamId || r.teamName === rt.team?.teamName);
+            const isSelected = currentRoundTeamIds.includes(rt.teamId);
+            qualifiedTeamsFromPrior.push({
+              id: rt.teamId,
+              teamId: rt.teamId,
+              teamName: rt.team?.teamName || rt.team?.name || (reg ? reg.teamName : (rt.teamName || rt.teamId)),
+              captainName: reg ? (reg.captainName || reg.captainIgn) : "Captain",
+              status: rt.status,
+              score: rt.score || 0,
+              alreadySelected: Boolean(isSelected),
+              assignedRoundName: teamAssignmentMap[rt.teamId] || null,
+              previousRoundStatus: rt.status,
+              previousRoundName: pRound.name,
+              isQualifiedFromPrior: true,
+            });
+          }
+        }
+      }
+
+      // Also list remaining registrations as wildcard fallback so admin is never blocked
+      const qualifiedIds = new Set(qualifiedTeamsFromPrior.map((t) => t.teamId));
+      const otherRegs = regs
+        .filter((r) => !qualifiedIds.has(r.teamId || r.id))
+        .map((r) => {
+          const teamKey = r.teamId || r.id;
+          const assignedRound = teamAssignmentMap[teamKey] || teamAssignmentMap[r.id];
+          const isSelected =
+            currentRoundTeamIds.includes(teamKey) ||
+            currentRoundTeamIds.includes(r.id) ||
+            (r.teamId && currentRoundTeamIds.includes(r.teamId));
+
+          return {
+            id: r.id,
+            teamId: teamKey,
+            teamName: r.teamName,
+            captainName: r.captainName || r.captainIgn || "Captain",
+            captainPhone: r.captainPhone || r.whatsapp,
+            status: r.status,
+            paymentStatus: r.paymentStatus,
+            alreadySelected: Boolean(isSelected),
+            assignedRoundName: assignedRound || null,
+            previousRoundStatus: "DIRECT_REGISTRATION",
+            previousRoundName: "All Squads",
+            isQualifiedFromPrior: false,
+          };
+        });
+
+      eligibleTeams = [...qualifiedTeamsFromPrior, ...otherRegs];
     }
 
-    res.json({ success: true, data: eligibleTeams, round: currentRound });
+    res.json({ success: true, data: eligibleTeams, round: parseRoundWithCredentials(currentRound) });
   } catch (error) {
     next(error);
   }
@@ -3364,55 +3545,125 @@ export const selectTeamsForRound = async (req: AuthenticatedRequest, res: Respon
     const { id, roundId } = req.params;
     const { teamIds } = req.body;
 
-    if (!Array.isArray(teamIds) || teamIds.length === 0) {
+    if (!Array.isArray(teamIds)) {
       res.status(400).json({ success: false, message: "teamIds array is required" });
       return;
     }
 
-    for (const tId of teamIds) {
+    // 1. Fetch registrations to resolve teamId and ensure Team record exists
+    let regs: any[] = [];
+    try {
+      regs = await prisma.tournamentRegistration.findMany({
+        where: { tournamentId: id },
+        include: { team: true },
+      });
+    } catch (e) {}
+
+    // Find default leaderId
+    let defaultUserId: string | null = (req as any).user?.id || null;
+    if (!defaultUserId) {
+      const u = await prisma.user.findFirst();
+      defaultUserId = u?.id || null;
+    }
+
+    // Free Fire lobby slots: Slot 1 to 12
+    let slotIndex = 1;
+    const resolvedTeamIds: string[] = [];
+
+    for (const rawId of teamIds) {
+      const reg = regs.find((r) => r.id === rawId || r.teamId === rawId || r.teamName === rawId);
+      let targetTeamId = rawId;
+
+      if (reg && reg.teamId) {
+        targetTeamId = reg.teamId;
+      } else if (reg && !reg.teamId) {
+        let team = await prisma.team.findFirst({ where: { tournamentId: id, teamName: reg.teamName } });
+        if (!team && defaultUserId) {
+          try {
+            team = await prisma.team.create({
+              data: {
+                tournamentId: id,
+                teamName: reg.teamName,
+                leaderId: reg.submittedById || defaultUserId,
+                status: "CONFIRMED",
+              },
+            });
+            await prisma.tournamentRegistration.update({
+              where: { id: reg.id },
+              data: { teamId: team.id },
+            });
+          } catch (err) {}
+        }
+        if (team) {
+          targetTeamId = team.id;
+        }
+      }
+
+      resolvedTeamIds.push(targetTeamId);
+
       try {
         await (prisma as any).roundTeam.upsert({
           where: {
             roundId_teamId: {
               roundId,
-              teamId: tId,
+              teamId: targetTeamId,
             },
           },
           update: {
             status: "QUALIFIED",
+            seed: slotIndex,
           },
           create: {
             roundId,
-            teamId: tId,
+            teamId: targetTeamId,
             status: "QUALIFIED",
+            seed: slotIndex,
             score: 0,
           },
         });
       } catch (e) {
-        // memory fallback
+        console.warn("Prisma selectTeamsForRound upsert error:", e);
       }
 
-      const existing = memoryRoundTeams.find((rt) => rt.roundId === roundId && rt.teamId === tId);
-      if (existing) {
-        existing.status = "QUALIFIED";
+      // Memory fallback sync
+      const memRt = memoryRoundTeams.find((rt) => rt.roundId === roundId && rt.teamId === targetTeamId);
+      if (memRt) {
+        memRt.status = "QUALIFIED";
+        memRt.seed = slotIndex;
       } else {
-        const reg = memoryRegistrations.find((r) => r.id === tId || r.teamName === tId);
         memoryRoundTeams.push({
           id: `rt-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
           roundId,
-          teamId: tId,
-          teamName: reg ? reg.teamName : tId,
+          teamId: targetTeamId,
+          teamName: reg ? reg.teamName : targetTeamId,
           status: "QUALIFIED",
+          seed: slotIndex,
           score: 0,
           createdAt: new Date(),
           updatedAt: new Date(),
         });
       }
+
+      slotIndex++;
     }
+
+    // Delete any teams in this round that were deselected
+    try {
+      const existingRts = await (prisma as any).roundTeam.findMany({ where: { roundId } });
+      for (const rt of existingRts) {
+        if (!resolvedTeamIds.includes(rt.teamId)) {
+          await (prisma as any).roundTeam.delete({ where: { id: rt.id } });
+        }
+      }
+    } catch (e) {}
+
+    memoryRoundTeams = memoryRoundTeams.filter(
+      (rt) => rt.roundId !== roundId || resolvedTeamIds.includes(rt.teamId)
+    );
 
     res.json({
       success: true,
-      message: `Successfully selected ${teamIds.length} team(s) for this round`,
+      message: `Successfully updated ${teamIds.length} squad(s) for this round`,
     });
   } catch (error) {
     next(error);
@@ -3425,7 +3676,7 @@ export const selectTeamsForRound = async (req: AuthenticatedRequest, res: Respon
 export const advanceTeams = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id, roundId } = req.params;
-    const { teamIds, nextRoundId } = req.body;
+    const { teamIds, nextRoundId, markUnselectedAsEliminated } = req.body;
 
     if (!Array.isArray(teamIds) || teamIds.length === 0 || !nextRoundId) {
       res.status(400).json({ success: false, message: "teamIds and nextRoundId are required" });
@@ -3433,46 +3684,28 @@ export const advanceTeams = async (req: AuthenticatedRequest, res: Response, nex
     }
 
     let advancedCount = 0;
+    let nextRoundSlot = 1;
+
+    try {
+      const existingInNext = await (prisma as any).roundTeam.findMany({ where: { roundId: nextRoundId } });
+      nextRoundSlot = existingInNext.length + 1;
+    } catch (e) {}
+
     for (const tId of teamIds) {
-      // Check if team is eliminated or disqualified in the current round
-      let isEliminated = false;
-      try {
-        const checkRt = await (prisma as any).roundTeam.findFirst({
-          where: { roundId, teamId: tId },
-        });
-        if (checkRt && (checkRt.status === "ELIMINATED" || checkRt.status === "DISQUALIFIED")) {
-          isEliminated = true;
-        }
-      } catch (e) {}
-
-      if (!isEliminated) {
-        const memRt = memoryRoundTeams.find((rt) => rt.roundId === roundId && rt.teamId === tId);
-        if (memRt && (memRt.status === "ELIMINATED" || memRt.status === "DISQUALIFIED")) {
-          isEliminated = true;
-        }
-      }
-
-      if (isEliminated) {
-        console.warn(`[advanceTeams] Team ${tId} is ELIMINATED/DISQUALIFIED in round ${roundId}. Skipping promotion.`);
-        continue;
-      }
-
       advancedCount++;
 
       // 1. Mark in current round as ADVANCED
       try {
         await (prisma as any).roundTeam.updateMany({
           where: { roundId, teamId: tId },
-          data: { status: "ADVANCED" },
+          data: { status: "ADVANCED", qualifiedAt: new Date() },
         });
-      } catch (e) {
-        // memory fallback
-      }
+      } catch (e) {}
 
       const currentRt = memoryRoundTeams.find((rt) => rt.roundId === roundId && rt.teamId === tId);
       if (currentRt) currentRt.status = "ADVANCED";
 
-      // 2. Put in nextRound as QUALIFIED
+      // 2. Put in nextRound as QUALIFIED with new slot number
       try {
         await (prisma as any).roundTeam.upsert({
           where: {
@@ -3481,21 +3714,23 @@ export const advanceTeams = async (req: AuthenticatedRequest, res: Response, nex
               teamId: tId,
             },
           },
-          update: { status: "QUALIFIED" },
+          update: { status: "QUALIFIED", seed: nextRoundSlot },
           create: {
             roundId: nextRoundId,
             teamId: tId,
             status: "QUALIFIED",
+            seed: nextRoundSlot,
             score: 0,
+            qualifiedAt: new Date(),
           },
         });
-      } catch (e) {
-        // memory fallback
-      }
+        nextRoundSlot++;
+      } catch (e) {}
 
       const existingNext = memoryRoundTeams.find((rt) => rt.roundId === nextRoundId && rt.teamId === tId);
       if (existingNext) {
         existingNext.status = "QUALIFIED";
+        existingNext.seed = nextRoundSlot;
       } else {
         const reg = memoryRegistrations.find((r) => r.id === tId || r.teamName === tId);
         memoryRoundTeams.push({
@@ -3504,6 +3739,7 @@ export const advanceTeams = async (req: AuthenticatedRequest, res: Response, nex
           teamId: tId,
           teamName: reg ? reg.teamName : tId,
           status: "QUALIFIED",
+          seed: nextRoundSlot,
           score: 0,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -3511,10 +3747,294 @@ export const advanceTeams = async (req: AuthenticatedRequest, res: Response, nex
       }
     }
 
+    // 3. If markUnselectedAsEliminated is true:
+    // Any squad in this round NOT in teamIds gets marked as ELIMINATED (Tournament Ended)
+    if (markUnselectedAsEliminated) {
+      try {
+        const allInRound = await (prisma as any).roundTeam.findMany({ where: { roundId } });
+        for (const rt of allInRound) {
+          if (!teamIds.includes(rt.teamId) && rt.status !== "ADVANCED") {
+            await (prisma as any).roundTeam.update({
+              where: { id: rt.id },
+              data: {
+                status: "ELIMINATED",
+                eliminatedAt: new Date(),
+              },
+            });
+          }
+        }
+      } catch (e) {}
+
+      for (const memRt of memoryRoundTeams) {
+        if (memRt.roundId === roundId && !teamIds.includes(memRt.teamId) && memRt.status !== "ADVANCED") {
+          memRt.status = "ELIMINATED";
+          memRt.eliminatedAt = new Date();
+        }
+      }
+    }
+
     res.json({
       success: true,
-      message: `Successfully advanced ${advancedCount} team(s) to the next round`,
+      message: `Successfully advanced ${advancedCount} squad(s) to the next round.${
+        markUnselectedAsEliminated ? " Unselected squads marked as Eliminated." : ""
+      }`,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * PUT /api/tournaments/:id/rounds/:roundId/credentials
+ */
+export const updateRoundCredentials = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id, roundId } = req.params;
+    const { roomId, roomPassword, map, roomTime, credentialsPublished, customNotes } = req.body;
+
+    let round: any = null;
+    try {
+      round = await (prisma as any).tournamentRound.findUnique({ where: { id: roundId } });
+    } catch (e) {}
+
+    if (!round) {
+      round = memoryRounds.find((r) => r.id === roundId);
+    }
+
+    if (!round) {
+      res.status(404).json({ success: false, message: "Round not found" });
+      return;
+    }
+
+    let existingMeta: any = {};
+    if (round.description && typeof round.description === "string" && round.description.trim().startsWith("{")) {
+      try {
+        existingMeta = JSON.parse(round.description);
+      } catch (e) {}
+    }
+
+    const updatedMeta = {
+      ...existingMeta,
+      roomId: roomId !== undefined ? String(roomId).trim() : existingMeta.roomId || "",
+      roomPassword: roomPassword !== undefined ? String(roomPassword).trim() : existingMeta.roomPassword || "",
+      map: map !== undefined ? map : existingMeta.map || "BERMUDA",
+      roomTime: roomTime !== undefined ? roomTime : existingMeta.roomTime || round.startTime || "",
+      credentialsPublished: credentialsPublished !== undefined ? Boolean(credentialsPublished) : Boolean(existingMeta.credentialsPublished),
+      customNotes: customNotes !== undefined ? customNotes : existingMeta.customNotes || "",
+    };
+
+    let updatedRound: any = null;
+    try {
+      updatedRound = await (prisma as any).tournamentRound.update({
+        where: { id: roundId },
+        data: {
+          description: JSON.stringify(updatedMeta),
+          startTime: updatedMeta.roomTime || round.startTime,
+        },
+        include: {
+          roundTeams: {
+            include: { team: true },
+          },
+        },
+      });
+    } catch (e) {
+      console.warn("Prisma updateRoundCredentials fallback to memory:", e);
+    }
+
+    const memIdx = memoryRounds.findIndex((r) => r.id === roundId);
+    if (memIdx !== -1) {
+      memoryRounds[memIdx] = {
+        ...memoryRounds[memIdx],
+        description: JSON.stringify(updatedMeta),
+        startTime: updatedMeta.roomTime || memoryRounds[memIdx].startTime,
+        updatedAt: new Date(),
+      };
+      if (!updatedRound) updatedRound = memoryRounds[memIdx];
+    }
+
+    res.json({
+      success: true,
+      message: "Custom Room credentials saved successfully",
+      data: parseRoundWithCredentials(updatedRound),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/tournaments/:id/my-room-access
+ */
+export const getMyRoomAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ success: false, message: "Authentication required" });
+      return;
+    }
+
+    // 1. Find user's squad registration in this tournament
+    let userRegs: any[] = [];
+    try {
+      userRegs = await prisma.tournamentRegistration.findMany({
+        where: {
+          tournamentId: id,
+          OR: [
+            { submittedById: userId },
+            { team: { leaderId: userId } },
+            { team: { members: { some: { userId } } } },
+          ],
+        },
+        include: {
+          team: {
+            include: { members: true },
+          },
+        },
+      });
+    } catch (e) {}
+
+    if (!userRegs || userRegs.length === 0) {
+      userRegs = memoryRegistrations.filter(
+        (r) =>
+          r.tournamentId === id &&
+          (r.submittedById === userId || r.leaderId === userId || (r.players && r.players.some((p: any) => p.userId === userId)))
+      );
+    }
+
+    if (!userRegs || userRegs.length === 0) {
+      res.json({
+        success: true,
+        data: {
+          isRegistered: false,
+          hasAccess: false,
+          message: "You are not registered in this tournament.",
+        },
+      });
+      return;
+    }
+
+    const reg = userRegs[0];
+    const teamId = reg.teamId || reg.team?.id || reg.id;
+    const teamName = reg.teamName || reg.team?.teamName || "Your Squad";
+
+    // 2. Fetch all rounds for this tournament
+    let rounds: any[] = [];
+    try {
+      rounds = await (prisma as any).tournamentRound.findMany({
+        where: { tournamentId: id },
+        include: {
+          roundTeams: {
+            include: { team: true },
+          },
+        },
+        orderBy: { roundNumber: "asc" },
+      });
+    } catch (e) {}
+
+    if (!rounds || rounds.length === 0) {
+      rounds = memoryRounds.filter((r) => r.tournamentId === id).sort((a, b) => a.roundNumber - b.roundNumber);
+    }
+
+    // 3. Check all roundTeam entries for this squad
+    const teamRoundEntries: Array<{ round: any; roundTeam: any }> = [];
+    for (const r of rounds) {
+      const rt = (r.roundTeams || []).find(
+        (t: any) =>
+          t.teamId === teamId ||
+          t.teamId === reg.id ||
+          (reg.teamId && t.teamId === reg.teamId) ||
+          t.team?.teamName === teamName ||
+          t.teamName === teamName
+      );
+      if (rt) {
+        teamRoundEntries.push({ round: r, roundTeam: rt });
+      }
+    }
+
+    if (teamRoundEntries.length === 0) {
+      res.json({
+        success: true,
+        data: {
+          isRegistered: true,
+          teamName,
+          hasAccess: false,
+          isEliminated: false,
+          message: "Registration confirmed! Waiting for admin to assign round and slot.",
+        },
+      });
+      return;
+    }
+
+    // Sort by roundNumber descending to inspect latest round
+    teamRoundEntries.sort((a, b) => b.round.roundNumber - a.round.roundNumber);
+    const latest = teamRoundEntries[0];
+    const latestRound = parseRoundWithCredentials(latest.round);
+    const latestRoundTeam = latest.roundTeam;
+
+    // Check if team is ELIMINATED
+    if (latestRoundTeam.status === "ELIMINATED" || latestRoundTeam.status === "DISQUALIFIED") {
+      res.json({
+        success: true,
+        data: {
+          isRegistered: true,
+          teamName,
+          hasAccess: false,
+          isEliminated: true,
+          status: "ELIMINATED",
+          eliminatedRound: latestRound.name,
+          message: `Tournament Ended - Eliminated in ${latestRound.name}`,
+        },
+      });
+      return;
+    }
+
+    const slotNumber = latestRoundTeam.seed || 1;
+    const isPublished = Boolean(latestRound.credentialsPublished);
+
+    if (isPublished) {
+      res.json({
+        success: true,
+        data: {
+          isRegistered: true,
+          teamName,
+          hasAccess: true,
+          isEliminated: false,
+          isPublished: true,
+          roundId: latestRound.id,
+          roundName: latestRound.name,
+          roundNumber: latestRound.roundNumber,
+          slotNumber,
+          roomId: latestRound.roomId,
+          roomPassword: latestRound.roomPassword,
+          map: latestRound.map || "BERMUDA",
+          roomTime: latestRound.roomTime || latestRound.startTime,
+          notes: latestRound.customNotes,
+          teamStatus: latestRoundTeam.status,
+          message: `Room credentials published! Join Slot #${slotNumber} in Free Fire.`,
+        },
+      });
+    } else {
+      res.json({
+        success: true,
+        data: {
+          isRegistered: true,
+          teamName,
+          hasAccess: false,
+          isEliminated: false,
+          isPublished: false,
+          roundId: latestRound.id,
+          roundName: latestRound.name,
+          roundNumber: latestRound.roundNumber,
+          slotNumber,
+          map: latestRound.map || "BERMUDA",
+          roomTime: latestRound.roomTime || latestRound.startTime,
+          teamStatus: latestRoundTeam.status,
+          message: `You are scheduled for ${latestRound.name} (Slot #${slotNumber}). Credentials unlock 15 minutes before match.`,
+        },
+      });
+    }
   } catch (error) {
     next(error);
   }
