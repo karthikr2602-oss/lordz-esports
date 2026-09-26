@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { collectiveMembers } from "../data/teams";
-import teamPhoto from "../assets/about-team.jpg";
+import teamPhoto from "../assets/about-team.webp";
 import { SEO } from "../components/common/SEO";
 import {
   ArrowUpRight,

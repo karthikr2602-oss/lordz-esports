@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TemplePattern } from "../components/common/TemplePattern";
 import logoImg from "../assets/lordz-logo.png";
-import aboutTeamImg from "../assets/about-team.jpg";
+import aboutTeamImg from "../assets/about-team.webp";
 import {
   Trophy,
   Shield,
@@ -82,9 +82,8 @@ export const AboutSection = ({
   return (
     <section
       id="about"
-      className={`relative ${
-        showHeader ? "py-24 sm:py-28" : "py-12 sm:py-16"
-      } px-4 sm:px-6 lg:px-8 bg-[#070709] border-t border-white/5 overflow-hidden`}
+      className={`relative ${showHeader ? "py-24 sm:py-28" : "py-12 sm:py-16"
+        } px-4 sm:px-6 lg:px-8 bg-[#070709] border-t border-white/5 overflow-hidden`}
     >
       {/* Background Architectural Gopuram Pattern */}
       <TemplePattern className="opacity-[0.04] scale-150" />
@@ -131,11 +130,10 @@ export const AboutSection = ({
               <button
                 type="button"
                 onClick={() => setActiveTab("manifesto")}
-                className={`px-4 py-2 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === "manifesto"
+                className={`px-4 py-2 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${activeTab === "manifesto"
                     ? "bg-[#FFBE32] text-black shadow-[0_0_20px_rgba(255,190,50,0.3)] scale-105"
                     : "bg-[#121217] text-gray-400 hover:text-white border border-white/10 hover:border-[#FFBE32]/30"
-                }`}
+                  }`}
               >
                 🏛️ Manifesto & Story
               </button>
@@ -143,11 +141,10 @@ export const AboutSection = ({
               <button
                 type="button"
                 onClick={() => setActiveTab("players")}
-                className={`px-4 py-2 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === "players"
+                className={`px-4 py-2 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${activeTab === "players"
                     ? "bg-[#FFBE32] text-black shadow-[0_0_20px_rgba(255,190,50,0.3)] scale-105"
                     : "bg-[#121217] text-gray-400 hover:text-white border border-white/10 hover:border-[#FFBE32]/30"
-                }`}
+                  }`}
               >
                 ⚡ Pro Athletes (Roster)
               </button>
@@ -155,11 +152,10 @@ export const AboutSection = ({
               <button
                 type="button"
                 onClick={() => setActiveTab("teams")}
-                className={`px-4 py-2 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                  activeTab === "teams"
+                className={`px-4 py-2 rounded-xl text-xs font-heading font-bold uppercase tracking-wider transition-all cursor-pointer ${activeTab === "teams"
                     ? "bg-[#FFBE32] text-black shadow-[0_0_20px_rgba(255,190,50,0.3)] scale-105"
                     : "bg-[#121217] text-gray-400 hover:text-white border border-white/10 hover:border-[#FFBE32]/30"
-                }`}
+                  }`}
               >
                 🛡️ The Collective & Teams
               </button>
@@ -187,7 +183,7 @@ export const AboutSection = ({
                   <div className="aspect-[4/3] w-full overflow-hidden relative">
                     <img
                       src={aboutTeamImg}
-                      alt="LORDZ ESPORTS Pro Champions on Stage with Trophy"
+                      alt="LORD ESPORTZ Pro Champions on Stage with Trophy"
                       loading="lazy"
                       decoding="async"
                       className="w-full h-full object-cover object-center filter brightness-[1.02] contrast-[1.05] transition-transform duration-700 ease-out group-hover:scale-105"
@@ -230,9 +226,8 @@ export const AboutSection = ({
                   {manifesto.map((item) => (
                     <div
                       key={item.text}
-                      className={`font-display text-2xl sm:text-4xl md:text-5xl uppercase tracking-tight font-extrabold ${
-                        item.gold ? "text-gold-gradient" : "text-white"
-                      }`}
+                      className={`font-display text-2xl sm:text-4xl md:text-5xl uppercase tracking-tight font-extrabold ${item.gold ? "text-gold-gradient" : "text-white"
+                        }`}
                     >
                       {item.text}
                     </div>
