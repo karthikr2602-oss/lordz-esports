@@ -58,7 +58,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
           <SectionHeading
             badge="PRO ROSTER"
             title="MEET THE PLAYERS"
-            subtitle="The championship athletes representing Lord Esports across premier national mobile stages."
+            subtitle="The championship athletes representing LORD ESPORTZ across premier national mobile stages."
           />
         )}
 
@@ -109,7 +109,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                       <div className="relative h-full w-full">
                         <img
                           src={athleteImg}
-                          alt={`${player.ign} (${player.realName}) - Pro Free Fire Athlete for LORDZ ESPORTS`}
+                          alt={`${player.ign} (${player.realName}) - Pro Free Fire Athlete for LORD ESPORTZ`}
                           onError={() => setFailedImages((prev) => ({ ...prev, [player.id]: true }))}
                           loading="lazy"
                           decoding="async"
@@ -128,7 +128,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                               {player.role}
                             </span>
                           )}
-                          <img src={logoImg} alt="LORDZ ESPORTS" width={20} height={20} className="h-5 w-5 object-contain drop-shadow" />
+                          <img src={logoImg} alt="LORD ESPORTZ" width={20} height={20} className="h-5 w-5 object-contain drop-shadow" />
                         </div>
                       </div>
                     ) : (
@@ -165,7 +165,7 @@ export const PlayersSection = ({ showHeader = true }: PlayersSectionProps) => {
                         ABOUT ATHLETE
                       </span>
                       <p className="text-[12px] text-gray-300 font-body leading-snug line-clamp-3">
-                        {player.about || player.featuredQuote || "Pro athlete competing under the banner of Lord Esports."}
+                        {player.about || player.featuredQuote || "Pro athlete competing under the banner of LORD ESPORTZ."}
                       </p>
                     </div>
                   </div>

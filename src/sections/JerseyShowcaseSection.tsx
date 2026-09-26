@@ -30,7 +30,7 @@ export const JerseyShowcaseSection = ({
         {showHeader && (
           <SectionHeading
             badge="OFFICIAL MERCHANDISE"
-            title="WEAR THE LORDZ"
+            title="WEAR THE LORD ESPORTZ"
             subtitle="Engineered for high-pressure competition. Crafted with Dravidian temple heritage and battle flame aesthetics."
           />
         )}
@@ -81,7 +81,7 @@ export const JerseyShowcaseSection = ({
                     <motion.img
                       key="front"
                       src={jerseyFrontImg}
-                      alt="LORDZ ESPORTS Pro Combat Jersey Front View"
+                      alt="LORD ESPORTZ Pro Combat Jersey Front View"
                       loading="lazy"
                       decoding="async"
                       initial={{ opacity: 0, scale: 0.96 }}
@@ -94,7 +94,7 @@ export const JerseyShowcaseSection = ({
                     <motion.img
                       key="back"
                       src={jerseyBackImg}
-                      alt="LORDZ ESPORTS Pro Combat Jersey Back View - Athlete Print"
+                      alt="LORD ESPORTZ Pro Combat Jersey Back View - Athlete Print"
                       loading="lazy"
                       decoding="async"
                       initial={{ opacity: 0, scale: 0.96 }}

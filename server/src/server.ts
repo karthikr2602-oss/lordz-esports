@@ -186,7 +186,7 @@ app.get("/api/sitemap.xml", handleSitemapRequest);
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
-    service: "LORDZ ESPORTS Shared REST API",
+    service: "LORD ESPORTZ Shared REST API",
     timestamp: new Date().toISOString(),
   });
 });
@@ -199,7 +199,7 @@ app.get("/", (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lord Esports — REST API Gateway</title>
+  <title>LORD ESPORTZ — REST API Gateway</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -323,7 +323,7 @@ app.get("/", (req, res) => {
   <div class="container">
     <div class="header">
       <div>
-        <h1 class="brand-title">LORDZ <span>ESPORTS</span> API</h1>
+        <h1 class="brand-title">LORD <span>ESPORTZ</span> API</h1>
         <p class="brand-sub">Unified REST Backend Services &amp; Live Data Gateway</p>
       </div>
       <div class="status-badge">
@@ -401,7 +401,7 @@ app.get("/", (req, res) => {
   res.json({
     success: true,
     status: "online",
-    service: "Lord Esports Shared REST API",
+    service: "LORD ESPORTZ Shared REST API",
     version: "1.0.0",
     database: "Neon PostgreSQL Connected",
     endpoints: {
@@ -427,7 +427,7 @@ app.use("/", routes);
 app.get(["/api", "/api/v1"], (_req, res) => {
   res.json({
     success: true,
-    service: "Lord Esports REST API",
+    service: "LORD ESPORTZ REST API",
     version: "1.0.0",
     status: "healthy",
     documentation: "Visit / for available endpoints",

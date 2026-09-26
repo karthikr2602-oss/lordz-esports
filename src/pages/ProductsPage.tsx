@@ -66,7 +66,7 @@ const fallbackCatalog: LocalProductItem[] = [
     originalPrice: 1999,
     image: jerseyFrontImg,
     description:
-      "The official uniform worn by Lord Esports athletes in national tournaments. Crafted with Dravidian temple art motifs, moisture-wicking micro-poly, and customized athlete IGN print.",
+      "The official uniform worn by LORD ESPORTZ athletes in national tournaments. Crafted with Dravidian temple art motifs, moisture-wicking micro-poly, and customized athlete IGN print.",
     specs: [
       "100% Breathable Micro-Poly Waffle Knit",
       "Official Clan Squad IGN & Number Print",
@@ -667,7 +667,7 @@ export const ProductsPage = () => {
       image: p.image?.startsWith("http") ? p.image : `${SITE_URL}${p.image}`,
       brand: {
         "@type": "Brand",
-        name: "LORDZ ESPORTS",
+        name: "LORD ESPORTZ",
       },
       offers: {
         "@type": "Offer",
@@ -682,8 +682,8 @@ export const ProductsPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-28 pb-24">
       <SEO
-        title="LORD ESPORTS Official Merchandise | Pro Combat Jerseys &amp; Gaming Gear"
-        description="Shop official LORDZ ESPORTS pro merchandise. High-performance tournament combat jerseys with custom gamer tags, heavyweight hoodies, XXL gaming mousepads, and esports gear."
+        title="LORD ESPORTZ Official Merchandise | Pro Combat Jerseys &amp; Gaming Gear"
+        description="Shop official LORD ESPORTZ pro merchandise. High-performance tournament combat jerseys with custom gamer tags, heavyweight hoodies, XXL gaming mousepads, and esports gear."
         canonicalPath="/products"
         breadcrumbs={[
           { name: "Home", item: "/" },
@@ -734,7 +734,7 @@ export const ProductsPage = () => {
             </div>
 
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-wide text-white leading-[1.1]">
-              Lord Esports <span className="text-gold-gradient">Products</span>
+              LORD ESPORTZ <span className="text-gold-gradient">Products</span>
             </h1>
 
             <p className="mt-4 text-sm sm:text-base text-gray-400 font-body leading-relaxed max-w-2xl mx-auto">

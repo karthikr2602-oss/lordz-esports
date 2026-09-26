@@ -10,8 +10,8 @@ export const NotFoundPage = () => {
   return (
     <div className="relative min-h-[85vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-[#050505] overflow-hidden py-20">
       <SEO
-        title="404 — Signal Lost | LORD ESPORTS"
-        description="The arena coordinates you requested do not exist or have been retired. Return to LORDZ ESPORTS homepage or browse active tournaments."
+        title="404 — Signal Lost | LORD ESPORTZ"
+        description="The arena coordinates you requested do not exist or have been retired. Return to LORD ESPORTZ homepage or browse active tournaments."
         noindex
         nofollow
       />
@@ -33,7 +33,7 @@ export const NotFoundPage = () => {
         >
           <img
             src={logoImg}
-            alt="LORDZ ESPORTS Emblem"
+            alt="LORD ESPORTZ Emblem"
             width={56}
             height={56}
             className="h-full w-full object-contain drop-shadow-[0_0_10px_#FFBE32]"

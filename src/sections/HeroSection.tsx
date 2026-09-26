@@ -264,7 +264,7 @@ export const HeroSection = ({
               >
                 <motion.img
                   src={trophyImg}
-                  alt="LORDZ ESPORTS Lord Championship Cup Trophy"
+                  alt="LORD ESPORTZ Lord Championship Cup Trophy"
                   fetchPriority="high"
                   className="max-h-[300px] xs:max-h-[360px] sm:max-h-[520px] lg:max-h-[640px] xl:max-h-[680px] w-auto object-contain select-none pointer-events-none filter contrast-[1.06] brightness-[1.04] drop-shadow-[0_0_24px_rgba(255,190,50,0.55)] transition-all"
                 />

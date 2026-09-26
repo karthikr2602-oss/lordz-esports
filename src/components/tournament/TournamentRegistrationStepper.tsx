@@ -813,7 +813,7 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
                 {/* QR Code instructions */}
                 <div className="flex flex-col sm:flex-row items-center gap-5">
                   {(() => {
-                    const upiIntentUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(tournament.title || "LORDZ ESPORTS")}&am=${feeAmount}&cu=INR&tn=${encodeURIComponent(`Entry Fee - ${tournament.title || "Tournament"}`)}`;
+                    const upiIntentUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(tournament.title || "LORD ESPORTZ")}&am=${feeAmount}&cu=INR&tn=${encodeURIComponent(`Entry Fee - ${tournament.title || "Tournament"}`)}`;
                     const dynamicQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data=${encodeURIComponent(upiIntentUri)}`;
                     const customQrUrl = tournament.upiQrImage && !tournament.upiQrImage.includes("partner-ewc") ? tournament.upiQrImage : null;
                     const resolvedQrUrl = !qrImageError && customQrUrl ? customQrUrl : dynamicQrCodeUrl;

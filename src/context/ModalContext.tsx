@@ -166,7 +166,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
             </div>
           ) : (
             <p className="leading-relaxed text-gray-400">
-              As competitive esports across India enters an unprecedented era of professionalization, Lord Esports continues to establish the gold standard for player development, scrim infrastructure, and fair play.
+              As competitive esports across India enters an unprecedented era of professionalization, LORD ESPORTZ continues to establish the gold standard for player development, scrim infrastructure, and fair play.
             </p>
           )}
 
@@ -191,7 +191,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-300 font-body">
-            Position your brand at the center of Indian youth culture and competitive gaming. Lord Esports provides tailored tournament naming rights, jersey sleeve placements, and broadcast integrations.
+            Position your brand at the center of Indian youth culture and competitive gaming. LORD ESPORTZ provides tailored tournament naming rights, jersey sleeve placements, and broadcast integrations.
           </p>
           <div className="p-4 rounded-lg bg-black/60 border border-white/10 text-xs space-y-2 font-mono">
             <div className="flex justify-between">

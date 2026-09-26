@@ -49,8 +49,8 @@ export const AboutPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-[#E0E0E0] selection:bg-[#FFBE32] selection:text-black">
       <SEO
-        title="About LORD ESPORTS | Organization History, Pro Athletes & Leadership Collective"
-        description="Explore the complete world of LORDZ ESPORTS: Our competitive manifesto, the national champion athletes roster, and the collective engineering and operations team."
+        title="About LORD ESPORTZ | Organization History & Pro Athletes Roster"
+        description="Explore the complete world of LORD ESPORTZ: Our competitive manifesto, the national champion athletes roster, and the operational leadership collective."
         canonicalPath="/about"
         breadcrumbs={[
           { name: "Home", item: "/" },
@@ -62,7 +62,7 @@ export const AboutPage = () => {
       <PageHero
         badge="ORGANIZATION PROFILE & DIRECTORY"
         title="ABOUT"
-        titleHighlight="LORD ESPORTS"
+        titleHighlight="LORD ESPORTZ"
         subtitle="The competitive manifesto, national champion athlete roster, and the operational collective powering India's elite clan."
       />
 

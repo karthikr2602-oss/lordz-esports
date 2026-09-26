@@ -14,7 +14,7 @@ export const MediaPage = () => {
       "@context": "https://schema.org",
       "@type": "VideoObject",
       name: m.title,
-      description: m.description || `Official LORDZ ESPORTS ${m.game} highlight.`,
+      description: m.description || `Official LORD ESPORTZ ${m.game} highlight.`,
       thumbnailUrl: m.thumbnail || `https://img.youtube.com/vi/${m.youtubeId}/hqdefault.jpg`,
       uploadDate: "2026-09-20T12:00:00Z",
       contentUrl: `https://www.youtube.com/watch?v=${m.youtubeId}`,
@@ -24,8 +24,8 @@ export const MediaPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <SEO
-        title="LORD ESPORTS Media | Tournament Highlights, Streams &amp; VODs"
-        description="Watch official tournament highlights, clutch plays, team cinematics, and broadcast VODs from LORDZ ESPORTS."
+        title="LORD ESPORTZ Media | Tournament Highlights, Streams &amp; VODs"
+        description="Watch official tournament highlights, clutch plays, team cinematics, and broadcast VODs from LORD ESPORTZ."
         canonicalPath="/media"
         breadcrumbs={[
           { name: "Home", item: "/" },

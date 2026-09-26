@@ -103,7 +103,7 @@ export const AboutSection = ({
             >
               <img
                 src={logoImg}
-                alt="LORDZ ESPORTS Official Crest"
+                alt="LORD ESPORTZ Official Crest"
                 width={56}
                 height={56}
                 className="h-full w-full object-contain drop-shadow-[0_0_20px_rgba(255,190,50,0.35)]"
@@ -122,7 +122,7 @@ export const AboutSection = ({
             </motion.div>
 
             <h2 className="font-display text-3xl sm:text-5xl uppercase tracking-wider text-white">
-              ABOUT <span className="text-gold-gradient">LORDZ ESPORTS</span>
+              ABOUT <span className="text-gold-gradient">LORD ESPORTZ</span>
             </h2>
 
             {/* Interactive Section Switcher Tabs: Manifesto / Players / Teams */}
@@ -237,7 +237,7 @@ export const AboutSection = ({
                 {/* Story Paragraph */}
                 <p className="mt-5 text-sm sm:text-base text-gray-300 font-body leading-relaxed">
                   Born from the intense competitive pulse of Indian gaming,{" "}
-                  <strong className="text-white font-semibold">Lord Esports</strong> is an
+                  <strong className="text-white font-semibold">LORD ESPORTZ</strong> is an
                   organization founded on discipline, raw skill, and cultural pride. From grassroots
                   mobile scrims to national championship arenas, we elevate aspiring athletes into
                   champions.

@@ -11,8 +11,8 @@ export const NewsPage = () => {
   const newsSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "LORDZ ESPORTS News & Dispatches",
-    description: "Official competitive reports and announcements from LORDZ ESPORTS.",
+    name: "LORD ESPORTZ News & Dispatches",
+    description: "Official competitive reports and announcements from LORD ESPORTZ.",
     url: `${SITE_URL}/news`,
     numberOfItems: newsData.length,
     itemListElement: newsData.map((item, idx) => ({
@@ -25,12 +25,12 @@ export const NewsPage = () => {
         datePublished: "2026-09-12",
         author: {
           "@type": "Organization",
-          name: "LORDZ ESPORTS",
+          name: "LORD ESPORTZ",
           url: SITE_URL,
         },
         publisher: {
           "@type": "Organization",
-          name: "LORDZ ESPORTS",
+          name: "LORD ESPORTZ",
           url: SITE_URL,
         },
         image: item.coverImage || item.image || `${SITE_URL}/og-image.jpg`,
@@ -41,8 +41,8 @@ export const NewsPage = () => {
   return (
     <div className="min-h-screen bg-[#070709]">
       <SEO
-        title="LORD ESPORTS News | Official Reports, Tournament Briefs &amp; Roster Updates"
-        description="Stay up to date with the latest dispatches, competitive match debriefs, tournament announcements, and roster updates from LORDZ ESPORTS."
+        title="LORD ESPORTZ News | Tournament Briefs &amp; Roster Updates"
+        description="Stay up to date with the latest dispatches, competitive match debriefs, tournament announcements, and roster updates from LORD ESPORTZ."
         canonicalPath="/news"
         breadcrumbs={[
           { name: "Home", item: "/" },

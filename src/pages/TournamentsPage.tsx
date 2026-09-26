@@ -10,7 +10,7 @@ export const TournamentsPage = () => {
   const tournamentsSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "LORDZ ESPORTS Competitive Tournaments",
+    name: "LORD ESPORTZ Competitive Tournaments",
     description: "Official Free Fire and Free Fire MAX competitive tournaments and scrims.",
     url: `${SITE_URL}/tournaments`,
     numberOfItems: 2,
@@ -33,8 +33,8 @@ export const TournamentsPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <SEO
-        title="LORD ESPORTS Tournaments | Competitive Free Fire Circuits &amp; Scrims"
-        description="Explore verified Free Fire and Free Fire MAX esports tournaments by LORDZ ESPORTS. Register your squad, view prize pools, stages, schedules, and live brackets."
+        title="LORD ESPORTZ Tournaments | Free Fire Circuits &amp; Scrims"
+        description="Explore verified Free Fire and Free Fire MAX esports tournaments by LORD ESPORTZ. Register your squad, view prize pools, stages, schedules, and live brackets."
         canonicalPath="/tournaments"
         breadcrumbs={[
           { name: "Home", item: "/" },

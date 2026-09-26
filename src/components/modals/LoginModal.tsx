@@ -282,7 +282,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         device: regDevice,
         discord: regDiscord.trim() || undefined,
       });
-      setSuccessMessage("Account created successfully! Welcome to Lord Esports.");
+      setSuccessMessage("Account created successfully! Welcome to LORD ESPORTZ.");
       setTimeout(() => {
         handleClose();
       }, 1500);
@@ -694,7 +694,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           <div className="flex flex-col items-center">
             <img
               src={logoImg}
-              alt="Lord Esports"
+              alt="LORD ESPORTZ"
               className="h-12 w-12 object-contain drop-shadow-[0_0_12px_rgba(255,190,50,0.3)] mb-3"
             />
 

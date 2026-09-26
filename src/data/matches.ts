@@ -34,7 +34,7 @@ export const matchesData: Match[] = [
     game: "FREE FIRE MAX",
     map: "BERMUDA",
     teamA: {
-      name: "LORD ESPORTS",
+      name: "LORD ESPORTZ",
       tag: "LORD",
       score: 38,
       points: 22,
@@ -55,7 +55,7 @@ export const matchesData: Match[] = [
     game: "FREE FIRE MAX",
     map: "PURGATORY",
     teamA: {
-      name: "LORD ESPORTS",
+      name: "LORD ESPORTZ",
       tag: "LORD",
     },
     teamB: {
@@ -73,7 +73,7 @@ export const matchesData: Match[] = [
     game: "FREE FIRE MAX",
     map: "BERMUDA",
     teamA: {
-      name: "LORD ESPORTS",
+      name: "LORD ESPORTZ",
       tag: "LORD",
     },
     teamB: {
@@ -91,7 +91,7 @@ export const matchesData: Match[] = [
     game: "FREE FIRE MAX",
     map: "KALAHARI",
     teamA: {
-      name: "LORD ESPORTS",
+      name: "LORD ESPORTZ",
       tag: "LORD",
       score: 24,
       points: 12,
@@ -102,7 +102,7 @@ export const matchesData: Match[] = [
       score: 14,
       points: 8,
     },
-    winner: "LORD ESPORTS",
+    winner: "LORD ESPORTZ",
   },
   {
     id: "match-res-2",
@@ -112,7 +112,7 @@ export const matchesData: Match[] = [
     game: "FREE FIRE MAX",
     map: "BERMUDA",
     teamA: {
-      name: "LORD ESPORTS",
+      name: "LORD ESPORTZ",
       tag: "LORD",
       score: 30,
       points: 18,
@@ -123,6 +123,6 @@ export const matchesData: Match[] = [
       score: 18,
       points: 6,
     },
-    winner: "LORD ESPORTS",
+    winner: "LORD ESPORTZ",
   },
 ];

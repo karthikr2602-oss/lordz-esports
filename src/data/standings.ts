@@ -35,7 +35,7 @@ export const flameOfGloryStandings: StandingRow[] = [
   },
   {
     rank: "03",
-    team: "LORD ESPORTS",
+    team: "LORD ESPORTZ",
     tag: "LORD",
     chickenDinner: "00",
     matches: "02",

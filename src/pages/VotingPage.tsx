@@ -220,8 +220,8 @@ export const VotingPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FFBE32] selection:text-black">
       <SEO
-        title="LORD ESPORTS Fan Awards Voting | Vote for MVP of the Season"
-        description="Cast your vote for the MVP of the season, top fraggers, and community awards in official LORDZ ESPORTS fan polls."
+        title="LORD ESPORTZ Fan Awards Voting | Vote for MVP of the Season"
+        description="Cast your vote for the MVP of the season, top fraggers, and community awards in official LORD ESPORTZ fan polls."
         canonicalPath="/voting"
         breadcrumbs={[
           { name: "Home", item: "/" },
@@ -231,7 +231,7 @@ export const VotingPage = () => {
 
       {/* Hero Section */}
       <PageHero
-        badge="LORD ESPORTS ANNUAL AWARDS"
+        badge="LORD ESPORTZ ANNUAL AWARDS"
         title="COMMUNITY & CREATOR"
         titleHighlight="AWARDS 2026"
         subtitle="Voting is for all: recognize the championship players, viral content creators, and dedicated community heroes who power the LORD legacy."
@@ -500,7 +500,7 @@ export const VotingPage = () => {
                     Candidate Affiliation
                   </span>
                   <span className="font-heading font-black text-sm text-[#FFBE32] uppercase">
-                    {votedNomineeCurrent.platform || votedNomineeCurrent.team || "LORD ESPORTS"}
+                    {votedNomineeCurrent.platform || votedNomineeCurrent.team || "LORD ESPORTZ"}
                   </span>
                 </div>
               </motion.div>
@@ -532,7 +532,7 @@ export const VotingPage = () => {
                     const isUserVotedThis = activeEvent.userVotingStatus?.votedNomineeId === nominee.id;
                     const candidateName = nominee.name || nominee.player?.ign || "Candidate";
                     const candidateRole = nominee.role || nominee.player?.role || "CREATOR";
-                    const candidateOrg = nominee.platform || nominee.team || nominee.player?.team || "LORD ESPORTS";
+                    const candidateOrg = nominee.platform || nominee.team || nominee.player?.team || "LORD ESPORTZ";
                     const candidateBio = nominee.bio || nominee.player?.featuredQuote || nominee.player?.about || "";
                     const imgUrl =
                       nominee.imageUrl ||

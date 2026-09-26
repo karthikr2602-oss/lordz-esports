@@ -43,7 +43,7 @@ const curatedPartners: PartnerRowData[] = [
     logo: logoInfinix,
     website: "https://infinixmobility.com",
     description:
-      "Supplying Lord Esports competitive mobile rosters with high-performance Infinix GT series devices equipped with 120 FPS high refresh displays, bypass charging, and vapor chamber cooling for prolonged tournament supremacy.",
+      "Supplying LORD ESPORTZ competitive mobile rosters with high-performance Infinix GT series devices equipped with 120 FPS high refresh displays, bypass charging, and vapor chamber cooling for prolonged tournament supremacy.",
     highlights: [
       "Official Tournament Device",
       "120 FPS Refresh Rate Optimization",
@@ -192,7 +192,7 @@ export const BrandPartnersPage = () => {
           category: p.category || "Esports Partner",
           logo: resolvedLogo,
           website: p.websiteUrl || "https://lordz.gg",
-          description: `Official brand partner collaborating with Lord Esports to advance competitive gaming excellence and fan engagement across India.`,
+          description: `Official brand partner collaborating with LORD ESPORTZ to advance competitive gaming excellence and fan engagement across India.`,
           highlights: [
             "Official Partner Collaboration",
             "Brand Integration in Tournaments",
@@ -241,8 +241,8 @@ export const BrandPartnersPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-28 pb-24">
       <SEO
-        title="Official Brand Partners &amp; Sponsors | LORD ESPORTS"
-        description="Explore official brands, industry leaders, gaming platforms, and corporate sponsors partnering with LORDZ ESPORTS."
+        title="Official Brand Partners &amp; Sponsors | LORD ESPORTZ"
+        description="Explore official brands, industry leaders, gaming platforms, and corporate sponsors partnering with LORD ESPORTZ."
         canonicalPath="/partners"
         breadcrumbs={[
           { name: "Home", item: "/" },

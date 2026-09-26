@@ -381,7 +381,7 @@ export interface Team {
 export const teamsData: Team[] = [
   {
     id: "lordz-ff-main",
-    name: "LORD ESPORTS",
+    name: "LORD ESPORTZ",
     tag: "LORD",
     game: "FREE FIRE MAX",
     rank: "#03",

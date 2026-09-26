@@ -61,11 +61,11 @@ export const MobileMenu = ({
             <Link to="/" onClick={onClose} className="flex items-center gap-2.5 sm:gap-3">
               <img
                 src={logoImg}
-                alt="Lord Esports"
+                alt="LORD ESPORTZ"
                 className="h-8 w-8 sm:h-10 sm:w-10 object-contain drop-shadow-[0_0_12px_#FFBE32]"
               />
               <span className="font-display text-xl sm:text-2xl uppercase tracking-widest text-white">
-                LORD <span className="text-[#FFBE32]">ESPORTS</span>
+                LORD <span className="text-[#FFBE32]">ESPORTZ</span>
               </span>
             </Link>
             <button

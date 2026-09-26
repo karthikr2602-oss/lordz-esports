@@ -182,7 +182,7 @@ export const TournamentDetailPage: React.FC = () => {
   if (!tournament) {
     return (
       <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 text-center">
-        <SEO title="Tournament Not Found | LORD ESPORTS" noindex nofollow />
+        <SEO title="Tournament Not Found | LORD ESPORTZ" noindex nofollow />
         <Trophy className="h-16 w-16 text-gray-600 mb-4" />
         <h1 className="font-display text-3xl uppercase tracking-wider">Tournament Not Found</h1>
         <p className="text-sm text-gray-400 mt-2">The tournament arena you are looking for may have concluded or been archived.</p>
@@ -334,7 +334,7 @@ export const TournamentDetailPage: React.FC = () => {
       description:
         tournament.shortDescription ||
         tournament.description ||
-        `Official ${tournament.game} tournament hosted by LORDZ ESPORTS.`,
+        `Official ${tournament.game} tournament hosted by LORD ESPORTZ.`,
       url: `${SITE_URL}${path}`,
       startDate: tournament.startDate || "2026-09-28T18:00:00Z",
       ...(tournament.endDate ? { endDate: tournament.endDate } : {}),
@@ -349,7 +349,7 @@ export const TournamentDetailPage: React.FC = () => {
       },
       organizer: {
         "@type": "SportsOrganization",
-        name: "LORDZ ESPORTS",
+        name: "LORD ESPORTZ",
         url: SITE_URL,
       },
       offers: {
@@ -366,11 +366,11 @@ export const TournamentDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FFBE32] selection:text-black">
       <SEO
-        title={`${tournament.title} | LORD ESPORTS Tournament`}
+        title={`${tournament.title} | LORD ESPORTZ Tournament`}
         description={
           tournament.shortDescription ||
           tournament.description ||
-          `Join ${tournament.title}, the official ${tournament.game} championship by LORDZ ESPORTS. Total Prize Pool: ${prizeDisplay}. Format: ${tournament.format}.`
+          `Join ${tournament.title}, the official ${tournament.game} championship by LORD ESPORTZ. Total Prize Pool: ${prizeDisplay}. Format: ${tournament.format}.`
         }
         canonicalPath={`/tournaments/${tournament.slug || slug}`}
         ogImage={tournament.bannerImage || "/og-image.jpg"}
@@ -613,7 +613,7 @@ export const TournamentDetailPage: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-xs text-gray-300 font-mono mt-1">
-                        Squad <strong className="text-white">"{roomAccess.teamName}"</strong> did not qualify from <strong className="text-red-400">{roomAccess.eliminatedRound || "the previous round"}</strong>. Room credentials for subsequent stages are closed. Thank you for competing in LORDZ ESPORTS!
+                        Squad <strong className="text-white">"{roomAccess.teamName}"</strong> did not qualify from <strong className="text-red-400">{roomAccess.eliminatedRound || "the previous round"}</strong>. Room credentials for subsequent stages are closed. Thank you for competing in LORD ESPORTZ!
                       </p>
                     </div>
                   </div>
@@ -800,7 +800,7 @@ export const TournamentDetailPage: React.FC = () => {
                 <p className="text-sm text-gray-300 font-body leading-relaxed">
                   {tournament.description ||
                     tournament.shortDescription ||
-                    "Official competitive tournament organized by Lord Esports. Squads battle across Bermuda, Purgatory, and Kalahari maps with real-time observer review and anti-cheat monitoring."}
+                    "Official competitive tournament organized by LORD ESPORTZ. Squads battle across Bermuda, Purgatory, and Kalahari maps with real-time observer review and anti-cheat monitoring."}
                 </p>
               </div>
 

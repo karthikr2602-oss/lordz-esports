@@ -6,15 +6,15 @@ export const HallOfGloryPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <SEO
-        title="LORD ESPORTS Hall of Glory &amp; Trophy Room"
-        description="Honoring landmark championship victories, tournament MVPs, and historic milestones in LORDZ ESPORTS history."
+        title="LORD ESPORTZ Hall of Glory &amp; Trophy Room"
+        description="Honoring landmark championship victories, tournament MVPs, and historic milestones in LORD ESPORTZ history."
         canonicalPath="/tournaments"
       />
       <PageHero
         badge="TROPHY ROOM & ACHIEVEMENTS"
         title="HALL OF"
         titleHighlight="GLORY"
-        subtitle="Honoring the landmark championship victories, event MVPs, and historic milestones in Lord Esports history."
+        subtitle="Honoring the landmark championship victories, event MVPs, and historic milestones in LORD ESPORTZ history."
       />
 
       <HallOfGlorySection showHeader={false} />

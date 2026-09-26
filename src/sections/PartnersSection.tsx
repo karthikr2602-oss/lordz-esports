@@ -313,7 +313,7 @@ export const PartnersSection = ({
                     {logo ? (
                       <img
                         src={logo}
-                        alt={`${partner.name} - Official Partner of LORDZ ESPORTS`}
+                        alt={`${partner.name} - Official Partner of LORD ESPORTZ`}
                         loading="eager"
                         decoding="async"
                         onError={(e) => {
@@ -349,7 +349,7 @@ export const PartnersSection = ({
             </div>
             <div>
               <h4 className="font-display text-lg uppercase tracking-wider text-white">
-                Want to Sponsor LORDZ ESPORTS Tournaments?
+                Want to Sponsor LORD ESPORTZ Tournaments?
               </h4>
               <p className="text-xs text-gray-400 font-body mt-0.5">
                 Reach over 500,000+ passionate competitive battle royale esports fans across YouTube &amp; Discord.

@@ -10,8 +10,8 @@ export const PlayersPage = () => {
   const playersSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "LORDZ ESPORTS Official Athlete Roster",
-    description: "Championship esports athletes representing LORDZ ESPORTS.",
+    name: "LORD ESPORTZ Official Athlete Roster",
+    description: "Championship esports athletes representing LORD ESPORTZ.",
     url: `${SITE_URL}/players`,
     numberOfItems: playersData.length,
     itemListElement: playersData.map((p, idx) => ({
@@ -26,7 +26,7 @@ export const PlayersPage = () => {
         image: p.image?.startsWith("http") ? p.image : `${SITE_URL}${p.image || "/players/player-beast.jpg"}`,
         worksFor: {
           "@type": "SportsOrganization",
-          name: "LORDZ ESPORTS",
+          name: "LORD ESPORTZ",
           url: SITE_URL,
         },
       },
@@ -36,8 +36,8 @@ export const PlayersPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <SEO
-        title="LORD ESPORTS Players | Official Pro Athlete Roster"
-        description="Meet the championship esports athletes of LORDZ ESPORTS competing across national Free Fire and Free Fire MAX circuits: BEAST, SHADOW, FALCON, and VIPER."
+        title="LORD ESPORTZ Players | Official Pro Athlete Roster"
+        description="Meet the championship esports athletes of LORD ESPORTZ competing across national Free Fire and Free Fire MAX circuits: BEAST, SHADOW, FALCON, and VIPER."
         canonicalPath="/players"
         breadcrumbs={[
           { name: "Home", item: "/" },
@@ -50,7 +50,7 @@ export const PlayersPage = () => {
         badge="PRO ATHLETE ROSTER"
         title="MEET THE"
         titleHighlight="CHAMPIONS"
-        subtitle="The championship athletes representing Lord Esports across premier national mobile stages."
+        subtitle="The championship athletes representing LORD ESPORTZ across premier national mobile stages."
       />
 
       {/* Community Voting CTA Banner */}

@@ -149,7 +149,7 @@ export const FooterSection = () => {
             <ul className="space-y-2.5 text-xs font-heading tracking-wider uppercase text-gray-400">
               <li>
                 <Link to="/about" className="hover:text-[#FFBE32] transition-colors">
-                  About Lord Esports
+                  About LORD ESPORTZ
                 </Link>
               </li>
               <li>
