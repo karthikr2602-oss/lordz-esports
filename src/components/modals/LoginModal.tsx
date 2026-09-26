@@ -53,7 +53,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [forgotNewPassword, setForgotNewPassword] = useState("");
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
   const [forgotOtpCountdown, setForgotOtpCountdown] = useState(0);
-  const [forgotDevOtp, setForgotDevOtp] = useState<string | null>(null);
   const [forgotLoading, setForgotLoading] = useState(false);
 
   // Editable Gaming Experience Tier state
@@ -157,7 +156,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setForgotNewPassword("");
     setForgotConfirmPassword("");
     setForgotStep("EMAIL");
-    setForgotDevOtp(null);
     setForgotOtpCountdown(0);
   };
 
@@ -180,9 +178,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     try {
       const res = await authApi.forgotPassword(clean);
       setSuccessMessage(res.message || "A 6-digit verification code has been dispatched to your email!");
-      if (res.devOtp) {
-        setForgotDevOtp(res.devOtp);
-      }
       setForgotStep("OTP");
       setForgotOtpCountdown(60);
     } catch (err: any) {
@@ -199,10 +194,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setForgotLoading(true);
     try {
       const res = await authApi.forgotPassword(forgotEmail.trim().toLowerCase());
-      setSuccessMessage("A fresh 6-digit code has been dispatched to your email!");
-      if (res.devOtp) {
-        setForgotDevOtp(res.devOtp);
-      }
+      setSuccessMessage(res.message || "A fresh 6-digit code has been dispatched to your email!");
       setForgotOtpCountdown(60);
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to resend code. Please try again.");
@@ -243,7 +235,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       setForgotOtp("");
       setForgotNewPassword("");
       setForgotConfirmPassword("");
-      setForgotDevOtp(null);
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to reset password. Please check the code and try again.");
     } finally {
@@ -1165,17 +1156,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                       Change
                     </button>
                   </div>
-
-                  {forgotDevOtp && (
-                    <div
-                      onClick={() => setForgotOtp(forgotDevOtp)}
-                      className="rounded-xl border border-dashed border-[#FFBE32]/60 bg-[#FFBE32]/10 p-2.5 text-xs text-[#FFBE32] flex items-center justify-between cursor-pointer hover:bg-[#FFBE32]/20 transition-all"
-                      title="Click to autofill dev OTP"
-                    >
-                      <span className="font-mono text-[11px]">⚡ Dev OTP: <strong>{forgotDevOtp}</strong></span>
-                      <span className="text-[10px] underline uppercase font-bold">Auto-fill</span>
-                    </div>
-                  )}
 
                   <div>
                     <div className="flex items-center justify-between mb-1.5">

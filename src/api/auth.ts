@@ -60,8 +60,8 @@ export const authApi = {
     });
   },
 
-  forgotPassword: async (email: string): Promise<{ success: boolean; message: string; devOtp?: string }> => {
-    return apiRequest<{ success: boolean; message: string; devOtp?: string }>("/auth/forgot-password", {
+  forgotPassword: async (email: string): Promise<{ success: boolean; message: string }> => {
+    return apiRequest<{ success: boolean; message: string }>("/auth/forgot-password", {
       method: "POST",
       body: JSON.stringify({ email }),
     });

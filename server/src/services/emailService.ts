@@ -15,7 +15,6 @@ export interface SendOtpResult {
   success: boolean;
   messageId?: string;
   error?: string;
-  devOtp?: string;
 }
 
 /**
@@ -35,10 +34,11 @@ export async function sendPasswordResetOtpEmail(
   console.log(`======================================================\n`);
 
   if (!resend) {
-    console.warn("⚠️ [Resend] RESEND_API_KEY is not configured in server/.env. Using console OTP delivery.");
+    const errMsg = "Resend API key is not configured. Please add RESEND_API_KEY to your server environment variables.";
+    console.error(`❌ [Resend] ${errMsg}`);
     return {
-      success: true,
-      devOtp: process.env.NODE_ENV === "development" ? otp : undefined,
+      success: false,
+      error: errMsg,
     };
   }
 
@@ -108,11 +108,10 @@ export async function sendPasswordResetOtpEmail(
     });
 
     if (error) {
-      console.warn("⚠️ [Resend] Email delivery warning:", error.message);
+      console.error("❌ [Resend] Email delivery failed:", error.message);
       return {
-        success: true, // Still allow flow since code is logged to server console
+        success: false,
         error: error.message,
-        devOtp: process.env.NODE_ENV === "development" ? otp : undefined,
       };
     }
 
@@ -124,9 +123,8 @@ export async function sendPasswordResetOtpEmail(
   } catch (err: any) {
     console.error("❌ [Resend] Exception sending email:", err.message);
     return {
-      success: true,
+      success: false,
       error: err.message,
-      devOtp: process.env.NODE_ENV === "development" ? otp : undefined,
     };
   }
 }

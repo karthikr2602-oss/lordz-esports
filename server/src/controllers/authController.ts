@@ -899,10 +899,17 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
       user.fullName || user.ign || user.username || "Athlete"
     );
 
+    if (!sendResult.success) {
+      res.status(502).json({
+        success: false,
+        message: sendResult.error || "Failed to deliver OTP email. Please verify that your email is valid.",
+      });
+      return;
+    }
+
     res.json({
       success: true,
       message: "A 6-digit verification code has been dispatched to your email address.",
-      devOtp: sendResult.devOtp,
     });
   } catch (error) {
     next(error);
