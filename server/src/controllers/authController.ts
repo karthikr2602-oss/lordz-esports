@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { prisma } from "../config/prisma.js";
 import { AuthenticatedRequest } from "../middleware/auth.js";
-import { sendPasswordResetOtpEmail } from "../services/emailService.js";
+import { sendPasswordResetOtpEmail, sendWelcomeEmail } from "../services/emailService.js";
 import { getCache, setCache, delCache } from "../config/cache.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "lordz-esports-ultra-secure-jwt-secret-key-2026-prod";
@@ -174,6 +174,20 @@ export const register = async (req: Request, res: Response, next: NextFunction):
         bio: data.bio?.trim() || null,
         status: "ACTIVE",
       },
+    });
+
+    // Dispatch attractive Lord Esports welcome email with official logo via Resend
+    sendWelcomeEmail({
+      email: user.email,
+      fullName: user.fullName,
+      username: user.username,
+      ign: user.ign,
+      primaryGame: user.primaryGame,
+      gamingExperience: user.gamingExperience,
+      device: user.device,
+      discord: user.discord,
+    }).catch((err) => {
+      console.warn("⚠️ [Register] Welcome email dispatch warning:", err?.message || err);
     });
 
     const token = jwt.sign(
