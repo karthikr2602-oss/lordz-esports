@@ -4,7 +4,7 @@
  */
 
 // Resolves canonical origin: VITE_SITE_URL environment variable takes precedence,
-// strictly falling back to the intended production domain https://lordzesports.com.
+// strictly falling back to the intended production domain https://lordesportz.com.
 // NEVER outputs localhost, staging, or vercel.app preview URLs as canonical, OG, or schema metadata.
 export const getSiteUrl = (): string => {
   const envUrl = import.meta.env.VITE_SITE_URL;
@@ -17,18 +17,18 @@ export const getSiteUrl = (): string => {
   }
 
   // Canonical production domain
-  return "https://lordzesports.com";
+  return "https://lordesportz.com";
 };
 
 export const SITE_URL = getSiteUrl();
 
 export const BRAND_CONFIG = {
-  brandName: "LORD ESPORTS",
-  legalName: "LORD ESPORTS",
-  alternateNames: ["Lord Esports", "Lordz"],
+  brandName: "LORD ESPORTZ",
+  legalName: "LORD ESPORTZ",
+  alternateNames: ["Lord Esportz", "LORDZ ESPORTS", "LORD ESPORTS", "Lordz"],
   tagline: "Compete. Improve. Build Your Legacy.",
   description:
-    "LORDZ ESPORTS is a premier Indian competitive esports organization and tournament platform hosting daily scrims, national championships, and pro athlete rosters for Free Fire and Free Fire MAX.",
+    "LORD ESPORTZ is India's premier competitive gaming organization and esports tournament platform hosting daily scrims, national championships, and pro athlete rosters for Free Fire and Free Fire MAX.",
   themeColor: "#050505",
   logoUrl: `${SITE_URL}/lordz-logo.png`,
   ogImageUrl: `${SITE_URL}/og-image.jpg`,

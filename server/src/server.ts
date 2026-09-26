@@ -21,6 +21,8 @@ const ADMIN_URL = process.env.ADMIN_URL || "https://lordz-esports-admin.lordespo
 
 // Allowed origins for CORS (Production custom domain, Cloudflare workers, Vercel, and local development)
 const allowedOrigins = [
+  "https://lordesportz.com",
+  "https://www.lordesportz.com",
   "https://lordzesports.com",
   "https://www.lordzesports.com",
   "https://lordz-esports.lordesportz75.workers.dev",
@@ -109,7 +111,7 @@ app.use("/players", express.static(playersDir));
 // Dynamic XML Sitemap Generator
 const handleSitemapRequest = async (_req: express.Request, res: express.Response) => {
   try {
-    const siteUrl = (process.env.SITE_URL || "https://lordzesports.com").trim().replace(/\/+$/, "");
+    const siteUrl = (process.env.SITE_URL || "https://lordesportz.com").trim().replace(/\/+$/, "");
 
     // Fetch published public tournaments from database
     const tournaments = await prisma.tournament.findMany({

@@ -27,8 +27,8 @@ export const HomePage = () => {
   return (
     <div>
       <SEO
-        title="LORD ESPORTS | Premier Indian Esports Tournaments &amp; Pro Gaming Platform"
-        description="LORDZ ESPORTS is India's premier competitive gaming organization and esports tournament platform. Compete in daily scrims, national championships, and meet championship athletes."
+        title="LORD ESPORTZ | Indian Esports Tournaments &amp; Gaming Hub"
+        description="Join LORD ESPORTZ, India's premier competitive gaming platform. Compete in daily Free Fire scrims, national championships, and climb official leaderboards."
         canonicalPath="/"
         structuredData={homeStructuredData}
       />
