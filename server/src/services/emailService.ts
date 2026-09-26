@@ -11,6 +11,22 @@ function getResendClient(): Resend | null {
   return resendClient;
 }
 
+function getEffectiveFromEmail(): string {
+  const envFrom = process.env.RESEND_FROM_EMAIL?.trim();
+  // Resend strictly forbids sending FROM public domains like gmail.com / yahoo.com.
+  // If env contains a public domain or is unset, use the verified lordesportz.com domain.
+  if (
+    envFrom &&
+    !envFrom.toLowerCase().includes("@gmail.") &&
+    !envFrom.toLowerCase().includes("@yahoo.") &&
+    !envFrom.toLowerCase().includes("@outlook.") &&
+    !envFrom.toLowerCase().includes("@hotmail.")
+  ) {
+    return envFrom;
+  }
+  return "LORD ESPORTS <noreply@lordesportz.com>";
+}
+
 export interface SendOtpResult {
   success: boolean;
   messageId?: string;
@@ -26,10 +42,12 @@ export async function sendPasswordResetOtpEmail(
   recipientName: string = "Athlete"
 ): Promise<SendOtpResult> {
   const resend = getResendClient();
-  const fromEmail = process.env.RESEND_FROM_EMAIL || "LORD ESPORTS <onboarding@resend.dev>";
+  const fromEmail = getEffectiveFromEmail();
+  const replyTo = process.env.REPLY_TO_EMAIL || "lordesportz75@gmail.com";
 
   console.log(`\n======================================================`);
   console.log(`🔑 [AUTH OTP] Password Reset Code for: ${toEmail}`);
+  console.log(`🔑 [AUTH OTP] Sender: ${fromEmail} | Reply-To: ${replyTo}`);
   console.log(`🔑 [AUTH OTP] Verification OTP: [ ${otp} ] (Valid for 10 minutes)`);
   console.log(`======================================================\n`);
 
@@ -102,6 +120,7 @@ export async function sendPasswordResetOtpEmail(
   try {
     const { data, error } = await resend.emails.send({
       from: fromEmail,
+      replyTo: replyTo,
       to: [toEmail],
       subject: `[${otp}] Your Lord Esports Password Reset Code`,
       html: htmlContent,
@@ -147,7 +166,8 @@ export async function sendWelcomeEmail(
   user: WelcomeEmailData
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const resend = getResendClient();
-  const fromEmail = process.env.RESEND_FROM_EMAIL || "LORD ESPORTS <onboarding@resend.dev>";
+  const fromEmail = getEffectiveFromEmail();
+  const replyTo = process.env.REPLY_TO_EMAIL || "lordesportz75@gmail.com";
   const clientUrl = process.env.CLIENT_URL || "https://lordz-esports.lordesportz75.workers.dev";
   const logoUrl = "https://lordz-esports.lordesportz75.workers.dev/lordz-logo.png";
 
@@ -337,6 +357,7 @@ export async function sendWelcomeEmail(
   try {
     const { data, error } = await resend.emails.send({
       from: fromEmail,
+      replyTo: replyTo,
       to: [user.email],
       subject: `🏆 Welcome to Lord Esports Clan, ${athleteIgn}! Your Athlete Passport is Active`,
       html: htmlContent,
