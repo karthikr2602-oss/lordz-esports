@@ -17,7 +17,6 @@ import {
   ArrowLeft,
   Search,
   Check,
-  QrCode,
   Lock,
   Clock,
 } from "lucide-react";
@@ -81,6 +80,11 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
   const [registrationResult, setRegistrationResult] = useState<any | null>(null);
+  const [qrImageError, setQrImageError] = useState(false);
+
+  useEffect(() => {
+    setQrImageError(false);
+  }, [tournament?.id, tournament?.upiQrImage]);
 
   // Pre-fill Leader info from profile whenever modal opens or user logs in
   useEffect(() => {
@@ -158,15 +162,26 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
     setUploadingScreenshot(true);
     try {
       const res = await tournamentsApi.uploadImage(file);
-      if (res.url) {
+      if (res && res.url) {
         setPaymentScreenshot(res.url);
+        setUploadingScreenshot(false);
+        return;
       }
     } catch {
-      // If server upload fails, fallback to object URL
-      setPaymentScreenshot(URL.createObjectURL(file));
-    } finally {
-      setUploadingScreenshot(false);
+      // Server upload failed, use universal Base64 data URL
     }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setPaymentScreenshot(reader.result);
+      }
+      setUploadingScreenshot(false);
+    };
+    reader.onerror = () => {
+      setUploadingScreenshot(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   // Search players
@@ -797,17 +812,31 @@ export const TournamentRegistrationStepper: React.FC<RegistrationStepperProps> =
 
                 {/* QR Code instructions */}
                 <div className="flex flex-col sm:flex-row items-center gap-5">
-                  <div className="p-3 bg-white rounded-2xl shadow-xl shrink-0">
-                    {tournament.upiQrImage ? (
-                      <img src={tournament.upiQrImage} alt="Payment QR" className="w-36 h-36 object-contain" />
-                    ) : (
-                      <div className="w-36 h-36 bg-gray-100 flex flex-col items-center justify-center text-black font-mono text-[10px] text-center p-2">
-                        <QrCode className="h-16 w-16 mb-1 text-black" />
-                        <span>UPI SCAN & PAY</span>
-                        <strong>{formatCurrency(feeAmount)}</strong>
+                  {(() => {
+                    const upiIntentUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(tournament.title || "LORDZ ESPORTS")}&am=${feeAmount}&cu=INR&tn=${encodeURIComponent(`Entry Fee - ${tournament.title || "Tournament"}`)}`;
+                    const dynamicQrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data=${encodeURIComponent(upiIntentUri)}`;
+                    const customQrUrl = tournament.upiQrImage && !tournament.upiQrImage.includes("partner-ewc") ? tournament.upiQrImage : null;
+                    const resolvedQrUrl = !qrImageError && customQrUrl ? customQrUrl : dynamicQrCodeUrl;
+
+                    return (
+                      <div className="p-3 bg-white rounded-2xl shadow-xl shrink-0 flex flex-col items-center">
+                        <img
+                          src={resolvedQrUrl}
+                          alt="Official UPI Payment QR Code"
+                          className="w-36 h-36 object-contain rounded-lg"
+                          onError={() => {
+                            if (!qrImageError) {
+                              setQrImageError(true);
+                            }
+                          }}
+                        />
+                        <div className="mt-1.5 text-[9px] font-mono font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          Scan &amp; Pay via UPI
+                        </div>
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
 
                   <div className="space-y-2 text-xs font-mono text-gray-300">
                     <p className="font-heading font-bold text-white uppercase text-xs">Payment Steps:</p>

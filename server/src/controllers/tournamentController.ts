@@ -832,6 +832,11 @@ export const getTournamentById = async (req: Request, res: Response, next: NextF
           } as any,
           include: {
             registrations: {
+              include: {
+                payment: true,
+                players: true,
+                currentStage: true,
+              },
               orderBy: { createdAt: "desc" },
             },
             matches: { orderBy: { createdAt: "desc" } },

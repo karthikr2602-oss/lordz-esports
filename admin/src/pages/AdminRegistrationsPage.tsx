@@ -11,6 +11,7 @@ import {
   Search,
   Check,
   X,
+  Eye,
   FileSpreadsheet,
 } from "lucide-react";
 
@@ -425,10 +426,12 @@ export const AdminRegistrationsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-3 px-3">
-                      <span className="px-2 py-0.5 rounded bg-black/60 border border-white/5 text-[11px] text-gray-300">
+                      <span className="px-2 py-0.5 rounded bg-black/60 border border-white/5 text-[11px] text-gray-300 font-mono">
                         {reg.players && reg.players.length > 0
                           ? `${reg.players.length} Players`
-                          : "5 Players"}
+                          : reg.playerNames
+                          ? `${reg.playerNames.split(",").map((s) => s.trim()).filter(Boolean).length} Players`
+                          : "4 Players"}
                       </span>
                     </td>
                     <td className="py-3 px-3">
@@ -567,8 +570,24 @@ export const AdminRegistrationsPage: React.FC = () => {
             <div className="space-y-2">
               <div className="text-xs uppercase font-bold text-gray-400">Squad Roster</div>
               <div className="rounded-xl border border-white/10 bg-black/40 divide-y divide-white/5 text-xs font-mono">
-                {activeRegDetail.players && activeRegDetail.players.length > 0 ? (
-                  activeRegDetail.players.map((p, idx) => (
+                {(() => {
+                  const rosterPlayers = (activeRegDetail.players && activeRegDetail.players.length > 0)
+                    ? activeRegDetail.players
+                    : (activeRegDetail.playerNames ? activeRegDetail.playerNames.split(",").map((s) => s.trim()).filter(Boolean) : []).map((ign, idx) => ({
+                        id: `p-${idx}`,
+                        ign,
+                        name: ign,
+                        role: idx === 0 ? "IGL" : "STARTER",
+                        isCaptain: idx === 0,
+                        isSubstitute: false,
+                        playerId: "N/A",
+                      }));
+
+                  if (rosterPlayers.length === 0) {
+                    return <div className="p-3 text-gray-400">No players listed in roster</div>;
+                  }
+
+                  return rosterPlayers.map((p, idx) => (
                     <div key={p.id || idx} className="p-2.5 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-gray-500">0{idx + 1}</span>
@@ -589,77 +608,115 @@ export const AdminRegistrationsPage: React.FC = () => {
                         <span className="text-amber-400 uppercase">{p.role}</span>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="p-3 text-gray-400">{activeRegDetail.playerNames}</div>
-                )}
+                  ));
+                })()}
               </div>
             </div>
 
             {/* Payment / Pre-Entry Details */}
-            {activeRegDetail.payment && activeRegDetail.paymentStatus !== "FREE" ? (
-              <div className="p-4 rounded-xl bg-black/50 border border-white/5 space-y-2 text-xs">
-                <div className="text-[10px] uppercase font-bold text-gray-400">Payment Verification Info</div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-                  <div>
-                    <span className="text-gray-500 block text-[10px]">Amount:</span>
-                    <span className="text-[#FFBE32] font-bold">{formatCurrency(activeRegDetail.payment.amount)}</span>
+            {(() => {
+              if (activeRegDetail.paymentStatus === "FREE") {
+                return (
+                  <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold text-emerald-400">FREE PRE-ENTRY SLOT</span>
+                      <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400">NO PAYMENT REQUIRED</span>
+                    </div>
+                    <p className="text-[11px] text-gray-400">
+                      This squad registered via free pre-entry reservation. Click Approve Squad below to confirm their slot for Round 1.
+                    </p>
                   </div>
-                  <div>
-                    <span className="text-gray-500 block text-[10px]">Method:</span>
-                    <span className="text-white">{activeRegDetail.payment.method}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block text-[10px]">UTR:</span>
-                    <span className="text-cyan-400 font-bold">{activeRegDetail.payment.utr || "N/A"}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block text-[10px]">Status:</span>
-                    <span className="text-white font-bold">{activeRegDetail.payment.status}</span>
-                  </div>
-                </div>
+                );
+              }
 
-                {activeRegDetail.payment.adminNotes && (
-                  <div className="p-2 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-300">
-                    <strong className="text-red-400">Rejection Reason / Note:</strong> {activeRegDetail.payment.adminNotes}
-                  </div>
-                )}
+              const payment = activeRegDetail.payment;
+              const utr = payment?.utr || (activeRegDetail as any).utr || (activeRegDetail as any).paymentUtr;
+              const screenshot = payment?.screenshot || (activeRegDetail as any).screenshot || (activeRegDetail as any).paymentScreenshot;
+              const amount = payment?.amount ?? (activeRegDetail as any).feeAmount ?? 49;
+              const method = payment?.method || "UPI";
+              const paymentStatus = payment?.status || activeRegDetail.paymentStatus || "PENDING";
 
-                {activeRegDetail.payment.screenshot && (
-                  <div className="pt-2">
-                    <span className="text-gray-500 block text-[10px] mb-1">Payment Screenshot Proof:</span>
-                    <div className="flex items-center gap-3">
-                      <div
-                        onClick={() => setPreviewScreenshot(activeRegDetail.payment!.screenshot!)}
-                        className="h-20 w-32 rounded-lg border border-white/10 bg-black/60 overflow-hidden cursor-pointer hover:border-[#FFBE32] transition-colors"
-                      >
-                        <img
-                          src={activeRegDetail.payment.screenshot}
-                          alt="Screenshot"
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <button
-                        onClick={() => setPreviewScreenshot(activeRegDetail.payment!.screenshot!)}
-                        className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-mono"
-                      >
-                        Enlarge Screenshot
-                      </button>
+              return (
+                <div className="p-4 rounded-xl bg-black/50 border border-white/10 space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                      Payment Verification Proof
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        paymentStatus === "VERIFIED"
+                          ? "bg-emerald-950/60 text-emerald-400 border border-emerald-500/30"
+                          : paymentStatus === "SUBMITTED" || paymentStatus === "UNDER_REVIEW"
+                          ? "bg-amber-950/60 text-amber-400 border border-amber-500/30"
+                          : "bg-red-950/60 text-red-400 border border-red-500/30"
+                      }`}
+                    >
+                      {paymentStatus}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono bg-black/40 p-3 rounded-lg border border-white/5">
+                    <div>
+                      <span className="text-gray-500 block text-[10px]">Fee Amount:</span>
+                      <span className="text-[#FFBE32] font-bold text-sm">{formatCurrency(amount)}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block text-[10px]">Method:</span>
+                      <span className="text-white">{method}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block text-[10px]">UTR / Transaction:</span>
+                      <span className="text-cyan-400 font-bold select-all break-all">
+                        {utr || "NOT PROVIDED"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block text-[10px]">Payer Name:</span>
+                      <span className="text-white truncate block">
+                        {payment?.payerName || activeRegDetail.captainName || "Athlete"}
+                      </span>
                     </div>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-1 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-bold text-emerald-400">FREE PRE-ENTRY SLOT</span>
-                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400">NO PAYMENT REQUIRED</span>
+
+                  {payment?.adminNotes && (
+                    <div className="p-2 rounded bg-red-500/10 border border-red-500/20 text-[11px] text-red-300">
+                      <strong className="text-red-400">Rejection Reason / Note:</strong> {payment.adminNotes}
+                    </div>
+                  )}
+
+                  {/* Screenshot proof */}
+                  <div className="pt-1">
+                    {screenshot ? (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white/[0.02] p-2.5 rounded-lg border border-white/5">
+                        <img
+                          src={screenshot}
+                          alt="Screenshot Proof"
+                          onClick={() => setPreviewScreenshot(screenshot)}
+                          className="h-16 w-16 object-cover rounded-lg border border-white/20 hover:border-[#FFBE32] cursor-pointer transition-colors shrink-0"
+                          title="Click to enlarge"
+                        />
+                        <div className="space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewScreenshot(screenshot)}
+                            className="px-3 py-1.5 rounded-lg bg-[#FFBE32]/20 hover:bg-[#FFBE32] text-[#FFBE32] hover:text-black text-xs font-heading font-bold uppercase transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Eye className="h-3.5 w-3.5" /> View Payment Screenshot
+                          </button>
+                          <p className="text-[10px] text-gray-400 font-mono">
+                            Click image or button to view proof in full high-resolution.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/5 text-[11px] text-gray-400 font-mono italic">
+                        No payment screenshot uploaded. Verification relies on UTR: {utr || "None"}.
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="text-[11px] text-gray-400">
-                  This squad registered via free pre-entry reservation. Click Approve Squad below to confirm their slot for Round 1.
-                </p>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Action Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">

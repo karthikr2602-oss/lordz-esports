@@ -124,10 +124,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regPhone, setRegPhone] = useState("");
-  const [regGamingExp, setRegGamingExp] = useState("1-2 Years (Semi-Pro)");
-  const [regPrimaryGame, setRegPrimaryGame] = useState("FREE FIRE MAX");
+  const regGamingExp = "1-2 Years (Semi-Pro)";
+  const regPrimaryGame = "FREE FIRE MAX";
   const [regIgn, setRegIgn] = useState("");
-  const [regDevice, setRegDevice] = useState("Mobile (Android)");
+  const regDevice = "Mobile (Android)";
   const [regDiscord, setRegDiscord] = useState("");
 
   // Resend OTP countdown effect
@@ -966,71 +966,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   </span>
                 </div>
 
-                {/* Gaming Experience */}
-                <div>
-                  <label className="block text-xs font-heading uppercase tracking-wider text-gray-300 mb-1">
-                    Gaming Experience *
-                  </label>
-                  <div className="relative">
-                    <Trophy className="absolute left-3 top-2.5 h-4 w-4 text-[#FFBE32]" />
-                    <select
-                      value={regGamingExp}
-                      onChange={(e) => setRegGamingExp(e.target.value)}
-                      className="w-full rounded-xl border border-white/15 bg-black/60 pl-9 pr-3 py-2 text-xs text-white focus:border-[#FFBE32] focus:outline-none cursor-pointer"
-                    >
-                      <option value="< 1 Year (Rookie / Beginner)" className="bg-[#0A0A0B]">
-                        &lt; 1 Year (Rookie / Beginner)
-                      </option>
-                      <option value="1-2 Years (Semi-Pro)" className="bg-[#0A0A0B]">
-                        1-2 Years (Semi-Pro)
-                      </option>
-                      <option value="2-4 Years (Tier-2 Competitive)" className="bg-[#0A0A0B]">
-                        2-4 Years (Tier-2 Competitive)
-                      </option>
-                      <option value="4+ Years (Tier-1 Veteran)" className="bg-[#0A0A0B]">
-                        4+ Years (Tier-1 Veteran)
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Primary Game */}
-                <div>
-                  <label className="block text-xs font-heading uppercase tracking-wider text-gray-300 mb-1">
-                    Primary Esports Title *
-                  </label>
-                  <div className="relative">
-                    <Gamepad2 className="absolute left-3 top-2.5 h-4 w-4 text-[#FFBE32]" />
-                    <select
-                      value={regPrimaryGame}
-                      onChange={(e) => setRegPrimaryGame(e.target.value)}
-                      className="w-full rounded-xl border border-white/15 bg-black/60 pl-9 pr-3 py-2 text-xs text-white focus:border-[#FFBE32] focus:outline-none cursor-pointer"
-                    >
-                      <option value="FREE FIRE MAX" className="bg-[#0A0A0B]">FREE FIRE MAX</option>
-                      <option value="FREE FIRE" className="bg-[#0A0A0B]">FREE FIRE</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Playing Device */}
-                <div>
-                  <label className="block text-xs font-heading uppercase tracking-wider text-gray-300 mb-1">
-                    Playing Device
-                  </label>
-                  <div className="relative">
-                    <Smartphone className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                    <select
-                      value={regDevice}
-                      onChange={(e) => setRegDevice(e.target.value)}
-                      className="w-full rounded-xl border border-white/15 bg-black/60 pl-9 pr-3 py-2 text-xs text-white focus:border-[#FFBE32] focus:outline-none cursor-pointer"
-                    >
-                      <option value="Mobile (Android)" className="bg-[#0A0A0B]">Mobile (Android)</option>
-                      <option value="Mobile (iOS / iPhone)" className="bg-[#0A0A0B]">Mobile (iOS / iPhone)</option>
-                      <option value="iPad / Tablet" className="bg-[#0A0A0B]">iPad / Tablet</option>
-                      <option value="PC / Desktop" className="bg-[#0A0A0B]">PC / Desktop</option>
-                    </select>
-                  </div>
-                </div>
 
                 {/* Discord Tag */}
                 <div>
