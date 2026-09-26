@@ -37,6 +37,8 @@ import hoodieImg from "../assets/product-hoodie.jpg";
 import mousepadImg from "../assets/product-mousepad.jpg";
 import capImg from "../assets/product-cap.jpg";
 import sleeveImg from "../assets/product-sleeve.jpg";
+import { LazyProductImage } from "../components/common/LazyProductImage";
+import { getProductFallbackImage, optimizeCloudinaryUrl } from "../utils/imageOptimizer";
 
 export interface LocalProductItem {
   id: string;
@@ -158,14 +160,8 @@ const fallbackCatalog: LocalProductItem[] = [
 ];
 
 function resolveProductImage(p: ApiProductItem): string {
-  if (p.frontImage) return p.frontImage;
-  const lowerName = p.name.toLowerCase();
-  if (lowerName.includes("jersey")) return jerseyFrontImg;
-  if (lowerName.includes("hoodie")) return hoodieImg;
-  if (lowerName.includes("mousepad")) return mousepadImg;
-  if (lowerName.includes("cap")) return capImg;
-  if (lowerName.includes("sleeve")) return sleeveImg;
-  return jerseyFrontImg;
+  if (p.frontImage) return optimizeCloudinaryUrl(p.frontImage, 800);
+  return getProductFallbackImage(p.name);
 }
 
 function parseSpecs(specsString?: string | null): string[] {
@@ -788,12 +784,12 @@ export const ProductsPage = () => {
                   </span>
                 </div>
 
-                <img
+                <LazyProductImage
                   src={product.image}
                   alt={product.name}
-                  loading="lazy"
-                  decoding="async"
+                  fallbackSrc={getProductFallbackImage(product.name)}
                   className="max-h-full max-w-full object-contain filter group-hover:scale-105 transition-transform duration-500 drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]"
+                  width={800}
                 />
 
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D12] via-transparent to-transparent pointer-events-none" />
@@ -1015,11 +1011,15 @@ export const ProductsPage = () => {
                   {/* Selected Product Pill */}
                   <div className="p-3.5 rounded-xl bg-black/60 border border-white/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={selectedProduct.image}
-                        alt={selectedProduct.name}
-                        className="h-12 w-12 object-contain"
-                      />
+                      <div className="h-12 w-12 shrink-0">
+                        <LazyProductImage
+                          src={selectedProduct.image}
+                          alt={selectedProduct.name}
+                          fallbackSrc={getProductFallbackImage(selectedProduct.name)}
+                          className="h-12 w-12 object-contain"
+                          width={200}
+                        />
+                      </div>
                       <div>
                         <h4 className="font-display text-sm font-bold uppercase text-white truncate max-w-[220px]">
                           {selectedProduct.name}

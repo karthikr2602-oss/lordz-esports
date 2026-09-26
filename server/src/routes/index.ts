@@ -21,7 +21,7 @@ import * as userCtrl from "../controllers/userController.js";
 import * as uploadCtrl from "../controllers/uploadController.js";
 import * as planCtrl from "../controllers/partnerPlanController.js";
 import * as votingCtrl from "../controllers/votingController.js";
-import { cacheMiddleware, delCache } from "../config/cache.js";
+import { cacheMiddleware, delCache, getCacheStatus } from "../config/cache.js";
 
 const invalidate = (pattern: string) => (_req: any, _res: any, next: any) => {
   delCache(pattern).catch(() => {});
@@ -29,6 +29,11 @@ const invalidate = (pattern: string) => (_req: any, _res: any, next: any) => {
 };
 
 const router = Router();
+
+// Cache health & status route
+router.get("/cache/status", (_req, res) => {
+  res.json({ success: true, ...getCacheStatus() });
+});
 
 // ================= AUTH ROUTES =================
 router.post("/auth/login", authCtrl.login);
@@ -356,18 +361,21 @@ router.post(
   "/merchandise",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*merchandise*"),
   merchCtrl.createProduct
 );
 router.put(
   "/merchandise/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*merchandise*"),
   merchCtrl.updateProduct
 );
 router.delete(
   "/merchandise/:id",
   authenticate,
   requireRole("SUPER_ADMIN", "CONTENT_EDITOR"),
+  invalidate("http:*merchandise*"),
   merchCtrl.deleteProduct
 );
 

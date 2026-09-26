@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { prisma } from "../config/prisma.js";
 import { AuthenticatedRequest } from "../middleware/auth.js";
+import { getCache, setCache, delCache } from "../config/cache.js";
 
 const productSchema = z.object({
   name: z.string().min(2),
@@ -26,9 +27,33 @@ const productSchema = z.object({
 
 export const getProducts = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const cacheKey = "api:merchandise:all";
+
+    // 1. Check Redis / Memory cache first for lightning-fast sub-millisecond response
+    const cached = await getCache<any[]>(cacheKey);
+    if (cached && Array.isArray(cached) && cached.length > 0) {
+      res.setHeader("X-Cache", "HIT-REDIS");
+      res.setHeader(
+        "Cache-Control",
+        "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
+      );
+      res.json({ success: true, data: cached });
+      return;
+    }
+
+    // 2. Fetch from Database
     const products = await prisma.product.findMany({
       orderBy: { createdAt: "desc" },
     });
+
+    // 3. Store in Redis/memory cache with 10-minute TTL
+    await setCache(cacheKey, products, 600);
+
+    res.setHeader("X-Cache", "MISS");
+    res.setHeader(
+      "Cache-Control",
+      "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
+    );
     res.json({ success: true, data: products });
   } catch (error) {
     next(error);
@@ -50,6 +75,11 @@ export const createProduct = async (req: AuthenticatedRequest, res: Response, ne
         slug: finalSlug,
       },
     });
+
+    // Invalidate Redis and HTTP caches
+    await delCache("api:merchandise:*");
+    await delCache("http:*merchandise*");
+
     res.status(201).json({ success: true, message: "Product created successfully", data: product });
   } catch (error) {
     next(error);
@@ -64,6 +94,11 @@ export const updateProduct = async (req: AuthenticatedRequest, res: Response, ne
       where: { id },
       data,
     });
+
+    // Invalidate Redis and HTTP caches
+    await delCache("api:merchandise:*");
+    await delCache("http:*merchandise*");
+
     res.json({ success: true, message: "Product updated successfully", data: product });
   } catch (error) {
     next(error);
@@ -74,8 +109,14 @@ export const deleteProduct = async (_req: AuthenticatedRequest, res: Response, n
   try {
     const { id } = _req.params;
     await prisma.product.delete({ where: { id } });
+
+    // Invalidate Redis and HTTP caches
+    await delCache("api:merchandise:*");
+    await delCache("http:*merchandise*");
+
     res.json({ success: true, message: "Product deleted successfully" });
   } catch (error) {
     next(error);
   }
 };
+

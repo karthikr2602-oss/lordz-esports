@@ -16,15 +16,21 @@ const redisUrl = process.env.REDIS_URL || process.env.UPSTASH_REDIS_URL;
 
 if (redisUrl) {
   try {
+    const isTls = redisUrl.startsWith("rediss://");
     redisClient = new Redis(redisUrl, {
       maxRetriesPerRequest: 2,
       retryStrategy: (times) => (times > 3 ? null : Math.min(times * 100, 1000)),
       enableOfflineQueue: false,
       connectTimeout: 5000,
+      tls: isTls ? { rejectUnauthorized: false } : undefined,
     });
 
     redisClient.on("connect", () => {
       console.log("⚡ [Cache] Redis connected successfully.");
+      isRedisAvailable = true;
+    });
+
+    redisClient.on("ready", () => {
       isRedisAvailable = true;
     });
 
@@ -178,5 +184,13 @@ export function cacheMiddleware(ttlSeconds: number = 180) {
     };
 
     next();
+  };
+}
+
+export function getCacheStatus(): { provider: "redis" | "memory"; isAvailable: boolean; memoryEntries: number } {
+  return {
+    provider: isRedisAvailable ? "redis" : "memory",
+    isAvailable: isRedisAvailable || memoryStore.size >= 0,
+    memoryEntries: memoryStore.size,
   };
 }

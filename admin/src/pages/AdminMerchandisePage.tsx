@@ -12,6 +12,7 @@ import {
   Search,
   Image as ImageIcon,
 } from "lucide-react";
+import { optimizeCloudinaryUrl } from "../utils/imageOptimizer";
 
 const AVAILABLE_SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL"];
 const CATEGORIES = ["JERSEY", "HOODIE", "ACCESSORY", "GEAR", "APPAREL"];
@@ -306,8 +307,9 @@ export const AdminMerchandisePage: React.FC = () => {
                   <div className="aspect-[4/3] w-full bg-black relative overflow-hidden flex items-center justify-center">
                     {p.frontImage ? (
                       <img
-                        src={p.frontImage}
+                        src={optimizeCloudinaryUrl(p.frontImage, 500)}
                         alt={p.name}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         onError={(e) => {
                           (e.currentTarget as HTMLElement).style.display = "none";
@@ -562,7 +564,7 @@ export const AdminMerchandisePage: React.FC = () => {
                 {formData.frontImage && (
                   <div className="mt-2 flex items-center gap-3 p-2 rounded-lg bg-white/5 border border-white/10">
                     <img
-                      src={formData.frontImage}
+                      src={optimizeCloudinaryUrl(formData.frontImage, 200)}
                       alt="Preview"
                       className="h-12 w-12 object-contain rounded bg-black"
                       onError={(e) => {
