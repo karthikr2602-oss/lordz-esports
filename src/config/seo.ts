@@ -23,8 +23,8 @@ export const getSiteUrl = (): string => {
 export const SITE_URL = getSiteUrl();
 
 export const BRAND_CONFIG = {
-  brandName: "LORDZ ESPORTS",
-  legalName: "LORDZ ESPORTS",
+  brandName: "LORD ESPORTS",
+  legalName: "LORD ESPORTS",
   alternateNames: ["Lord Esports", "Lordz"],
   tagline: "Compete. Improve. Build Your Legacy.",
   description:

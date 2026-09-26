@@ -33,7 +33,7 @@ export const TournamentsPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <SEO
-        title="LORDZ ESPORTS Tournaments | Competitive Free Fire Circuits &amp; Scrims"
+        title="LORD ESPORTS Tournaments | Competitive Free Fire Circuits &amp; Scrims"
         description="Explore verified Free Fire and Free Fire MAX esports tournaments by LORDZ ESPORTS. Register your squad, view prize pools, stages, schedules, and live brackets."
         canonicalPath="/tournaments"
         breadcrumbs={[

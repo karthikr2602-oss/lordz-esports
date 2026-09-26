@@ -6,7 +6,7 @@ export const HallOfGloryPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <SEO
-        title="LORDZ ESPORTS Hall of Glory &amp; Trophy Room"
+        title="LORD ESPORTS Hall of Glory &amp; Trophy Room"
         description="Honoring landmark championship victories, tournament MVPs, and historic milestones in LORDZ ESPORTS history."
         canonicalPath="/tournaments"
       />

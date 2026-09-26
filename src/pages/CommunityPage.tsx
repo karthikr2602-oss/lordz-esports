@@ -6,7 +6,7 @@ export const CommunityPage = () => {
   return (
     <div className="min-h-screen bg-[#070709]">
       <SEO
-        title="LORDZ ESPORTS Community | Discord, WhatsApp &amp; Gaming Guild"
+        title="LORD ESPORTS Community | Discord, WhatsApp &amp; Gaming Guild"
         description="Join the official LORDZ ESPORTS community. Connect with competitive players, participate in daily Free Fire scrims, and access official Discord and WhatsApp hubs."
         canonicalPath="/community"
         breadcrumbs={[

@@ -686,7 +686,7 @@ export const ProductsPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-28 pb-24">
       <SEO
-        title="LORDZ ESPORTS Official Merchandise | Pro Combat Jerseys &amp; Gaming Gear"
+        title="LORD ESPORTS Official Merchandise | Pro Combat Jerseys &amp; Gaming Gear"
         description="Shop official LORDZ ESPORTS pro merchandise. High-performance tournament combat jerseys with custom gamer tags, heavyweight hoodies, XXL gaming mousepads, and esports gear."
         canonicalPath="/products"
         breadcrumbs={[

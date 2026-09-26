@@ -220,7 +220,7 @@ export const VotingPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-[#FFBE32] selection:text-black">
       <SEO
-        title="LORDZ ESPORTS Fan Awards Voting | Vote for MVP of the Season"
+        title="LORD ESPORTS Fan Awards Voting | Vote for MVP of the Season"
         description="Cast your vote for the MVP of the season, top fraggers, and community awards in official LORDZ ESPORTS fan polls."
         canonicalPath="/voting"
         breadcrumbs={[

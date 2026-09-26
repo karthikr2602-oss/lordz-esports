@@ -106,7 +106,7 @@ export const PartnersPage = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-28 pb-20">
       <SEO
-        title="Partner With Us | Esports Sponsorship &amp; Collaboration | LORDZ ESPORTS"
+        title="Partner With Us | Esports Sponsorship &amp; Collaboration | LORD ESPORTS"
         description="Collaborate with LORDZ ESPORTS. Choose from customized sponsorship tiers, brand integration in premier tournaments, community activations, and broadcast features."
         canonicalPath="/partner-with-us"
         breadcrumbs={[

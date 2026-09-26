@@ -24,7 +24,7 @@ export const MediaPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <SEO
-        title="LORDZ ESPORTS Media | Tournament Highlights, Streams &amp; VODs"
+        title="LORD ESPORTS Media | Tournament Highlights, Streams &amp; VODs"
         description="Watch official tournament highlights, clutch plays, team cinematics, and broadcast VODs from LORDZ ESPORTS."
         canonicalPath="/media"
         breadcrumbs={[
