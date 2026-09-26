@@ -338,6 +338,21 @@ export const AdminTournamentDetailPage: React.FC = () => {
     loadData();
   }, [tournamentId]);
 
+  // Sync active round credentials into roomForm (called unconditionally at top level)
+  useEffect(() => {
+    const cur = rounds.find((r) => r.id === activeRoundId) || rounds[0];
+    if (cur) {
+      setRoomForm({
+        roomId: cur.roomId || "",
+        roomPassword: cur.roomPassword || "",
+        map: cur.map || "BERMUDA",
+        roomTime: cur.roomTime || cur.startTime || "",
+        credentialsPublished: Boolean(cur.credentialsPublished),
+        customNotes: cur.customNotes || "",
+      });
+    }
+  }, [activeRoundId, rounds]);
+
   if (loading && !tournament) {
     return (
       <div className="p-12 text-center text-gray-400">
@@ -527,20 +542,7 @@ export const AdminTournamentDetailPage: React.FC = () => {
     }
   };
 
-  // Sync active round credentials into roomForm
-  useEffect(() => {
-    const cur = rounds.find((r) => r.id === activeRoundId) || rounds[0];
-    if (cur) {
-      setRoomForm({
-        roomId: cur.roomId || "",
-        roomPassword: cur.roomPassword || "",
-        map: cur.map || "BERMUDA",
-        roomTime: cur.roomTime || cur.startTime || "",
-        credentialsPublished: Boolean(cur.credentialsPublished),
-        customNotes: cur.customNotes || "",
-      });
-    }
-  }, [activeRoundId, rounds]);
+
 
   const handleSaveRoomCredentials = async () => {
     if (!tournamentId || !activeRoundId) return;
