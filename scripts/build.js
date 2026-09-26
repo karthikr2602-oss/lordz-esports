@@ -2,6 +2,9 @@ import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
+console.log("🎨 Ensuring Brand Favicons are generated...");
+execSync("node scripts/generate-favicons.cjs", { stdio: "inherit" });
+
 console.log("🚀 Building Lord Esports Main Website...");
 execSync("npm run build:web", { stdio: "inherit" });
 
