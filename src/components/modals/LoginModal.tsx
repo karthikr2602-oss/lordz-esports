@@ -23,12 +23,15 @@ import {
   Copy,
   Loader2,
   PackageCheck,
+  KeyRound,
+  ArrowLeft,
+  Send,
+  RefreshCw,
 } from "lucide-react";
 import logoImg from "../../assets/lordz-logo.png";
 import { useAuth } from "../../context/AuthContext";
 import { authApi } from "../../api/auth";
 import { merchandiseApi, type OrderItem } from "../../api/merchandise";
-import { redirectToGoogleAccounts } from "../../utils/googleAuth";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -38,11 +41,20 @@ interface LoginModalProps {
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const { user, isAuthenticated, login, register, logout, updateUser } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "forgot">("login");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Forgot Password State
+  const [forgotStep, setForgotStep] = useState<"EMAIL" | "OTP">("EMAIL");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
+  const [forgotOtpCountdown, setForgotOtpCountdown] = useState(0);
+  const [forgotDevOtp, setForgotDevOtp] = useState<string | null>(null);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   // Editable Gaming Experience Tier state
   const [isEditingTier, setIsEditingTier] = useState(false);
@@ -119,6 +131,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [regDevice, setRegDevice] = useState("Mobile (Android)");
   const [regDiscord, setRegDiscord] = useState("");
 
+  // Resend OTP countdown effect
+  useEffect(() => {
+    if (forgotOtpCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setForgotOtpCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [forgotOtpCountdown]);
+
   const resetForms = () => {
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -131,6 +152,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setRegPhone("");
     setRegIgn("");
     setRegDiscord("");
+    setForgotEmail("");
+    setForgotOtp("");
+    setForgotNewPassword("");
+    setForgotConfirmPassword("");
+    setForgotStep("EMAIL");
+    setForgotDevOtp(null);
+    setForgotOtpCountdown(0);
   };
 
   const handleClose = () => {
@@ -138,10 +166,89 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  const handleGoogleSignIn = () => {
+  const handleRequestOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setErrorMessage(null);
-    setGoogleLoading(true);
-    redirectToGoogleAccounts(window.location.href, "PLAYER");
+    setSuccessMessage(null);
+    const clean = forgotEmail.trim().toLowerCase();
+    if (!clean || !clean.includes("@")) {
+      setErrorMessage("Please enter a valid registered email address.");
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      const res = await authApi.forgotPassword(clean);
+      setSuccessMessage(res.message || "A 6-digit verification code has been dispatched to your email!");
+      if (res.devOtp) {
+        setForgotDevOtp(res.devOtp);
+      }
+      setForgotStep("OTP");
+      setForgotOtpCountdown(60);
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to send reset code. Please check your email and try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (forgotOtpCountdown > 0 || forgotLoading) return;
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setForgotLoading(true);
+    try {
+      const res = await authApi.forgotPassword(forgotEmail.trim().toLowerCase());
+      setSuccessMessage("A fresh 6-digit code has been dispatched to your email!");
+      if (res.devOtp) {
+        setForgotDevOtp(res.devOtp);
+      }
+      setForgotOtpCountdown(60);
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to resend code. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const cleanOtp = forgotOtp.trim();
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      setErrorMessage("Please enter the complete 6-digit verification code.");
+      return;
+    }
+
+    if (forgotNewPassword.length < 6) {
+      setErrorMessage("New password must be at least 6 characters long.");
+      return;
+    }
+
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setErrorMessage("Passwords do not match. Please verify.");
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      const res = await authApi.resetPassword(forgotEmail.trim().toLowerCase(), cleanOtp, forgotNewPassword);
+      setSuccessMessage(res.message || "Password reset successful! You can now log in.");
+      setLoginIdentifier(forgotEmail.trim().toLowerCase());
+      setLoginPassword("");
+      setActiveTab("login");
+      setForgotStep("EMAIL");
+      setForgotOtp("");
+      setForgotNewPassword("");
+      setForgotConfirmPassword("");
+      setForgotDevOtp(null);
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to reset password. Please check the code and try again.");
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
 
@@ -210,13 +317,23 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={isAuthenticated ? "ATHLETE PASSPORT" : activeTab === "login" ? "PLAYER PORTAL SIGN IN" : "JOIN LORDZ CLAN — REGISTRATION"}
+      title={
+        isAuthenticated
+          ? "ATHLETE PASSPORT"
+          : activeTab === "login"
+          ? "PLAYER PORTAL SIGN IN"
+          : activeTab === "register"
+          ? "JOIN LORDZ CLAN — REGISTRATION"
+          : "ACCOUNT RECOVERY — RESET PASSWORD"
+      }
       subtitle={
         isAuthenticated
           ? "Official verified esports athlete ID & credentials"
           : activeTab === "login"
           ? "Access your clan tournament brackets, verified scrims & stats"
-          : "Register your athlete profile with real gaming credentials"
+          : activeTab === "register"
+          ? "Register your athlete profile with real gaming credentials"
+          : "Verify your email with a 6-digit OTP to reset your password"
       }
       maxWidth={isAuthenticated ? "md" : activeTab === "register" ? "lg" : "sm"}
     >
@@ -590,36 +707,56 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               className="h-12 w-12 object-contain drop-shadow-[0_0_12px_rgba(255,190,50,0.3)] mb-3"
             />
 
-            <div className="grid grid-cols-2 w-full max-w-sm rounded-xl bg-black/60 p-1 border border-white/10">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab("login");
-                  setErrorMessage(null);
-                }}
-                className={`py-2 text-xs font-heading font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-                  activeTab === "login"
-                    ? "bg-[#FFBE32] text-black shadow-[0_0_12px_rgba(255,190,50,0.4)]"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                SIGN IN
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab("register");
-                  setErrorMessage(null);
-                }}
-                className={`py-2 text-xs font-heading font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-                  activeTab === "register"
-                    ? "bg-[#FFBE32] text-black shadow-[0_0_12px_rgba(255,190,50,0.4)]"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                REGISTER ATHLETE
-              </button>
-            </div>
+            {activeTab === "forgot" ? (
+              <div className="flex items-center justify-between w-full max-w-sm px-1 py-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("login");
+                    setErrorMessage(null);
+                    setSuccessMessage(null);
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-heading font-bold uppercase tracking-wider text-[#FFBE32] hover:text-white transition-colors cursor-pointer"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <span>Back to Sign In</span>
+                </button>
+                <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+                  Password Recovery
+                </span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 w-full max-w-sm rounded-xl bg-black/60 p-1 border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("login");
+                    setErrorMessage(null);
+                  }}
+                  className={`py-2 text-xs font-heading font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                    activeTab === "login"
+                      ? "bg-[#FFBE32] text-black shadow-[0_0_12px_rgba(255,190,50,0.4)]"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  SIGN IN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("register");
+                    setErrorMessage(null);
+                  }}
+                  className={`py-2 text-xs font-heading font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                    activeTab === "register"
+                      ? "bg-[#FFBE32] text-black shadow-[0_0_12px_rgba(255,190,50,0.4)]"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  REGISTER ATHLETE
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Feedback Messages */}
@@ -640,45 +777,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           {/* TAB 1: SIGN IN FORM */}
           {activeTab === "login" && (
             <div className="space-y-4">
-              {/* Google Sign In Button */}
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={loading || googleLoading}
-                className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-white/20 bg-white hover:bg-gray-100 text-gray-900 font-heading font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-[0_2px_12px_rgba(255,255,255,0.15)] disabled:opacity-60"
-              >
-                {googleLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-gray-700" />
-                ) : (
-                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                    />
-                  </svg>
-                )}
-                <span>{googleLoading ? "Connecting Google..." : "Sign In with Google"}</span>
-              </button>
-
-              <div className="relative flex items-center justify-center my-1">
-                <div className="border-t border-white/10 w-full" />
-                <span className="bg-[#0b0b0e] px-3 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                  OR USE CLAN CREDENTIALS
-                </span>
-              </div>
-
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs font-heading uppercase tracking-wider text-gray-300 mb-1.5">
@@ -698,9 +796,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-heading uppercase tracking-wider text-gray-300 mb-1.5">
-                    Password
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-heading uppercase tracking-wider text-gray-300">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setErrorMessage(null);
+                        setSuccessMessage(null);
+                        if (loginIdentifier && loginIdentifier.includes("@")) {
+                          setForgotEmail(loginIdentifier);
+                        }
+                        setForgotStep("EMAIL");
+                        setActiveTab("forgot");
+                      }}
+                      className="text-[11px] text-[#FFBE32] hover:text-[#FFA000] hover:underline font-mono font-bold transition-colors cursor-pointer"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-3 h-4 w-4 text-gray-500" />
                     <input
@@ -739,44 +854,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           {/* TAB 2: REGISTRATION FORM */}
           {activeTab === "register" && (
             <div className="space-y-4">
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={loading || googleLoading}
-                className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-white/20 bg-white hover:bg-gray-100 text-gray-900 font-heading font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-[0_2px_12px_rgba(255,255,255,0.15)] disabled:opacity-60"
-              >
-                {googleLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-gray-700" />
-                ) : (
-                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                    />
-                  </svg>
-                )}
-                <span>{googleLoading ? "Connecting Google..." : "Fast Register with Google"}</span>
-              </button>
-
-              <div className="relative flex items-center justify-center my-1">
-                <div className="border-t border-white/10 w-full" />
-                <span className="bg-[#0b0b0e] px-3 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                  OR ENTER ATHLETE DETAILS
-                </span>
-              </div>
-
               <form onSubmit={handleRegisterSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {/* Username */}
@@ -999,6 +1076,203 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 </button>
               </p>
             </form>
+            </div>
+          )}
+
+          {/* TAB 3: FORGOT PASSWORD & OTP RESET */}
+          {activeTab === "forgot" && (
+            <div className="space-y-4">
+              {forgotStep === "EMAIL" ? (
+                /* Step 1: Input registered email to receive OTP */
+                <form onSubmit={handleRequestOtp} className="space-y-4">
+                  <div className="rounded-xl border border-[#FFBE32]/20 bg-[#FFBE32]/5 p-3.5 text-xs text-gray-300 flex items-start gap-2.5">
+                    <KeyRound className="h-4 w-4 text-[#FFBE32] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-white mb-0.5">Reset Your Athlete Password</p>
+                      <p className="text-gray-400 text-[11px] leading-relaxed">
+                        Enter your registered clan email address. We will dispatch a 6-digit OTP code to verify your identity.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-heading uppercase tracking-wider text-gray-300 mb-1.5">
+                      Registered Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3.5 top-3 h-4 w-4 text-gray-500" />
+                      <input
+                        type="email"
+                        required
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        placeholder="athlete@example.com"
+                        className="w-full rounded-xl border border-white/15 bg-black/60 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:border-[#FFBE32] focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 space-y-2">
+                    <GoldButton
+                      type="submit"
+                      disabled={forgotLoading || !forgotEmail.trim()}
+                      className="w-full flex items-center justify-center gap-2"
+                      size="md"
+                    >
+                      {forgotLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>SENDING VERIFICATION OTP...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4" />
+                          <span>SEND 6-DIGIT OTP</span>
+                        </>
+                      )}
+                    </GoldButton>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab("login");
+                        setErrorMessage(null);
+                        setSuccessMessage(null);
+                      }}
+                      className="w-full py-2 text-xs font-heading font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors cursor-pointer text-center"
+                    >
+                      Cancel and Return to Sign In
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* Step 2: Input 6-digit OTP & new password */
+                <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 text-xs">
+                    <div className="truncate mr-2">
+                      <span className="text-gray-400 block text-[10px] uppercase font-mono">Code dispatched to:</span>
+                      <span className="font-bold text-white truncate block">{forgotEmail}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotStep("EMAIL");
+                        setForgotOtp("");
+                        setErrorMessage(null);
+                      }}
+                      className="text-[#FFBE32] hover:underline text-[11px] font-mono shrink-0 cursor-pointer"
+                    >
+                      Change
+                    </button>
+                  </div>
+
+                  {forgotDevOtp && (
+                    <div
+                      onClick={() => setForgotOtp(forgotDevOtp)}
+                      className="rounded-xl border border-dashed border-[#FFBE32]/60 bg-[#FFBE32]/10 p-2.5 text-xs text-[#FFBE32] flex items-center justify-between cursor-pointer hover:bg-[#FFBE32]/20 transition-all"
+                      title="Click to autofill dev OTP"
+                    >
+                      <span className="font-mono text-[11px]">⚡ Dev OTP: <strong>{forgotDevOtp}</strong></span>
+                      <span className="text-[10px] underline uppercase font-bold">Auto-fill</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-heading uppercase tracking-wider text-gray-300">
+                        6-Digit Verification Code *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={forgotOtpCountdown > 0 || forgotLoading}
+                        className="text-[11px] font-mono text-[#FFBE32] hover:underline disabled:text-gray-500 disabled:no-underline cursor-pointer disabled:cursor-not-allowed flex items-center gap-1"
+                      >
+                        <RefreshCw className={`h-3 w-3 ${forgotLoading ? "animate-spin" : ""}`} />
+                        <span>{forgotOtpCountdown > 0 ? `Resend in ${forgotOtpCountdown}s` : "Resend OTP"}</span>
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={forgotOtp}
+                      onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="• • • • • •"
+                      className="w-full text-center tracking-[0.5em] text-lg font-mono font-black rounded-xl border border-white/20 bg-black/80 py-2.5 text-[#FFBE32] placeholder-gray-600 focus:border-[#FFBE32] focus:ring-1 focus:ring-[#FFBE32] focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-heading uppercase tracking-wider text-gray-300 mb-1.5">
+                      New Password *
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3.5 top-3 h-4 w-4 text-gray-500" />
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={forgotNewPassword}
+                        onChange={(e) => setForgotNewPassword(e.target.value)}
+                        placeholder="At least 6 characters"
+                        className="w-full rounded-xl border border-white/15 bg-black/60 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:border-[#FFBE32] focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-heading uppercase tracking-wider text-gray-300 mb-1.5">
+                      Confirm New Password *
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3.5 top-3 h-4 w-4 text-gray-500" />
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={forgotConfirmPassword}
+                        onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                        placeholder="Re-enter new password"
+                        className="w-full rounded-xl border border-white/15 bg-black/60 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:border-[#FFBE32] focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 space-y-2">
+                    <GoldButton
+                      type="submit"
+                      disabled={forgotLoading || forgotOtp.length !== 6 || !forgotNewPassword || !forgotConfirmPassword}
+                      className="w-full flex items-center justify-center gap-2"
+                      size="md"
+                    >
+                      {forgotLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>RESETTING PASSWORD...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span>CONFIRM & RESET PASSWORD</span>
+                        </>
+                      )}
+                    </GoldButton>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab("login");
+                        setErrorMessage(null);
+                        setSuccessMessage(null);
+                      }}
+                      className="w-full py-2 text-xs font-heading font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors cursor-pointer text-center"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
         </div>

@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { prisma } from "../config/prisma.js";
 import { AuthenticatedRequest } from "../middleware/auth.js";
+import { sendPasswordResetOtpEmail } from "../services/emailService.js";
+import { getCache, setCache, delCache } from "../config/cache.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "lordz-esports-ultra-secure-jwt-secret-key-2026-prod";
 
@@ -833,5 +835,158 @@ export const exchangeGoogleCode = async (req: Request, res: Response, next: Next
     next(error);
   }
 };
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Please provide a valid email address"),
+});
+
+const verifyOtpSchema = z.object({
+  email: z.string().email("Please provide a valid email address"),
+  otp: z.string().min(6, "Verification code must be 6 digits").max(6, "Verification code must be 6 digits"),
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().email("Please provide a valid email address"),
+  otp: z.string().min(6, "Verification code must be 6 digits").max(6, "Verification code must be 6 digits"),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+/**
+ * Request Password Reset Email with 6-digit OTP via Resend
+ */
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email } = forgotPasswordSchema.parse(req.body);
+    const cleanEmail = email.toLowerCase().trim();
+
+    const user = await prisma.user.findFirst({
+      where: { email: cleanEmail },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: "No athlete account found registered with this email address.",
+      });
+      return;
+    }
+
+    // Generate secure 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const cacheKey = `otp:reset:${cleanEmail}`;
+
+    // Store in cache for 10 minutes (600 seconds)
+    await setCache(cacheKey, { otp, email: cleanEmail, expiresAt: Date.now() + 10 * 60 * 1000 }, 600);
+
+    // Send email using Resend
+    const sendResult = await sendPasswordResetOtpEmail(
+      user.email,
+      otp,
+      user.fullName || user.ign || user.username || "Athlete"
+    );
+
+    res.json({
+      success: true,
+      message: "A 6-digit verification code has been dispatched to your email address.",
+      devOtp: sendResult.devOtp,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Verify OTP entered by athlete
+ */
+export const verifyResetOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email, otp } = verifyOtpSchema.parse(req.body);
+    const cleanEmail = email.toLowerCase().trim();
+    const cacheKey = `otp:reset:${cleanEmail}`;
+
+    const stored = await getCache<{ otp: string; email: string; expiresAt: number }>(cacheKey);
+
+    if (!stored || !stored.otp) {
+      res.status(400).json({
+        success: false,
+        message: "Verification code has expired or was not requested. Please request a new code.",
+      });
+      return;
+    }
+
+    if (stored.otp !== otp.trim()) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid verification code. Please check your email and try again.",
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: "Verification code verified successfully. You may now enter your new password.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Set New Password using verified OTP
+ */
+export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email, otp, newPassword } = resetPasswordSchema.parse(req.body);
+    const cleanEmail = email.toLowerCase().trim();
+    const cacheKey = `otp:reset:${cleanEmail}`;
+
+    const stored = await getCache<{ otp: string; email: string; expiresAt: number }>(cacheKey);
+
+    if (!stored || !stored.otp) {
+      res.status(400).json({
+        success: false,
+        message: "Verification code has expired. Please request a new code.",
+      });
+      return;
+    }
+
+    if (stored.otp !== otp.trim()) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid verification code.",
+      });
+      return;
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { email: cleanEmail },
+    });
+
+    if (!user) {
+      res.status(404).json({ success: false, message: "User account not found." });
+      return;
+    }
+
+    // Hash new password with bcrypt
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update password in database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    });
+
+    // Invalidate OTP immediately
+    await delCache(cacheKey);
+
+    res.json({
+      success: true,
+      message: "Password reset successful! You may now sign in with your new password.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 

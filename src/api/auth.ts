@@ -60,6 +60,31 @@ export const authApi = {
     });
   },
 
+  forgotPassword: async (email: string): Promise<{ success: boolean; message: string; devOtp?: string }> => {
+    return apiRequest<{ success: boolean; message: string; devOtp?: string }>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  verifyResetOtp: async (email: string, otp: string): Promise<{ success: boolean; message: string }> => {
+    return apiRequest<{ success: boolean; message: string }>("/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify({ email, otp }),
+    });
+  },
+
+  resetPassword: async (
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    return apiRequest<{ success: boolean; message: string }>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+  },
+
   googleLogin: async (payload: { token?: string; credential?: string; email?: string; name?: string; picture?: string }): Promise<AuthResponse> => {
     return apiRequest<AuthResponse>("/auth/google", {
       method: "POST",
